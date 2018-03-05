@@ -1,0 +1,307 @@
+body {
+    font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+    font-size: 1em;
+    line-height: 1.42857143em;
+    
+    text-align: justify;
+    
+    color: #333;
+    background-color: #ddd;
+    
+    min-height:100vh;
+    width:100vw;
+    
+    overflow-y:auto;
+    overflow-x:hidden;
+}
+a {
+    text-decoration:none;
+    color:#167dac;
+}
+a:hover {
+    color:rgb(232,92,40);
+}
+
+#nav        {grid-area:nav;}
+#main       {grid-area:main;}
+#sidebar    {grid-area:sidebar;}
+#logo       {grid-area:logo;}
+#branding   {grid-area:branding;}
+#menu       {grid-area:menu;}
+#social     {grid-area:social;}
+#header     {grid-area:header;}
+#content    {grid-area:content;}
+#footer     {grid-area:footer;}
+
+body {
+    display: grid;
+    grid-template-areas:
+    "nav    header    sidebar"
+    "nav    main      sidebar"
+    "nav    footer    sidebar";
+    grid-auto-rows: auto 1fr auto;
+    grid-auto-columns: auto 1fr auto;
+    grid-gap: 0 0;
+}
+
+#nav {
+    display: grid;
+    grid-template-areas:
+    "logo"
+    "branding"
+    "menu"
+    "social";
+    grid-template-rows: auto auto 1fr auto;
+    grid-template-columns: auto;
+    
+    align-self: start;
+    position:sticky;
+    top:0;
+    left:0;
+    bottom:0;
+    width:auto;
+    height:100vh;
+    
+    border-right: 1px solid #bbb;
+}
+
+#logo, #branding, #menu {
+    align-self: start;
+}
+#social {
+    align-self: end;
+}
+#wrapper {
+    min-height:100vh;
+    width:auto;
+    overflow-y:auto;
+}
+#main {
+    width:auto;
+    margin:auto;
+    height:auto;
+    padding:0 0.5rem 0 0.5rem;
+    align-self: stretch;
+}
+
+
+#header, #main, #footer  {
+    padding: auto 20px;
+}
+
+#logo {
+    margin:0;
+    width:100%;
+}
+#logo img {
+    display: block;
+    height: auto;
+    width: auto;
+    max-width:288px;
+}
+
+#branding {
+    padding: 2rem 1rem 0rem 1rem;
+    width:auto;
+    white-space: nowrap;
+}
+#menu {
+    margin:1.5rem 0 1rem 0;
+    width:auto;
+    display:inline-block;
+}
+#social {
+    margin:auto;
+    padding:0 0 1rem;
+}
+
+#header {
+    align-self:start;
+    padding:auto;
+}
+#header-inner {
+    display: block;
+    margin:auto;
+    max-width:60rem;
+    padding:0 0.5rem;
+}
+#footer {
+    align-self: end;
+    display:flex;
+    border-top: 1px solid #bbb;
+}
+#footer-inner {
+    margin:0.5rem auto;
+    width:auto;
+    
+}
+
+.content {
+    margin:auto;
+    max-width:50rem;
+}
+
+.menu-link {
+    width:auto;
+    height:auto;
+}
+.menu-item:hover{
+}
+.menu-item {
+    padding:0.5rem 1rem;
+    font-size:x-large;
+    font-weight:bold;
+}
+
+.menu-label {
+    margin-left:0.5rem;
+}
+
+.title {
+    font-size:xx-large;
+    font-weight:bolder;
+}
+.subtitle {
+    font-size:large;
+    font-weight:bold;
+    margin:0;
+}
+
+/* CASE: wide view screen but height small -> remove logo and allow nav scrollbar */
+@media (min-aspect-ratio: 1/1) and (max-height: 720px) {
+    #logo {
+        display:none;
+    }
+    #nav {
+        overflow-y:auto;
+    }
+}
+
+/* CASE: small screen or width too small -> reorganize main layout */
+@media (max-aspect-ratio: 1/1), (max-width:1024px){
+    body {
+        display: grid;
+        grid-template-areas:
+        "nav"
+        "header"
+        "main"
+        "sidebar"
+        "footer";
+        grid-auto-rows: max-content max-content auto max-content max-content;
+        grid-auto-columns: auto;
+        grid-gap: 0 0;
+        height:100%;
+        width:auto;
+        overflow-y:auto;
+    }
+    
+    #wrapper {
+        height:auto;
+        width:auto;
+    }
+    #nav {
+        display: grid;
+        grid-template-areas:
+        ". branding social"
+        "menu menu menu" ;
+        grid-template-rows: auto;
+        grid-template-columns: minmax(0,1fr) minmax(max-content,1fr) minmax(max-content,1fr) ;
+        
+        align-self: start;
+        position:relative;
+        top:0;
+        width:100%;
+        height:auto;
+        border:none;
+        border-bottom: 1px solid #bbb;
+        overflow:hidden;
+        
+    }
+    #social {
+        align-self:center;
+        margin:0 0 0 0;
+        padding:0rem 0.5rem 0rem 0rem;
+        justify-self: right;
+    }
+    #branding {
+        align-self:start;
+        padding: 0.5rem 0.5rem 0.5rem 0.5rem;
+        justify-self: center;
+    }
+    #menu {
+        margin: 0 0 -17px 0;
+        padding: 0.5rem 0rem 0.5rem 0rem;
+        width:auto;
+        display:inline-block;
+        overflow-x:scroll;
+        white-space: nowrap;
+        border-top: 1px solid #bbb;
+
+    }
+    .menu-item {
+        width:auto;
+        height:auto;
+        display:inline-block;
+        padding:0rem 0.5rem 0rem 0.5rem;
+    }
+    
+    
+    .menu-label {
+        margin-left:0rem;
+    }
+    
+    #logo {
+        display:none;
+    }
+    #branding > .title {
+        margin :0 auto;
+        text-align:center;
+    }
+    #branding > .subtitle {
+        margin :0 auto;
+    }
+}
+
+/* CASE: very not large screen -> move branding name to left, remove subtitle, remove dummy left space*/
+@media (max-width:740px){
+    #nav {
+        grid-template-areas:
+        "branding social"
+        "menu menu" ;
+        grid-template-rows: auto;
+        grid-template-columns:  minmax(max-content,1fr) minmax(max-content,1fr) ;
+    }
+    #branding {
+        align-self:center;
+        justify-self: left;
+        margin:0;
+        padding: 0.5rem 0.5rem 0.5rem 0.5rem;
+    }
+    #branding > .title {
+        margin:0;
+        text-align:left;
+    }
+    #branding > .subtitle {
+        display:none;
+    }
+}
+
+@media (max-aspect-ratio: 1/1) and (max-width:420px){
+    #social {
+        display:none;
+    }
+    #nav {
+        grid-template-areas:
+        "branding "
+        "menu " ;
+        grid-template-rows: auto;
+        grid-template-columns:  auto;
+    }
+}
+
+#header
+{
+    background-color:#000;
+    color: #fff;
+}
+

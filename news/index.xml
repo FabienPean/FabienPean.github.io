@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>News on My Personal Website</title>
+    <link>https://FabienPean.github.io/news/</link>
+    <description>Recent content in News on My Personal Website</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Fri, 06 Apr 2012 00:00:00 +0000</lastBuildDate>
+    
+	<atom:link href="https://FabienPean.github.io/news/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>A NEWS</title>
+      <link>https://FabienPean.github.io/news/a-simple/</link>
+      <pubDate>Fri, 06 Apr 2012 00:00:00 +0000</pubDate>
+      
+      <guid>https://FabienPean.github.io/news/a-simple/</guid>
+      <description>Hqsdqdsdfsdfsdfsdfsdf
+Part 2 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur ullamcorper lorem at laoreet vehicula. Cras a blandit sapien. Morbi vel mattis leo. Ut elementum dolor tellus, quis bibendum orci placerat sit amet. Aenean id pretium eros. Mauris eget mi non justo vestibulum posuere varius non urna. Morbi nec massa at nisi accumsan eleifend. Mauris tincidunt at tortor et porttitor. Donec velit sem, scelerisque quis rhoncus vel, tempus vel elit.</description>
+    </item>
+    
+  </channel>
+</rss>

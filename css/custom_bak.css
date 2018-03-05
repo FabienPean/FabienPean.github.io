@@ -1,0 +1,143 @@
+body {
+    font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+    font-size: 1em;
+    line-height: 1.42857143em;
+    color: #333;
+    background-color: #fff;
+    text-align: justify;
+    text-justify: auto;
+}
+nav {
+    grid-area:nav;
+    width:auto;
+    height:auto;
+    border-right: 1px solid black;
+
+}
+
+main {
+    grid-area:content;
+    align-self: start;
+    
+}
+
+.content {
+    max-width: 50em;
+    margin:auto;
+}
+
+footer {
+    grid-area:footer;
+    text-align: center;
+    margin: 0.1em 1em 0.1em 1em;
+}
+
+.nav-item li:hover {
+    background-color: #ddd;
+    color: black;
+    width:100%
+}
+
+/* Add an active class to highlight the current page */
+.nav-item .active {
+    background-color: #4CAF50;
+    color: white;
+}
+
+
+
+
+/* Big screen */
+@media (min-aspect-ratio: 4/3) and (min-width:1024px) {
+     .branding {
+        white-space: nowrap !important;
+
+    }
+    /* make a grid */
+    body {
+      max-width: 100vw;
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: auto 1fr;
+      grid-template-rows: auto 1fr;
+      grid-gap: 0 0vh;
+      background-color: #fff;
+      grid-template-areas:
+        "nav    content" 
+        ".      footer " ;
+      color: #444;
+    }
+    
+    .nav {
+        width:auto;
+        height:100vh;
+        position:sticky;
+        top:0;
+        bottom:0;
+        left:0;
+    }
+    
+    .nav-item {
+        white-space: nowrap;
+        padding:1rem 0.5rem 1rem 0.5rem;
+    }
+    
+    .profile-picture {
+        display:block;
+    }
+}
+
+@media (max-height: 720px) {
+    .profile-picture {
+        display:none;
+    }
+    .nav {
+        overflow-y:auto;
+    }
+}
+
+/* Small screen */
+@media (max-aspect-ratio: 4/3), (max-width:1024px){
+    .branding {
+        width:100vw !important;
+        padding:0.5rem 0 2rem 0 !important;
+        text-align: center !important;
+        margin:0 !important;
+        white-space: nowrap !important;
+
+    }
+    .nav {
+        overflow-y:inherit;
+    }
+    .nav-menu {
+        padding-left:1.5rem;
+        overflow: auto;
+        width:auto;
+        white-space: nowrap;
+    }
+    .nav-item {
+        width:auto;
+        display:inline-block;
+        padding:0.5rem 1.5rem 0.5rem 0rem;
+    }
+    body {
+      max-width: 100vw;
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: auto;
+      grid-template-rows: auto;
+      grid-gap: 0 0vh;
+      background-color: #fff;
+      grid-template-areas:
+        "nav    " 
+        "content"
+        "footer ";
+      color: #444;
+    }
+    
+    
+    .profile-picture {
+        display:none;
+    }
+}
+
