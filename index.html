@@ -11,10 +11,16 @@
     <title>Fabien P&eacute;an &middot; Personal Website</title>
        
    
-   <link rel=stylesheet type="text/css" href="css/normalize.css">
+   <link rel=stylesheet type="text/css" href="/css/normalize.css">
    <link rel=stylesheet href="https://s3-us-west-2.amazonaws.com/colors-css/2.2.0/colors.min.css">
+   
+   <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/base-min.css">
+   
+
    <link rel=stylesheet href="/css/custom.css" >
    
+   
+
   </head>
   <body>
       
@@ -29,7 +35,22 @@
             <div class="title">Fabien Péan</div>
             <div class="subtitle">PhD Student @ ETH Zurich</div>
         </div>
-        
+
+    <div id="menu">
+
+        <a class="menu-link" href="/">
+            <div class="menu-item">
+                <span class="menu-label"><i class="fas fa-home  fa-fw"></i> Home</span>
+            </div>
+        </a>
+        <a class="menu-link" href="/notes">
+            <div class="menu-item">
+            <span class="menu-label"><i class="fas fa-sticky-note fa-fw"></i> Notes</span>
+       </div>
+        </a>
+    
+    </div>
+
     <div id="social">
         
             <span class="social email">
@@ -96,7 +117,7 @@ My longlast passion gravitates around the interactive simulation of deformable b
 <li>Real-time rendering, visualization and interaction</li>
 </ul>
 
-        </div>
+            </div>
     </section>
 
 </main>
@@ -112,12 +133,19 @@ My longlast passion gravitates around the interactive simulation of deformable b
     <script defer  src="https://use.fontawesome.com/releases/v5.0.6/js/all.js"></script>
     <script async defer src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
     <script async defer src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/1.6.0/clipboard.min.js"></script>
-    <script async defer type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <script async defer type="text/x-mathjax-config">
-        MathJax.Hub.Config({
-          TeX: { equationNumbers: { autoNumber: "AMS" } }
-        });
-    </script>
+   <script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+  tex2jax: {
+    displayMath: [['\$\$','\$\$'], ['\\[','\\]']],
+    processEscapes: false,
+    processEnvironments: true,
+    TeX: { equationNumbers: { autoNumber: "AMS" },
+         extensions: ["AMSmath.js", "AMSsymbols.js"] },
+         
+    },
+});
+</script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.3/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <script src="/js/custom.js"></script>
 </html>
 

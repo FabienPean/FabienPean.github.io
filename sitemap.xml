@@ -71,6 +71,12 @@
   </url>
   
   <url>
+    <loc>https://FabienPean.github.io/notes/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
     <loc>https://FabienPean.github.io/series/</loc>
     <changefreq>monthly</changefreq>
     <priority>0</priority>

@@ -10,10 +10,16 @@
     <title>Fabien P&eacute;an &middot; Personal Website</title>
        
    
-   <link rel=stylesheet type="text/css" href="css/normalize.css">
+   <link rel=stylesheet type="text/css" href="/css/normalize.css">
    <link rel=stylesheet href="https://s3-us-west-2.amazonaws.com/colors-css/2.2.0/colors.min.css">
+   
+   <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/base-min.css">
+   
+
    <link rel=stylesheet href="/css/custom.css" >
    
+   
+
   </head>
   <body>
       
@@ -28,7 +34,22 @@
             <div class="title">Fabien Péan</div>
             <div class="subtitle">PhD Student @ ETH Zurich</div>
         </div>
-        
+
+    <div id="menu">
+
+        <a class="menu-link" href="/">
+            <div class="menu-item">
+                <span class="menu-label"><i class="fas fa-home  fa-fw"></i> Home</span>
+            </div>
+        </a>
+        <a class="menu-link" href="/notes">
+            <div class="menu-item">
+            <span class="menu-label"><i class="fas fa-sticky-note fa-fw"></i> Notes</span>
+       </div>
+        </a>
+    
+    </div>
+
     <div id="social">
         
             <span class="social email">
@@ -68,17 +89,9 @@
     </div>
 
 </div>
-    <header id="header">
-    <div id="header-inner">
-        <h1 class="title">Fabien Péan</h1>
-        <h2 class="subtitle">PhD Student @ ETH Zurich</h2>
-    </div>
-</header>
-
 
     
 <main id="main">
-    <section class="section">
         <div class="content">
             
 
@@ -93,7 +106,6 @@
 <p>Proin a quam ac elit vestibulum ornare. Curabitur pharetra a massa at cursus. Curabitur dignissim risus quis laoreet vulputate. Donec ut tempor ante, et tristique nunc. Aliquam finibus nibh sit amet volutpat interdum. Morbi eu lectus dictum, ultricies metus id, condimentum libero. Nullam euismod ullamcorper finibus. Sed lorem sapien, tempor non mattis id, pretium a turpis. Vestibulum vitae dolor vitae turpis tempor rutrum. Suspendisse ac varius mi. Praesent posuere massa neque, vulputate commodo lacus gravida ut. Maecenas tincidunt iaculis erat, eu porta magna. Curabitur lorem turpis, efficitur eget pulvinar a, vestibulum auctor elit.</p>
 
         </div>
-    </section>
 </main>
 
     <footer id="footer">
@@ -108,11 +120,18 @@
     <script defer  src="https://use.fontawesome.com/releases/v5.0.6/js/all.js"></script>
     <script async defer src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
     <script async defer src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/1.6.0/clipboard.min.js"></script>
-    <script async defer type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <script async defer type="text/x-mathjax-config">
-        MathJax.Hub.Config({
-          TeX: { equationNumbers: { autoNumber: "AMS" } }
-        });
-    </script>
+   <script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+  tex2jax: {
+    displayMath: [['\$\$','\$\$'], ['\\[','\\]']],
+    processEscapes: false,
+    processEnvironments: true,
+    TeX: { equationNumbers: { autoNumber: "AMS" },
+         extensions: ["AMSmath.js", "AMSsymbols.js"] },
+         
+    },
+});
+</script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.3/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <script src="/js/custom.js"></script>
 </html>
