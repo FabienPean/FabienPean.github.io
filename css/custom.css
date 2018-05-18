@@ -52,7 +52,7 @@ body {
     "menu"
     "social";
     grid-template-rows: auto auto 1fr auto;
-    grid-template-columns: auto;
+    grid-template-columns: min-content;
     
     align-self: start;
     position:sticky;
@@ -97,7 +97,7 @@ body {
     display: block;
     height: auto;
     width: auto;
-    max-width:288px;
+    max-width:100%;
 }
 
 #branding {
