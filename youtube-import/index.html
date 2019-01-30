@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Import Youtube Subscriptions</title>
+    <meta charset="UTF-8" />
+    <meta name="description" content="Import all of your subscriptions from one youtube channel to another!" />
+    <meta name="author" content="Evan Reilly" />
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/smoothness/jquery-ui.css">
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto">
+    <link rel="stylesheet" type="text/css" href="css/custom.css">
+    <meta charset="utf-8">
+    <title></title>
+
+</head>
+
+<body>
+    <div id="dropbox">
+        <p id="Title">Youtube Subscriptions Importer V1</p>
+        <input id="input-file" class="button" type="file" name="browsename[]" />
+        <button id="import" class="button">Import!</button>
+        <p id="display"></p>
+        <p id="dropbox-label">[Drag file to anywhere in the window]</p>
+    </div>
+    <button id="revoke-access-button" class="button">Revoke Access</button>
+
+    <script src="js/dropbox.js"></script>
+    <script src="js/authentication.js"></script>
+    <script src="js/subscription-importer.js"></script>
+    <script async defer src="https://apis.google.com/js/api.js" onload="this.onload=function(){};handleClientLoad()" onreadystatechange="if (this.readyState === 'complete') this.onload()"></script>
+    
+</body>
+</html>

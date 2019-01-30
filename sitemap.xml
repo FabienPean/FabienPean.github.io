@@ -24,6 +24,12 @@
   </url>
   
   <url>
+    <loc>https://FabienPean.github.io/youtube-import/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
     <loc>https://FabienPean.github.io/home/about/</loc>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
