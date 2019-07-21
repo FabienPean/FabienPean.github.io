@@ -2,15 +2,11 @@ body {
     font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
     font-size: 1em;
     line-height: 1.42857143em;
-    
     text-align: justify;
-    
     color: #333;
     background-color: #ddd;
-    
     min-height:100vh;
     width:100vw;
-    
     overflow-y:auto;
     overflow-x:hidden;
 }
@@ -28,7 +24,7 @@ a:hover {
 #logo       {grid-area:logo;}
 #branding   {grid-area:branding;}
 #menu       {grid-area:menu;}
-#social     {grid-area:social;}
+.social     {grid-area:social;}
 #header     {grid-area:header;}
 #content    {grid-area:content;}
 #footer     {grid-area:footer;}
@@ -68,8 +64,17 @@ body {
 #logo, #branding, #menu {
     align-self: start;
 }
-#social {
+.social {
     align-self: end;
+}
+.social_nav {
+    display:block;
+}
+.social_footer {
+    display:none;
+}
+.social_button {
+    padding:0rem 0.1rem;
 }
 #wrapper {
     min-height:100vh;
@@ -82,11 +87,12 @@ body {
     height:auto;
     padding:0 0.5rem 0 0.5rem;
     align-self: stretch;
+    overflow-x: auto;
 }
 
 
 #header, #main, #footer  {
-    padding: auto 20px;
+    padding: 0.5rem 1rem;
 }
 
 #logo {
@@ -110,7 +116,7 @@ body {
     width:auto;
     display:inline-block;
 }
-#social {
+.social {
     margin:auto;
     padding:0 0 1rem;
 }
@@ -127,19 +133,24 @@ body {
 }
 #footer {
     align-self: end;
-    display:flex;
+    display: flex;
+    flex-direction: column;/*change footer div direction*/
+    padding: 0.5rem auto 0.5rem auto;
     border-top: 1px solid #bbb;
 }
 #footer-inner {
-    margin:0.5rem auto;
+    margin:auto;
+    padding:0.5rem auto;
     width:auto;
-    
+    align-self:center;
+    text-align:center;
+    justify-self:center;
 }
 
 .content {
     margin:auto;
     max-width:55rem;
-    width:95%;
+    width:100%;
 }
 
 .menu-link {
@@ -175,6 +186,7 @@ body {
     }
     #nav {
         overflow-y:auto;
+        overflow-x:hidden;
     }
 }
 
@@ -218,10 +230,10 @@ body {
         overflow:hidden;
         
     }
-    #social {
+    .social {
         align-self:center;
-        margin:0 0 0 0;
-        padding:0rem 0.5rem 0rem 0rem;
+        margin:0;
+        padding:0rem 0.5rem 0 0.5rem;
         justify-self: right;
     }
     #branding {
@@ -233,16 +245,16 @@ body {
         margin: 0 0 -17px 0;
         padding: 0.5rem 0rem 0.5rem 0rem;
         width:auto;
-        display:inline-block;
-        overflow-x:scroll;
-        white-space: nowrap;
+        display: flex;
+        flex-wrap: nowrap;
+        overflow-x: scroll;
         border-top: 1px solid #bbb;
-
     }
     .menu-item {
-        width:auto;
-        height:auto;
-        display:inline-block;
+        width: auto;
+        height: auto;
+        display: inline-block;
+        white-space: nowrap;
         padding:0rem 0.5rem 0rem 0.5rem;
     }
     
@@ -288,8 +300,16 @@ body {
 }
 
 @media (max-aspect-ratio: 1/1) and (max-width:420px){
-    #social {
+    .social_nav {
         display:none;
+    }
+    .social_footer {
+        display:inline-block;
+        justify-content: center;
+        justify-self:center;
+        margin: 0 auto 0 auto;
+        overflow-x: auto;
+        overflow-y: hidden;
     }
     #nav {
         grid-template-areas:
