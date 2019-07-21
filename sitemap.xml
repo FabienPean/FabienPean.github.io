@@ -3,22 +3,7 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   
   <url>
-    <loc>https://FabienPean.github.io/blog/a-simple/</loc>
-    <lastmod>2018-02-26T00:00:00+00:00</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  
-  <url>
-    <loc>https://FabienPean.github.io/news/a-simple/</loc>
-    <lastmod>2012-04-06T00:00:00+00:00</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  
-  <url>
     <loc>https://FabienPean.github.io/</loc>
-    <lastmod>2018-02-26T00:00:00+00:00</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
@@ -30,42 +15,13 @@
   </url>
   
   <url>
-    <loc>https://FabienPean.github.io/categories/blog/</loc>
-    <lastmod>2018-02-26T00:00:00+00:00</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0</priority>
-  </url>
-  
-  <url>
-    <loc>https://FabienPean.github.io/blog/</loc>
-    <lastmod>2018-02-26T00:00:00+00:00</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0</priority>
-  </url>
-  
-  <url>
     <loc>https://FabienPean.github.io/categories/</loc>
-    <lastmod>2018-02-26T00:00:00+00:00</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>https://FabienPean.github.io/home/</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0</priority>
-  </url>
-  
-  <url>
-    <loc>https://FabienPean.github.io/news/</loc>
-    <lastmod>2012-04-06T00:00:00+00:00</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0</priority>
-  </url>
-  
-  <url>
-    <loc>https://FabienPean.github.io/categories/news/</loc>
-    <lastmod>2012-04-06T00:00:00+00:00</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0</priority>
   </url>
