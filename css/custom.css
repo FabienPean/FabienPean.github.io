@@ -247,7 +247,7 @@ body {
         width:auto;
         display: flex;
         flex-wrap: nowrap;
-        overflow-x: scroll;
+        overflow-x: auto;
         border-top: 1px solid #bbb;
     }
     .menu-item {
