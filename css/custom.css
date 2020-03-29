@@ -1,21 +1,75 @@
+:root {
+    /*COLORS*/
+	--color-primary-1:#2288BB;
+	--color-primary-2:#3322bb;
+	--color-primary-3:#22bb55;
+	--color-complementary-1:#bb5522;
+	--color-complementary-2:#bb7722;
+	--color-complementary-3:#bb3322;
+	--color-triadic-1:var(--color-primary-1);
+	--color-triadic-2:#bb9922;
+	--color-triadic-3:#bb2255;
+	--color-tetradic-1:var(--color-primary-1);
+	--color-tetradic-2:var(--color-complementary-1);
+	--color-tetradic-3:var(--color-triadic-2);
+	--color-tetradic-4:#8822bb;
+	--color-dark:#333;
+	--color-darker:#222;
+	--color-darkest:#111;
+	--color-light:#CCC;
+	--color-lighter:#DDD;
+	--color-lightest:#EEE;
+}
+:root {
+    --color-background:var(--color-lighter)
+}
+pre, code {
+    font-family: var(--font-monospace);
+    overflow-x: auto;
+    overflow-y: hidden;
+}
+p {
+    display: block;
+    margin-block-start: 1%;
+    margin-block-end: 1%;
+    margin-inline-start: 0px;
+    margin-inline-end: 0px;
+}
+.font-monospace{
+	font-family: var(--font-monospace);
+}
 body {
-    font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
-    font-size: 1em;
-    line-height: 1.42857143em;
+    background-color: var(--color-background);
+	color: var(--color-dark);
+	font-family: var(--font-sans-serif);
+    font-size: 100%;
+    line-height: 1.3;
     text-align: justify;
-    color: #333;
-    background-color: #ddd;
     min-height:100vh;
     width:100vw;
-    overflow-y:auto;
+    width:auto;
+	overflow-y:auto;
     overflow-x:hidden;
+	scrollbar-width: none;
+}
+table{
+    border-collapse: collapse;
+    border-spacing: 0;
+    border: 3px solid black;
+}
+thead{
+    border: 3px solid;
+}
+th,td{
+    border: 1px solid;
+    padding: 3px;
 }
 a {
     text-decoration:none;
-    color:#167dac;
+    color:var(--color-primary-1);
 }
 a:hover {
-    color:rgb(232,92,40);
+    color:var(--color-complementary-1);
 }
 
 #nav        {grid-area:nav;}
@@ -37,9 +91,7 @@ body {
     "nav    footer    sidebar";
     grid-template-rows: auto 1fr auto;
     grid-template-columns: auto 1fr auto;
-    grid-gap: 0 0;
 }
-
 #nav {
     display: grid;
     grid-template-areas:
@@ -50,11 +102,11 @@ body {
     grid-template-rows: auto auto 1fr auto;
     grid-template-columns: min-content;
     
-    align-self: start;
+    /* align-self: start; */
     position:sticky;
     top:0;
-    left:0;
-    bottom:0;
+    /* left:0; */
+    /* bottom:0; */
     width:auto;
     height:100vh;
     
@@ -67,54 +119,62 @@ body {
 .social {
     align-self: end;
 }
-.social_nav {
-    display:block;
+.social-nav {
+    display:flex;
 }
-.social_footer {
+.social-footer {
     display:none;
 }
-.social_button {
-    padding:0rem 0.1rem;
+.social-list {
+	display:flex; flex-flow:row wrap; justify-content:center;
+}
+.social-button {
+    margin:0rem 0.25em;
 }
 #wrapper {
-    min-height:100vh;
-    width:auto;
-    overflow-y:auto;
+    max-width:100vw;
+	overflow-y:auto;
 }
 #main {
     width:auto;
-    margin:auto;
     height:auto;
-    padding:0 0.5rem 0 0.5rem;
     align-self: stretch;
     overflow-x: auto;
 }
-
-
 #header, #main, #footer  {
-    padding: 0.5rem 1rem;
+    padding: 0.5em 1rem;
 }
 
 #logo {
-    margin:0;
-    width:100%;
 }
 #logo img {
-    display: block;
-    height: auto;
-    width: auto;
+
     max-width:100%;
 }
 
 #branding {
-    padding: 2rem 1rem 0rem 1rem;
+    padding: 0.5rem 1rem;
     width:auto;
     white-space: nowrap;
 }
 #menu {
-    margin:1.5rem 0 1rem 0;
+    margin:0.5rem 40px;
     width:auto;
     display:inline-block;
+}
+.menu-link {
+    width:auto;
+    height:auto;
+}
+.menu-item:hover{
+}
+.menu-item {
+    padding:0.5rem 0rem;
+    font-size:x-large;
+    font-weight:bold;
+	white-space:nowrap;
+}
+.menu-label {
 }
 .social {
     margin:auto;
@@ -135,50 +195,57 @@ body {
     align-self: end;
     display: flex;
     flex-direction: column;/*change footer div direction*/
-    padding: 0.5rem auto 0.5rem auto;
+    padding: 0.5rem 0;
     border-top: 1px solid #bbb;
 }
 #footer-inner {
     margin:auto;
-    padding:0.5rem auto;
+    padding:0.5rem 0;
     width:auto;
     align-self:center;
     text-align:center;
-    justify-self:center;
 }
-
 .content {
     margin:auto;
     max-width:55rem;
     width:100%;
 }
-
-.menu-link {
-    width:auto;
-    height:auto;
+.banner-container {
+    position: relative;
+    min-height:128px;
+	height:128px;
+	width:100%;
 }
-.menu-item:hover{
-}
-.menu-item {
-    padding:0.5rem 1rem;
-    font-size:x-large;
-    font-weight:bold;
-}
-
-.menu-label {
-    margin-left:0.5rem;
-}
-
-.title {
+.branding-title {
     font-size:xx-large;
     font-weight:bolder;
 }
-.subtitle {
+.branding-subtitle {
     font-size:large;
-    font-weight:bold;
-    margin:0;
+/*     font-weight:bold;*/
 }
-
+.banner-img {
+  width: 100%;
+  min-height: 128px;
+  max-height: 128px;
+  object-fit:cover;
+  object-position: 50% 0%;
+  opacity: 33%;
+}
+.banner-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size:400%;
+    max-height:128px;
+}
+.subtitle {
+    margin-top:-20px;
+}
+small > .subtitle {
+    margin-top:-18px;
+}
 /* CASE: wide view screen but height small -> remove logo and allow nav scrollbar */
 @media (min-aspect-ratio: 1/1) and (max-height: 720px) {
     #logo {
@@ -190,7 +257,7 @@ body {
     }
 }
 
-/* CASE: small screen or width too small -> reorganize main layout */
+/* CASE: small screen or width too small -> reorganize main layout to single column */
 @media (max-aspect-ratio: 1/1), (max-width:1024px){
     body {
         display: grid;
@@ -207,7 +274,6 @@ body {
         width:auto;
         overflow-y:auto;
     }
-    
     #wrapper {
         height:auto;
         width:auto;
@@ -243,22 +309,27 @@ body {
     }
     #menu {
         margin: 0 0 0 0;
-        padding: 0.5rem 0rem 0.5rem 0rem;
-        width:auto;
+        padding: 0.5rem 0rem;
+        width: auto;
         display: flex;
         flex-wrap: nowrap;
-        overflow-x: auto;
+        overflow-x: scroll;
         border-top: 1px solid #bbb;
-    }
+	}
+	/*remove scrollbar display: non standard way only possible*/
+	#menu {
+    	scrollbar-width: none;/*Firefox*/
+	}
+	#menu::-webkit-scrollbar {
+		display: none;/*Webkit*/
+	}
     .menu-item {
         width: auto;
         height: auto;
         display: inline-block;
         white-space: nowrap;
-        padding:0rem 0.5rem 0rem 0.5rem;
+        padding:0rem 0.5rem;
     }
-    
-    
     .menu-label {
         margin-left:0rem;
     }
@@ -266,13 +337,17 @@ body {
     #logo {
         display:none;
     }
-    #branding > .title {
+    .branding-title {
         margin :0 auto;
         text-align:center;
     }
-    #branding > .subtitle {
+    .branding-subtitle {
         margin :0 auto;
+		display: none;
     }
+	.banner-text {
+		font-size:300%;
+	}
 }
 
 /* CASE: very not large screen -> move branding name to left, remove subtitle, remove dummy left space*/
@@ -290,26 +365,21 @@ body {
         margin:0;
         padding: 0.5rem 0.5rem 0.5rem 0.5rem;
     }
-    #branding > .title {
+    .branding-title {
         margin:0;
         text-align:left;
     }
-    #branding > .subtitle {
+    .branding-subtitle {
         display:none;
+    }
+    .feed-img {
+        display: none;
     }
 }
 
 @media (max-aspect-ratio: 1/1) and (max-width:420px){
-    .social_nav {
+    .social {
         display:none;
-    }
-    .social_footer {
-        display:inline-block;
-        justify-content: center;
-        justify-self:center;
-        margin: 0 auto 0 auto;
-        overflow-x: auto;
-        overflow-y: hidden;
     }
     #nav {
         grid-template-areas:
@@ -329,25 +399,237 @@ body {
 .list-group {
     min-width:80%;
 }
-
-.banner-container {
-    position: relative;
+.tag-list {
+	font-size:100%;
+	/* flex:auto; */
+	display: inline-flex;
+	flex-flow: row wrap;
+	align-items:center;
+}
+.tag {    
+	overflow: visible;
+    flex: 0 1 auto;
+    padding: 3px;
+    font-size: 75%;
+    font-weight: 0.8;
+    line-height: 0.9;
     text-align: center;
-    margin-bottom:2rem;
+    white-space: nowrap;
+    vertical-align: middle;
+    background-color: var(--color-primary-1);
+    color: var(--color-background);
+    border-radius: 0px 0px;
+    border-style: solid;
+    border-width: 1px;	
+	align-self:center;
 }
+.tag a {
+    display: inline-block; 
+    transform: skewX(0deg);
+    width: auto;
+    color: var(--color-background);
+}
+.tag:hover {
+    background-color: var(--color-complementary-1);
+}
+.badge {
+    padding: 0.25em 5px;
+    display: inline-block;
+    font-size: 0.7em;
+    font-weight: 0.8;
+    line-height: 1;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: baseline;
+    color: #167dac;
+    background-color: transparent;
 
+    border-radius: 0px 0px;
+    border-style: solid;
+    border-width: 1px;
 
-.banner-img {
+    outline-color: #167dac;
+    outline-width:0px;
+    outline-style:solid;
+    outline-radius:2px;
+
+  // Empty badges collapse automatically
+  &:empty {
+    display: none;
+  }
+}
+.task-list {
+    list-style:none;
+    pointer-events: none
+}
+.checkbox {
+    margin-left:-1.125em;
+    margin-right:0.5em;
+}
+.feed-title:hover {
+    display: inline;
+	overflow: visible;
+	white-space: normal;
+	height: auto;
+	text-align-last: end;
+}
+div.mermaid {
   width: 100%;
-  height: auto;
-  max-height: 100px;
-  object-fit:cover;
-  object-position: 50% 0%;
+  text-align: center;
+  margin-bottom: 1rem;
+  overflow-x: auto;
+}
+div.highlight > pre {
+    padding: 0.5rem 1rem;
+}
+.MathJax {
+    overflow-x:auto;
+}
+/* alert from bootstrap */
+.alert {
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.2);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25), 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+.alert-success {
+  background-image: linear-gradient(to bottom, #dff0d8 0%, #c8e5bc 100%);
+  background-repeat: repeat-x;
+  border-color: #b2dba1;
 }
 
-.banner-text {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+.alert-note {
+    color: #12537e;
+    background-color: #f6fbfe;
+    border-color: #209cee;
+}
+.alert-warning {
+
+  background-image: linear-gradient(to bottom, #fcf8e3 0%, #f8efc0 100%);
+  background-repeat: repeat-x;
+  border-color: #f5e79e;
+}
+.alert-danger {
+  background-image: linear-gradient(to bottom, #f2dede 0%, #e7c3c3 100%);
+  background-repeat: repeat-x;
+  border-color: #dca7a7;
+}
+.alert {
+  padding: 15px;
+  margin-bottom: 20px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+}
+.alert h4 {
+  margin-top: 0;
+  color: inherit;
+}
+.alert .alert-link {
+  font-weight: bold;
+}
+.alert > p,
+.alert > ul {
+  margin-bottom: 0;
+}
+.alert > p + p {
+  margin-top: 5px;
+}
+.alert-dismissable,
+.alert-dismissible {
+  padding-right: 35px;
+}
+.alert-dismissable .close,
+.alert-dismissible .close {
+  position: relative;
+  top: -2px;
+  right: -21px;
+  color: inherit;
+}
+.alert-success {
+  color: #3c763d;
+  background-color: #dff0d8;
+  border-color: #d6e9c6;
+}
+.alert-success hr {
+  border-top-color: #c9e2b3;
+}
+.alert-success .alert-link {
+  color: #2b542c;
+}
+.alert-note {
+  color: #31708f;
+  background-color: #d9edf7;
+  border-color: #bce8f1;
+}
+.alert-note hr {
+  border-top-color: #a6e1ec;
+}
+.alert-note .alert-link {
+  color: #245269;
+}
+.alert-warning {
+  color: #8a6d3b;
+  background-color: #fcf8e3;
+  border-color: #faebcc;
+}
+.alert-warning hr {
+  border-top-color: #f7e1b5;
+}
+.alert-warning .alert-link {
+  color: #66512c;
+}
+.alert-danger {
+  color: #a94442;
+  background-color: #f2dede;
+  border-color: #ebccd1;
+}
+.alert-danger hr {
+  border-top-color: #e4b9c0;
+}
+.alert-danger .alert-link {
+  color: #843534;
+}
+/* From scss/academic/_root.scss */
+div.alert > div {
+  position: relative;
+  display: block;
+  font-size: 1rem;
+  margin-left: 0.5rem;
+  margin-top: 0;
+  margin-bottom: 0;
+}
+div.alert div > * {
+  margin-bottom: 0;
+}
+div.alert > div:first-child::before {
+  display: none; /*needed to avoid double empty icon*/
+  position: absolute;
+  top: -0.5rem;
+  left: -2rem;
+  font-size: 1.5rem;
+  color: #209cee;
+  font-family: 'Font Awesome 5 Free';
+  font-weight: 900;
+  content: '\f05a';
+  width: 1.5rem;
+  text-align: center;
+}
+div.alert-warning > div:first-child::before {
+  font-family: 'Font Awesome 5 Free';
+  font-weight: 900;
+  color: #ff3860;
+  content: '\f071';
+}
+div.alert a {
+  color: currentColor;
+  text-decoration: none;
+  border-bottom: solid 1px currentColor;
+}
+.alert-note {
+  color: #12537e;
+  background-color: #f6fbfe;
+  border-color: #209cee;
+}
+.alert-warning {
+  color: #cd0930;
+  background-color: #fff5f7;
+  border-color: #ff3860;
 }
