@@ -21,7 +21,8 @@
 	--color-lightest:#EEE;
 }
 :root {
-    --color-background:var(--color-lighter)
+    --color-background:var(--color-lighter);
+	--color-text:var(--color-dark);
 }
 pre, code {
     font-family: var(--font-monospace);
@@ -35,6 +36,9 @@ p {
     margin-inline-start: 0px;
     margin-inline-end: 0px;
 }
+p > img {
+  filter: brightness(86.666%);/* exact percentage need to shift a pure white background to my light color background #DDD */
+}	
 .font-monospace{
 	font-family: var(--font-monospace);
 }
@@ -484,6 +488,45 @@ div.highlight > pre {
 }
 .MathJax {
     overflow-x:auto;
+}
+/* Tooltip container */
+.tooltip {
+  position: relative;
+  display: inline-block;
+  border-bottom: 1px dotted black; /* If you want dots under the hoverable text */
+}
+
+/* Tooltip text */
+.tooltip .tooltiptext {
+  visibility: hidden;
+  background-color: var(--color-text);
+  color: var(--color-background);
+  text-align: center;
+  padding: 2% 2%;
+/*   border-radius: 6px;
+ */ 
+  /* Position the tooltip text - see examples below! */
+  position: absolute;
+  z-index: 1;
+  width: auto;
+  top: 150%;
+  left: 50%;
+  margin-left: -50%; /* Use half of the width + padding, to center the tooltip */
+}
+/* Show tiny arrow */
+.tooltip .tooltiptext::after {
+  content: " ";
+  position: absolute;
+  bottom: 100%;  /* At the top of the tooltip */
+  left: 50%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: transparent transparent var(--color-text) transparent;
+}
+/* Show the tooltip text when you mouse over the tooltip container */
+.tooltip:hover .tooltiptext {
+  visibility: visible;
 }
 /* alert from bootstrap */
 .alert {
