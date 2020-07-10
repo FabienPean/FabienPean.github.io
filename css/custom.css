@@ -28,6 +28,7 @@ pre, code {
     font-family: var(--font-monospace);
     overflow-x: auto;
     overflow-y: hidden;
+    margin: 0.5em 0;
 }
 p {
     display: block;
@@ -37,10 +38,20 @@ p {
     margin-inline-end: 0px;
 }
 p > img {
-  filter: brightness(86.666%);/* exact percentage need to shift a pure white background to my light color background #DDD */
-}	
+    filter: brightness(86.666%);/* exact percentage need to shift a pure white background to my light color background #DDD */
+}
 .font-monospace{
 	font-family: var(--font-monospace);
+}
+blockquote {
+    display: block;
+    margin-block-start: 1em;
+    margin-block-end: 1em;
+    margin-inline-start: 20px;
+    margin-inline-end: 20px;
+    border-inline-start: solid 0.5em silver;
+    padding-inline-start: 20px;
+    padding-inline-end: 20px;
 }
 body {
     background-color: var(--color-background);
