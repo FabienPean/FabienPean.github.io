@@ -39,6 +39,7 @@ p {
 }
 p > img {
     filter: brightness(86.666%);/* exact percentage need to shift a pure white background to my light color background #DDD */
+    max-width:100%;
 }
 .font-monospace{
 	font-family: var(--font-monospace);
