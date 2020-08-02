@@ -41,6 +41,13 @@ p > img {
     filter: brightness(86.666%);/* exact percentage need to shift a pure white background to my light color background #DDD */
     max-width:100%;
 }
+h1,h2,h3,h4,h5,h6{
+    text-align:left;
+    text-align-last:right;
+}
+h1::first-line,h2::first-line,h3::first-line,h4::first-line,h5::first-line,h6::first-line{
+    text-align-last:left;
+}
 .font-monospace{
 	font-family: var(--font-monospace);
 }
@@ -72,13 +79,14 @@ table{
     border-collapse: collapse;
     border-spacing: 0;
     border: 3px solid black;
+    margin:auto;
 }
 thead{
     border: 3px solid;
 }
 th,td{
     border: 1px solid;
-    padding: 3px;
+    padding: 0.5em;
 }
 a {
     text-decoration:none;

@@ -1,0 +1,302 @@
+<!doctype html><html lang=en-us><!doctype html><html lang=en><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content><meta name=author content="Fabien Péan"><meta name=google-site-verification content="_OCqKj2I4fVqJsqpa9uq0utQ55W1kx93lTIQtHZ88mM"><link rel="shortcut icon" type=image/png href=/img/logo.svg><title>Fabien Péan &#183; Personal Website</title><meta name=robots content="index,follow"><meta name=googlebot content="index,follow"><link rel=stylesheet type=text/css href=/css/normalize.css><link rel=stylesheet href=/vendor/colors/css/colors.min.css><link rel=stylesheet href=/vendor/academicons/css/academicons.min.css><style>:root{--font-monospace: "Source Code Pro";--font-sans-serif:"Inter"}</style><link href="https://fonts.googleapis.com/css?family=Inter%7cSource+Code+Pro&display=swap" rel=stylesheet type=text/css><link rel=stylesheet href=/css/custom.css></head><body><body><nav id=nav><figure id=logo class=image><img src=/img/logo.svg></figure><div id=branding><div class=branding-title>Fabien Péan</div><div class=branding-subtitle>PhD Student @ ETH Zurich</div></div><div id=menu><a class=menu-link href=/><div class=menu-item><span class=menu-label><i class="fas fa-home fa-fw"></i>&nbsp;Home</span></div></a><a class=menu-link href=/news><div class=menu-item><span class=menu-label><i class="fas fa-newspaper fa-fw"></i>&nbsp;News</span></div></a><a class=menu-link href=/blog><div class=menu-item><span class=menu-label><i class="fas fa-book fa-fw"></i>&nbsp;Blog</span></div></a></div><div class=social><div class=social-list><div style="display:flex;flex-flow:row wrap;justify-content:center"><div class="social-button email"><a href=mailto:fabien@pean.pro rel=author><i class="fas fa-at fa-2x"></i></a></div><div class="social-button bitbucket"><a href=https://bitbucket.org/FabienPean rel="author external"><i class="fab fa-bitbucket fa-2x"></i></a></div><div class="social-button github"><a href=https://github.com/FabienPean rel="author external"><i class="fab fa-github fa-2x"></i></a></div><div class="social-button linkedin"><a href=https://www.linkedin.com/in/FabienPean rel="author external"><i class="fab fa-linkedin fa-2x"></i></a></div></div></div></div></nav><main id=main><div class=content><h1>A simple heterogeneous container in C++ without relying on 'variant' nor 'any'</h1><small><div class=subtitle style="display:flex;flex-flow:row wrap;justify-content:space-between"><span style="flex:1 0 auto;max-width:100%"><span class=tooltip>02/08/2020
+<span class=tooltiptext><small>updated on 02/08/2020</small></span>
+</span>&nbsp;&boxv;&nbsp;<a href=/blog>Blog</a></span><div class=tag-list><a href=/tags/c++><div class=tag>c++</div></a></div></div></small><br><h2 id=building-an-heterogeneous-container-basic-ingredients>Building an heterogeneous container: basic ingredients</h2><p>In a precedent post, I outlined the implementation of an heterogeneous dynamic array. Let us try now to reflect on what was done to draw some genericity out of it.</p><p>The basic ingredients to build an heterogeneous container are:</p><ul><li><code>data</code> the object</li><li><code>ptr</code> where the object is stored: a pointer or offset allowing to find the object in memory</li><li><code>tag</code> what is the type of that object: a unique way to identify types at runtime.</li><li><code>dtor</code> how to destroy the object: to avoid memory leaks</li><li>(how to copy the object)</li></ul><p>Numerous implementations can be obtained by combining these components together in various ways. For example, <code>std::any</code> is basically a structure containing <code>tag</code>, <code>ptr</code>, and <code>dtor</code> together. As such <code>std::any</code> is self-contained and can be put into a vector without worries. While it is ideal for passing a single item around, having a collection of them is not so great.</p><p>In the implementation of an heterogeneous dynamic array <a href=/blog/2020/07/implementing-an-heterogeneous-dynamic-array-in-cplusplus/>here</a>, <code>dtor</code> is separated from the <code>ptr</code>, <code>data</code> is held among others into a <code>std::vector&lt;std::bytes></code>. The main data structure is the <em>map</em> associating the <code>tag</code> to <code>ptr</code> and the major part of the look-up cost is there. In a shortened format, this gives:</p><div class=highlight><div style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">1
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">2
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">3
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++>std<span style=color:#ff79c6>::</span>vector<span style=color:#ff79c6>&lt;</span>std<span style=color:#ff79c6>::</span>byte<span style=color:#ff79c6>&gt;</span>       data;
+std<span style=color:#ff79c6>::</span>unordered_map<span style=color:#ff79c6>&lt;</span>tag,ptr<span style=color:#ff79c6>&gt;</span>  type_to_offset;
+std<span style=color:#ff79c6>::</span>unordered_map<span style=color:#ff79c6>&lt;</span>tag,dtor<span style=color:#ff79c6>&gt;</span> type_to_destructor;
+</code></pre></td></tr></table></div></div><p>The implementation only accepts a single instance of each type within, which allows the user to find an object without necessitating a previously acquired handle. With a single instance per type, the user can either store an handle for direct access or obtain content by the type of the object. In the case of multiple instances of a type per container, the user must store and share an index, returned upon insertion, in order to be able to retrieve the right instance later.
+By imposing data locality of the objects in order to have an heterogeneous <em>array</em>, it was not the simplest implementation ever due to shenanigans in memory allocation.</p><h2 id=a-simpler-heterogeneous-container>A simpler heterogeneous container</h2><p>Let us outline the implementation of a really simple heterogeneous container. Specifically, I will not make use of <code>std::any</code>, because it has poor performance (left for another post 😉), and <code>tag</code> will not be stored along <code>ptr</code> and <code>dtor</code>. Since the container is meant to be extensible at runtime, <code>std::variant</code> is out of question.</p><p>It is still quite <a href=https://nlopt.readthedocs.io/en/latest/NLopt_C-plus-plus_Reference/#objective-function>common</a> to see pointers passed around as <code>void*</code> argument, especially to pass user-defined content to some interface based or closely related to C. This is basically a way of passing <em>type-erased</em> objects around. I was tempted at first to make a homemade structure slapping void-ized <code>ptr</code> and <code>dtor</code> together&mldr; but then I learnt that <code>std::unique_ptr</code> could take a void template argument 😲. So, considering this and the fact that it can take a <a href=https://en.cppreference.com/w/cpp/memory/unique_ptr>custom deleter</a> function: a type-erased object can be stored readily in a <code>std::unique_ptr&lt;void,void(*)(void*)></code>.</p><p>Consequently, it is possible to simply store heterogeneous content within:</p><div class=highlight><div style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">1
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">2
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++><span style=color:#ff79c6>using</span> ptr_dtor <span style=color:#ff79c6>=</span> std<span style=color:#ff79c6>::</span>unique_ptr<span style=color:#ff79c6>&lt;</span><span style=color:#8be9fd>void</span>,<span style=color:#8be9fd>void</span>(<span style=color:#ff79c6>*</span>)(<span style=color:#8be9fd>void</span><span style=color:#ff79c6>*</span>)<span style=color:#ff79c6>&gt;</span>;
+std<span style=color:#ff79c6>::</span>unordered_map<span style=color:#ff79c6>&lt;</span>tag,ptr_dtor<span style=color:#ff79c6>&gt;</span> type_to_object;
+</code></pre></td></tr></table></div></div><p>The necessary to insert and retrieve object is only a matter of wrapping the manipulation of the <em>map</em>. As for the tag for the type, a simple type counter based on static variables as in the previous post will do. The implementation is can be played around on <a href=https://godbolt.org/z/Ya679n>compiler explorer</a> and pasted at the bottom for completeness.</p><p>The pros of this data structure are simplicity and pointer stability. The user does not have to repeatedly access the container itself since it can store directly the pointers to objects of interest (assuming the lifetime of the container and its content is well specified). Moreover, destruction is guaranteed by the <code>unique_ptr</code>. The cons is that objects are stored wherever in memory by the system, and it cannot be copyable. Finally, some fine-tune optimizations cannot be done by relying on <code>unique_ptr</code>, such as destructor elision for trivially destructible type.</p><h2 id=code>Code</h2><div class=highlight><div style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">  1
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">  2
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">  3
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">  4
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">  5
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">  6
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">  7
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">  8
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">  9
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 10
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 11
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 12
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 13
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 14
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 15
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 16
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 17
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 18
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 19
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 20
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 21
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 22
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 23
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 24
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 25
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 26
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 27
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 28
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 29
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 30
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 31
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 32
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 33
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 34
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 35
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 36
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 37
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 38
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 39
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 40
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 41
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 42
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 43
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 44
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 45
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 46
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 47
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 48
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 49
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 50
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 51
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 52
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 53
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 54
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 55
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 56
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 57
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 58
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 59
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 60
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 61
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 62
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 63
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 64
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 65
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 66
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 67
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 68
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 69
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 70
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 71
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 72
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 73
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 74
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 75
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 76
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 77
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 78
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 79
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 80
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 81
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 82
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 83
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 84
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 85
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 86
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 87
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 88
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 89
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 90
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 91
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 92
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 93
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 94
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 95
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 96
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 97
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 98
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 99
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">100
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">101
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">102
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">103
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">104
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">105
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">106
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">107
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">108
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">109
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">110
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">111
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">112
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">113
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">114
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">115
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">116
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">117
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">118
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">119
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">120
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">121
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">122
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">123
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">124
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">125
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">126
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">127
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">128
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">129
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">130
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">131
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">132
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">133
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">134
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">135
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">136
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">137
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">138
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">139
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">140
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">141
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">142
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">143
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">144
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++><span style=color:#6272a4>// MIT License
+</span><span style=color:#6272a4>//
+</span><span style=color:#6272a4>// Copyright(c) 2020 Fabien Péan
+</span><span style=color:#6272a4>//
+</span><span style=color:#6272a4>// Permission is hereby granted, free of charge, to any person obtaining a copy
+</span><span style=color:#6272a4>// of this softwareand associated documentation files(the &#34;Software&#34;), to deal
+</span><span style=color:#6272a4>// in the Software without restriction, including without limitation the rights
+</span><span style=color:#6272a4>// to use, copy, modify, merge, publish, distribute, sublicense, and /or sell
+</span><span style=color:#6272a4>// copies of the Software, and to permit persons to whom the Software is
+</span><span style=color:#6272a4>// furnished to do so, subject to the following conditions :
+</span><span style=color:#6272a4>//
+</span><span style=color:#6272a4>// The above copyright noticeand this permission notice shall be included in all
+</span><span style=color:#6272a4>// copies or substantial portions of the Software.
+</span><span style=color:#6272a4>//
+</span><span style=color:#6272a4>// THE SOFTWARE IS PROVIDED &#34;AS IS&#34;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+</span><span style=color:#6272a4>// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+</span><span style=color:#6272a4>// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.IN NO EVENT SHALL THE
+</span><span style=color:#6272a4>// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+</span><span style=color:#6272a4>// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+</span><span style=color:#6272a4>// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+</span><span style=color:#6272a4>// SOFTWARE.
+</span><span style=color:#6272a4></span><span style=color:#ff79c6>#include</span> <span style=color:#ff79c6>&lt;cstddef&gt;        // for size_t</span><span style=color:#ff79c6>
+</span><span style=color:#ff79c6>#include</span> <span style=color:#ff79c6>&lt;cstdint&gt;        // for std::uint32_t</span><span style=color:#ff79c6>
+</span><span style=color:#ff79c6>#include</span> <span style=color:#ff79c6>&lt;memory&gt;         // for unique_ptr</span><span style=color:#ff79c6>
+</span><span style=color:#ff79c6>#include</span> <span style=color:#ff79c6>&lt;tuple&gt;          // for forward_as_tuple</span><span style=color:#ff79c6>
+</span><span style=color:#ff79c6>#include</span> <span style=color:#ff79c6>&lt;type_traits&gt;    // for remove_reference_t, remove_cv_t</span><span style=color:#ff79c6>
+</span><span style=color:#ff79c6>#include</span> <span style=color:#ff79c6>&lt;unordered_map&gt;  // for unordered_map</span><span style=color:#ff79c6>
+</span><span style=color:#ff79c6>#include</span> <span style=color:#ff79c6>&lt;utility&gt;        // for forward</span><span style=color:#ff79c6>
+</span><span style=color:#ff79c6></span>
+<span style=color:#ff79c6>namespace</span> heco
+{
+    <span style=color:#ff79c6>template</span><span style=color:#ff79c6>&lt;</span><span style=color:#ff79c6>typename</span> T<span style=color:#ff79c6>&gt;</span>
+    <span style=color:#ff79c6>using</span> rm_cvref_t <span style=color:#ff79c6>=</span> std<span style=color:#ff79c6>::</span>remove_cv_t<span style=color:#ff79c6>&lt;</span>std<span style=color:#ff79c6>::</span>remove_reference_t<span style=color:#ff79c6>&lt;</span>T<span style=color:#ff79c6>&gt;&gt;</span>;<span style=color:#6272a4>//remove_cvref_t from C++20 only
+</span><span style=color:#6272a4></span>
+    <span style=color:#ff79c6>using</span> type_id_t <span style=color:#ff79c6>=</span> std<span style=color:#ff79c6>::</span><span style=color:#8be9fd>uint32_t</span>;
+
+    <span style=color:#ff79c6>class</span> <span style=color:#50fa7b>TypeCounter</span> {
+        <span style=color:#ff79c6>static</span> <span style=color:#ff79c6>inline</span> type_id_t i <span style=color:#ff79c6>=</span> <span style=color:#bd93f9>0</span>;
+    <span style=color:#ff79c6>public</span><span style=color:#ff79c6>:</span>
+        <span style=color:#ff79c6>template</span><span style=color:#ff79c6>&lt;</span><span style=color:#ff79c6>typename</span> T<span style=color:#ff79c6>&gt;</span>
+        <span style=color:#ff79c6>static</span> <span style=color:#ff79c6>inline</span> <span style=color:#ff79c6>const</span> <span style=color:#ff79c6>auto</span> id <span style=color:#ff79c6>=</span> i<span style=color:#ff79c6>++</span>;
+    };
+    <span style=color:#ff79c6>template</span><span style=color:#ff79c6>&lt;</span><span style=color:#ff79c6>typename</span> T<span style=color:#ff79c6>&gt;</span> <span style=color:#ff79c6>inline</span> <span style=color:#ff79c6>auto</span> type_id() { <span style=color:#ff79c6>return</span> TypeCounter<span style=color:#ff79c6>::</span>id<span style=color:#ff79c6>&lt;</span>rm_cvref_t<span style=color:#ff79c6>&lt;</span>T<span style=color:#ff79c6>&gt;&gt;</span>; }
+
+    <span style=color:#ff79c6>struct</span> <span style=color:#50fa7b>HeterogeneousContainer</span>
+    {
+        HeterogeneousContainer() <span style=color:#ff79c6>=</span> <span style=color:#ff79c6>default</span>;
+        HeterogeneousContainer(<span style=color:#ff79c6>const</span> HeterogeneousContainer<span style=color:#ff79c6>&amp;</span>) <span style=color:#ff79c6>=</span> <span style=color:#ff79c6>delete</span>;
+        HeterogeneousContainer<span style=color:#ff79c6>&amp;</span> <span style=color:#ff79c6>operator</span><span style=color:#ff79c6>=</span>(<span style=color:#ff79c6>const</span> HeterogeneousContainer<span style=color:#ff79c6>&amp;</span>) <span style=color:#ff79c6>=</span> <span style=color:#ff79c6>delete</span>;
+        HeterogeneousContainer(HeterogeneousContainer<span style=color:#ff79c6>&amp;&amp;</span>) <span style=color:#ff79c6>=</span> <span style=color:#ff79c6>default</span>;
+        HeterogeneousContainer<span style=color:#ff79c6>&amp;</span> <span style=color:#ff79c6>operator</span><span style=color:#ff79c6>=</span>(HeterogeneousContainer<span style=color:#ff79c6>&amp;&amp;</span>) <span style=color:#ff79c6>=</span> <span style=color:#ff79c6>default</span>;
+        <span style=color:#ff79c6>~</span>HeterogeneousContainer() <span style=color:#ff79c6>=</span> <span style=color:#ff79c6>default</span>;
+
+        std<span style=color:#ff79c6>::</span>unordered_map<span style=color:#ff79c6>&lt;</span>type_id_t, std<span style=color:#ff79c6>::</span>unique_ptr<span style=color:#ff79c6>&lt;</span><span style=color:#8be9fd>void</span>, <span style=color:#8be9fd>void</span>(<span style=color:#ff79c6>*</span>)(<span style=color:#8be9fd>void</span><span style=color:#ff79c6>*</span>)<span style=color:#ff79c6>&gt;&gt;</span> data;
+
+        <span style=color:#ff79c6>template</span><span style=color:#ff79c6>&lt;</span><span style=color:#ff79c6>typename</span>... Ts<span style=color:#ff79c6>&gt;</span>
+        <span style=color:#8be9fd>bool</span> contains() <span style=color:#ff79c6>const</span> <span style=color:#ff79c6>noexcept</span> { <span style=color:#ff79c6>return</span> (data.count(type_id<span style=color:#ff79c6>&lt;</span>Ts<span style=color:#ff79c6>&gt;</span>()) <span style=color:#ff79c6>&amp;&amp;</span> ...);}
+
+        <span style=color:#ff79c6>template</span><span style=color:#ff79c6>&lt;</span><span style=color:#ff79c6>typename</span>...Ts<span style=color:#ff79c6>&gt;</span>
+        <span style=color:#8be9fd>void</span> reserve() { reserve(<span style=color:#ff79c6>sizeof</span>...(Ts)); }
+        <span style=color:#8be9fd>void</span> <span style=color:#50fa7b>reserve</span>(std<span style=color:#ff79c6>::</span>size_t n) { data.reserve(n); }
+
+        <span style=color:#ff79c6>template</span><span style=color:#ff79c6>&lt;</span><span style=color:#ff79c6>typename</span> T, <span style=color:#ff79c6>typename</span>... Rest<span style=color:#ff79c6>&gt;</span>
+        <span style=color:#ff79c6>auto</span> get() <span style=color:#ff79c6>noexcept</span> <span style=color:#ff79c6>-&gt;</span> <span style=color:#ff79c6>decltype</span>(<span style=color:#ff79c6>auto</span>)
+        {
+            <span style=color:#ff79c6>using</span> U <span style=color:#ff79c6>=</span> std<span style=color:#ff79c6>::</span>remove_reference_t<span style=color:#ff79c6>&lt;</span>T<span style=color:#ff79c6>&gt;</span>;
+            <span style=color:#ff79c6>if</span> <span style=color:#50fa7b>constexpr</span> (<span style=color:#ff79c6>sizeof</span>...(Rest) <span style=color:#ff79c6>==</span> <span style=color:#bd93f9>0</span>)
+                <span style=color:#ff79c6>return</span> <span style=color:#ff79c6>*</span><span style=color:#ff79c6>static_cast</span><span style=color:#ff79c6>&lt;</span>U<span style=color:#ff79c6>*&gt;</span>(data.at(type_id<span style=color:#ff79c6>&lt;</span>U<span style=color:#ff79c6>&gt;</span>()).get());
+            <span style=color:#ff79c6>else</span>
+                <span style=color:#ff79c6>return</span> std<span style=color:#ff79c6>::</span>forward_as_tuple(get<span style=color:#ff79c6>&lt;</span>T<span style=color:#ff79c6>&gt;</span>(), get<span style=color:#ff79c6>&lt;</span>Rest<span style=color:#ff79c6>&gt;</span>()...);
+        }
+
+        <span style=color:#ff79c6>template</span><span style=color:#ff79c6>&lt;</span><span style=color:#ff79c6>typename</span> T, <span style=color:#ff79c6>typename</span>... Rest<span style=color:#ff79c6>&gt;</span>
+        <span style=color:#ff79c6>auto</span> get() <span style=color:#ff79c6>const</span> <span style=color:#ff79c6>noexcept</span> <span style=color:#ff79c6>-&gt;</span> <span style=color:#ff79c6>decltype</span>(<span style=color:#ff79c6>auto</span>)
+        {
+            <span style=color:#ff79c6>using</span> U <span style=color:#ff79c6>=</span> std<span style=color:#ff79c6>::</span>remove_reference_t<span style=color:#ff79c6>&lt;</span>T<span style=color:#ff79c6>&gt;</span>;
+            <span style=color:#ff79c6>if</span> <span style=color:#50fa7b>constexpr</span> (<span style=color:#ff79c6>sizeof</span>...(Rest) <span style=color:#ff79c6>==</span> <span style=color:#bd93f9>0</span>)
+                <span style=color:#ff79c6>return</span> <span style=color:#ff79c6>*</span><span style=color:#ff79c6>static_cast</span><span style=color:#ff79c6>&lt;</span>U<span style=color:#ff79c6>*&gt;</span>(data.at(type_id<span style=color:#ff79c6>&lt;</span>U<span style=color:#ff79c6>&gt;</span>()).get());
+            <span style=color:#ff79c6>else</span>
+                <span style=color:#ff79c6>return</span> std<span style=color:#ff79c6>::</span>forward_as_tuple(get<span style=color:#ff79c6>&lt;</span>T<span style=color:#ff79c6>&gt;</span>(), get<span style=color:#ff79c6>&lt;</span>Rest<span style=color:#ff79c6>&gt;</span>()...);
+        }
+
+        <span style=color:#ff79c6>template</span><span style=color:#ff79c6>&lt;</span><span style=color:#ff79c6>typename</span> T <span style=color:#ff79c6>=</span> <span style=color:#8be9fd>void</span>, <span style=color:#ff79c6>typename</span>... Args<span style=color:#ff79c6>&gt;</span>
+        <span style=color:#ff79c6>auto</span> insert(Args<span style=color:#ff79c6>&amp;&amp;</span> ... args) <span style=color:#ff79c6>-&gt;</span> <span style=color:#ff79c6>decltype</span>(<span style=color:#ff79c6>auto</span>)
+        {
+            <span style=color:#ff79c6>if</span> <span style=color:#50fa7b>constexpr</span> (std<span style=color:#ff79c6>::</span>is_same_v<span style=color:#ff79c6>&lt;</span>T, <span style=color:#8be9fd>void</span><span style=color:#ff79c6>&gt;</span>)
+                <span style=color:#ff79c6>static_assert</span>(((copyable_if_lvalue<span style=color:#ff79c6>&lt;</span>Args<span style=color:#ff79c6>&gt;</span> <span style=color:#ff79c6>||</span> moveable_if_rvalue<span style=color:#ff79c6>&lt;</span>Args<span style=color:#ff79c6>&gt;</span>) <span style=color:#ff79c6>&amp;&amp;</span> ...), <span style=color:#f1fa8c>&#34;Use in-place construction version insert&lt;T&gt;(Args...) instead.&#34;</span>);
+
+            <span style=color:#ff79c6>if</span> <span style=color:#50fa7b>constexpr</span> (<span style=color:#ff79c6>!</span>std<span style=color:#ff79c6>::</span>is_same_v<span style=color:#ff79c6>&lt;</span>T, <span style=color:#8be9fd>void</span><span style=color:#ff79c6>&gt;</span>)
+                <span style=color:#ff79c6>return</span> insert_1<span style=color:#ff79c6>&lt;</span>T<span style=color:#ff79c6>&gt;</span>(std<span style=color:#ff79c6>::</span>forward<span style=color:#ff79c6>&lt;</span>Args<span style=color:#ff79c6>&gt;</span>(args)...);
+            <span style=color:#ff79c6>else</span> <span style=color:#ff79c6>if</span> <span style=color:#50fa7b>constexpr</span> (<span style=color:#ff79c6>sizeof</span>...(Args) <span style=color:#ff79c6>==</span> <span style=color:#bd93f9>1</span>)
+                <span style=color:#ff79c6>return</span> insert_1<span style=color:#ff79c6>&lt;</span>Args...<span style=color:#ff79c6>&gt;</span>(std<span style=color:#ff79c6>::</span>forward<span style=color:#ff79c6>&lt;</span>Args<span style=color:#ff79c6>&gt;</span>(args)...);
+            <span style=color:#ff79c6>else</span>
+                <span style=color:#ff79c6>return</span> <span style=color:#50fa7b>insert_n</span>(std<span style=color:#ff79c6>::</span>forward<span style=color:#ff79c6>&lt;</span>Args<span style=color:#ff79c6>&gt;</span>(args)...);
+        }
+
+        <span style=color:#ff79c6>template</span><span style=color:#ff79c6>&lt;</span><span style=color:#ff79c6>typename</span> T <span style=color:#ff79c6>=</span> <span style=color:#8be9fd>void</span>, <span style=color:#ff79c6>typename</span>... Args<span style=color:#ff79c6>&gt;</span>
+        <span style=color:#ff79c6>auto</span> insert_or_assign(Args<span style=color:#ff79c6>&amp;&amp;</span> ... args) <span style=color:#ff79c6>-&gt;</span> <span style=color:#ff79c6>decltype</span>(<span style=color:#ff79c6>auto</span>)
+        {
+            <span style=color:#ff79c6>if</span> <span style=color:#50fa7b>constexpr</span> (<span style=color:#ff79c6>!</span>std<span style=color:#ff79c6>::</span>is_same_v<span style=color:#ff79c6>&lt;</span>T, <span style=color:#8be9fd>void</span><span style=color:#ff79c6>&gt;</span>)
+                <span style=color:#ff79c6>return</span> insert_or_assign_1<span style=color:#ff79c6>&lt;</span>T<span style=color:#ff79c6>&gt;</span>(std<span style=color:#ff79c6>::</span>forward<span style=color:#ff79c6>&lt;</span>Args<span style=color:#ff79c6>&gt;</span>(args)...);
+            <span style=color:#ff79c6>else</span> <span style=color:#ff79c6>if</span> <span style=color:#50fa7b>constexpr</span> (<span style=color:#ff79c6>sizeof</span>...(Args) <span style=color:#ff79c6>==</span> <span style=color:#bd93f9>1</span>)
+                <span style=color:#ff79c6>return</span> insert_or_assign_1<span style=color:#ff79c6>&lt;</span>Args...<span style=color:#ff79c6>&gt;</span>(std<span style=color:#ff79c6>::</span>forward<span style=color:#ff79c6>&lt;</span>Args<span style=color:#ff79c6>&gt;</span>(args)...);
+            <span style=color:#ff79c6>else</span>
+                <span style=color:#ff79c6>return</span> std<span style=color:#ff79c6>::</span>forward_as_tuple(insert_or_assign_1<span style=color:#ff79c6>&lt;</span>Args<span style=color:#ff79c6>&gt;</span>(std<span style=color:#ff79c6>::</span>forward<span style=color:#ff79c6>&lt;</span>Args<span style=color:#ff79c6>&gt;</span>(args))...);
+        }
+
+    <span style=color:#ff79c6>private</span><span style=color:#ff79c6>:</span>
+        <span style=color:#ff79c6>template</span><span style=color:#ff79c6>&lt;</span><span style=color:#ff79c6>typename</span> T<span style=color:#ff79c6>&gt;</span>
+        <span style=color:#ff79c6>static</span> <span style=color:#ff79c6>constexpr</span> <span style=color:#8be9fd>bool</span> copyable_if_lvalue <span style=color:#ff79c6>=</span> std<span style=color:#ff79c6>::</span>is_lvalue_reference_v<span style=color:#ff79c6>&lt;</span>T<span style=color:#ff79c6>&gt;</span> <span style=color:#ff79c6>&amp;&amp;</span> std<span style=color:#ff79c6>::</span>is_copy_constructible_v<span style=color:#ff79c6>&lt;</span>T<span style=color:#ff79c6>&gt;</span>;
+        <span style=color:#ff79c6>template</span><span style=color:#ff79c6>&lt;</span><span style=color:#ff79c6>typename</span> T<span style=color:#ff79c6>&gt;</span>
+        <span style=color:#ff79c6>static</span> <span style=color:#ff79c6>constexpr</span> <span style=color:#8be9fd>bool</span> moveable_if_rvalue <span style=color:#ff79c6>=</span> (std<span style=color:#ff79c6>::</span>is_object_v<span style=color:#ff79c6>&lt;</span>T<span style=color:#ff79c6>&gt;</span> <span style=color:#ff79c6>||</span> std<span style=color:#ff79c6>::</span>is_rvalue_reference_v<span style=color:#ff79c6>&lt;</span>T<span style=color:#ff79c6>&gt;</span>) <span style=color:#ff79c6>&amp;&amp;</span> std<span style=color:#ff79c6>::</span>is_move_constructible_v<span style=color:#ff79c6>&lt;</span>T<span style=color:#ff79c6>&gt;</span>;
+
+        <span style=color:#ff79c6>template</span><span style=color:#ff79c6>&lt;</span><span style=color:#ff79c6>typename</span> T, <span style=color:#ff79c6>typename</span>... Args<span style=color:#ff79c6>&gt;</span>
+         <span style=color:#ff79c6>auto</span> insert_1(Args<span style=color:#ff79c6>&amp;&amp;</span>... args) <span style=color:#ff79c6>-&gt;</span> <span style=color:#ff79c6>decltype</span>(<span style=color:#ff79c6>auto</span>)
+        {
+            <span style=color:#ff79c6>using</span> U <span style=color:#ff79c6>=</span> rm_cvref_t<span style=color:#ff79c6>&lt;</span>T<span style=color:#ff79c6>&gt;</span>;
+            <span style=color:#ff79c6>auto</span><span style=color:#ff79c6>&amp;&amp;</span>[it, in] <span style=color:#ff79c6>=</span> data.emplace(
+                type_id<span style=color:#ff79c6>&lt;</span>T<span style=color:#ff79c6>&gt;</span>(),
+                std<span style=color:#ff79c6>::</span>unique_ptr<span style=color:#ff79c6>&lt;</span><span style=color:#8be9fd>void</span>, <span style=color:#8be9fd>void</span> (<span style=color:#ff79c6>*</span>)(<span style=color:#8be9fd>void</span><span style=color:#ff79c6>*</span>)<span style=color:#ff79c6>&gt;</span>{ <span style=color:#ff79c6>new</span> U{ std<span style=color:#ff79c6>::</span>forward<span style=color:#ff79c6>&lt;</span>Args<span style=color:#ff79c6>&gt;</span>(args)... },
+                                                        <span style=color:#ff79c6>+</span>[](<span style=color:#8be9fd>void</span><span style=color:#ff79c6>*</span> instance) { <span style=color:#ff79c6>delete</span> <span style=color:#ff79c6>static_cast</span><span style=color:#ff79c6>&lt;</span>U<span style=color:#ff79c6>*&gt;</span>(instance); } });
+            <span style=color:#ff79c6>return</span> <span style=color:#ff79c6>*</span><span style=color:#ff79c6>static_cast</span><span style=color:#ff79c6>&lt;</span>U<span style=color:#ff79c6>*&gt;</span>(it<span style=color:#ff79c6>-&gt;</span>second.get());
+        }
+
+         <span style=color:#ff79c6>template</span><span style=color:#ff79c6>&lt;</span><span style=color:#ff79c6>typename</span>... Ts<span style=color:#ff79c6>&gt;</span>
+         <span style=color:#ff79c6>auto</span> insert_n(Ts<span style=color:#ff79c6>&amp;&amp;</span>... values) <span style=color:#ff79c6>-&gt;</span> <span style=color:#ff79c6>decltype</span>(<span style=color:#ff79c6>auto</span>)
+         {
+             data.reserve(data.size() <span style=color:#ff79c6>+</span> <span style=color:#ff79c6>sizeof</span>...(Ts));
+             <span style=color:#ff79c6>return</span> std<span style=color:#ff79c6>::</span>forward_as_tuple(insert_1<span style=color:#ff79c6>&lt;</span>Ts<span style=color:#ff79c6>&gt;</span>(std<span style=color:#ff79c6>::</span>forward<span style=color:#ff79c6>&lt;</span>Ts<span style=color:#ff79c6>&gt;</span>(values))...);
+         }
+
+        <span style=color:#ff79c6>template</span><span style=color:#ff79c6>&lt;</span><span style=color:#ff79c6>typename</span> T, <span style=color:#ff79c6>typename</span>... Args<span style=color:#ff79c6>&gt;</span>
+        <span style=color:#ff79c6>auto</span> insert_or_assign_1(Args<span style=color:#ff79c6>&amp;&amp;</span> ... args) <span style=color:#ff79c6>-&gt;</span> <span style=color:#ff79c6>decltype</span>(<span style=color:#ff79c6>auto</span>)
+        {
+            <span style=color:#ff79c6>using</span> U <span style=color:#ff79c6>=</span> rm_cvref_t<span style=color:#ff79c6>&lt;</span>T<span style=color:#ff79c6>&gt;</span>;
+            <span style=color:#ff79c6>auto</span><span style=color:#ff79c6>&amp;&amp;</span>[it,in] <span style=color:#ff79c6>=</span> data.insert_or_assign(
+                type_id<span style=color:#ff79c6>&lt;</span>T<span style=color:#ff79c6>&gt;</span>(),
+                std<span style=color:#ff79c6>::</span>unique_ptr<span style=color:#ff79c6>&lt;</span><span style=color:#8be9fd>void</span>, <span style=color:#8be9fd>void</span>(<span style=color:#ff79c6>*</span>)(<span style=color:#8be9fd>void</span><span style=color:#ff79c6>*</span>)<span style=color:#ff79c6>&gt;</span>{ <span style=color:#ff79c6>new</span> U{ std<span style=color:#ff79c6>::</span>forward<span style=color:#ff79c6>&lt;</span>Args<span style=color:#ff79c6>&gt;</span>(args)... },
+                                                       <span style=color:#ff79c6>+</span>[](<span style=color:#8be9fd>void</span><span style=color:#ff79c6>*</span> instance) { <span style=color:#ff79c6>delete</span> <span style=color:#ff79c6>static_cast</span><span style=color:#ff79c6>&lt;</span>U<span style=color:#ff79c6>*&gt;</span>(instance); } }
+            );
+            <span style=color:#ff79c6>return</span> <span style=color:#ff79c6>*</span><span style=color:#ff79c6>static_cast</span><span style=color:#ff79c6>&lt;</span>U<span style=color:#ff79c6>*&gt;</span>(it<span style=color:#ff79c6>-&gt;</span>second.get());
+        }
+    };
+}
+</code></pre></td></tr></table></div></div></div></main><footer id=footer><div id=footer-inner>&copy;&nbsp;2020&nbsp;&#183;&nbsp;Fabien Péan</div></footer><script>window.FontAwesomeConfig={searchPseudoElements:true}</script><script async src=https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/js/all.min.js integrity="sha256-MAgcygDRahs+F/Nk5Vz387whB4kSK9NXlDN3w58LLq0=" crossorigin=anonymous></script><script src=https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin=anonymous></script><script async defer src=https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/1.6.0/clipboard.min.js></script><script src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.18.1/highlight.min.js integrity="sha256-eOgo0OtLL4cdq7RdwRUiGKLX9XsIJ7nGhWEKbohmVAQ=" crossorigin=anonymous></script><script src=https://cdnjs.cloudflare.com/ajax/libs/mermaid/8.4.8/mermaid.min.js integrity="sha256-lyWCDMnMeZiXRi7Zl54sZGKYmgQs4izcT7+tKc+KUBk=" crossorigin=anonymous></script><script>mermaid.initialize({startOnLoad:true,securityLevel:'loose',theme:'default',themeCSS:'',cloneCssStyles:true,useMaxWidth:true,htmlLabels:false,flowchart:{curve:'basis'}});</script><script>window.MathJax={tex:{inlineMath:[['$','$'],['\\(','\\)']],displayMath:[['$$','$$'],['\\[','\\]']],processEscapes:false,processEnvironments:true},svg:{fontCache:'global'}};</script><script async type=text/javascript id=MathJax-script src=https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js></script><script src=/js/custom.js></script></body></html>
