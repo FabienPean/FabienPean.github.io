@@ -1,1 +1,42 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Tags on My Personal Website</title><link>https://fabien.pean.pro/tags/</link><description>Recent content in Tags on My Personal Website</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Sun, 30 Aug 2020 23:18:11 +0200</lastBuildDate><atom:link href="https://fabien.pean.pro/tags/index.xml" rel="self" type="application/rss+xml"/><item><title>c++</title><link>https://fabien.pean.pro/tags/c++/</link><pubDate>Sun, 30 Aug 2020 23:18:11 +0200</pubDate><guid>https://fabien.pean.pro/tags/c++/</guid><description/></item><item><title>research</title><link>https://fabien.pean.pro/tags/research/</link><pubDate>Thu, 09 Jul 2020 00:00:00 +0000</pubDate><guid>https://fabien.pean.pro/tags/research/</guid><description/></item><item><title>blabla</title><link>https://fabien.pean.pro/tags/blabla/</link><pubDate>Sun, 29 Mar 2020 19:21:01 +0200</pubDate><guid>https://fabien.pean.pro/tags/blabla/</guid><description/></item></channel></rss>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Tags on My Personal Website</title>
+    <link>https://fabien.pean.pro/tags/</link>
+    <description>Recent content in Tags on My Personal Website</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Sun, 30 Aug 2020 23:24:25 +0200</lastBuildDate>
+    
+	<atom:link href="https://fabien.pean.pro/tags/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>c&#43;&#43;</title>
+      <link>https://fabien.pean.pro/tags/c&#43;&#43;/</link>
+      <pubDate>Sun, 30 Aug 2020 23:24:25 +0200</pubDate>
+      
+      <guid>https://fabien.pean.pro/tags/c&#43;&#43;/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>research</title>
+      <link>https://fabien.pean.pro/tags/research/</link>
+      <pubDate>Thu, 09 Jul 2020 00:00:00 +0000</pubDate>
+      
+      <guid>https://fabien.pean.pro/tags/research/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>blabla</title>
+      <link>https://fabien.pean.pro/tags/blabla/</link>
+      <pubDate>Sun, 29 Mar 2020 19:21:01 +0200</pubDate>
+      
+      <guid>https://fabien.pean.pro/tags/blabla/</guid>
+      <description></description>
+    </item>
+    
+  </channel>
+</rss>

@@ -1,1 +1,24 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Notes on My Personal Website</title><link>https://fabien.pean.pro/notes/</link><description>Recent content in Notes on My Personal Website</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Sun, 29 Mar 2020 19:21:01 +0200</lastBuildDate><atom:link href="https://fabien.pean.pro/notes/index.xml" rel="self" type="application/rss+xml"/><item><title>WTF C&amp;plus;&amp;plus;</title><link>https://fabien.pean.pro/notes/wtf-cplusplus/</link><pubDate>Sun, 30 Aug 2020 23:18:11 +0200</pubDate><guid>https://fabien.pean.pro/notes/wtf-cplusplus/</guid><description>&lt;p>In this page, I enumerate various C++ fragments that sparkled my incomprehension when I encountered them, or made me scratch my head far too long. It is meant to be a reminder mainly for myself and destined to be updated over time.&lt;/p></description></item></channel></rss>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Notes on My Personal Website</title>
+    <link>https://fabien.pean.pro/notes/</link>
+    <description>Recent content in Notes on My Personal Website</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Sun, 29 Mar 2020 19:21:01 +0200</lastBuildDate>
+    
+	<atom:link href="https://fabien.pean.pro/notes/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>WTF C&amp;plus;&amp;plus;</title>
+      <link>https://fabien.pean.pro/notes/wtf-cplusplus/</link>
+      <pubDate>Sun, 30 Aug 2020 23:24:25 +0200</pubDate>
+      
+      <guid>https://fabien.pean.pro/notes/wtf-cplusplus/</guid>
+      <description>&lt;p&gt;In this page, I enumerate various C++ fragments that sparkled my incomprehension when I encountered them, or made me scratch my head far too long. It is meant to be a reminder mainly for myself and destined to be updated over time.&lt;/p&gt;</description>
+    </item>
+    
+  </channel>
+</rss>

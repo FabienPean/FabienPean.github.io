@@ -1,4 +1,45 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>c++ on My Personal Website</title><link>https://fabien.pean.pro/tags/c++/</link><description>Recent content in c++ on My Personal Website</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Sun, 30 Aug 2020 23:18:11 +0200</lastBuildDate><atom:link href="https://fabien.pean.pro/tags/c++/index.xml" rel="self" type="application/rss+xml"/><item><title>WTF C&amp;plus;&amp;plus;</title><link>https://fabien.pean.pro/notes/wtf-cplusplus/</link><pubDate>Sun, 30 Aug 2020 23:18:11 +0200</pubDate><guid>https://fabien.pean.pro/notes/wtf-cplusplus/</guid><description>&lt;p>In this page, I enumerate various C++ fragments that sparkled my incomprehension when I encountered them, or made me scratch my head far too long. It is meant to be a reminder mainly for myself and destined to be updated over time.&lt;/p></description></item><item><title>A simple heterogeneous container in C&amp;plus;&amp;plus; without relying on 'variant' nor 'any'</title><link>https://fabien.pean.pro/blog/2020/08/a-simple-heterogeneous-container-in-cplusplus-without-relying-on-variant-nor-any/</link><pubDate>Sun, 02 Aug 2020 00:00:00 +0000</pubDate><guid>https://fabien.pean.pro/blog/2020/08/a-simple-heterogeneous-container-in-cplusplus-without-relying-on-variant-nor-any/</guid><description>Building an heterogeneous container: basic ingredients In a precedent post, I outlined the implementation of an heterogeneous dynamic array. Let us try now to reflect on what was done to draw some genericity out of it.
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>c&#43;&#43; on My Personal Website</title>
+    <link>https://fabien.pean.pro/tags/c&#43;&#43;/</link>
+    <description>Recent content in c&#43;&#43; on My Personal Website</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Sun, 30 Aug 2020 23:24:25 +0200</lastBuildDate>
+    
+	<atom:link href="https://fabien.pean.pro/tags/c++/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>WTF C&amp;plus;&amp;plus;</title>
+      <link>https://fabien.pean.pro/notes/wtf-cplusplus/</link>
+      <pubDate>Sun, 30 Aug 2020 23:24:25 +0200</pubDate>
+      
+      <guid>https://fabien.pean.pro/notes/wtf-cplusplus/</guid>
+      <description>&lt;p&gt;In this page, I enumerate various C++ fragments that sparkled my incomprehension when I encountered them, or made me scratch my head far too long. It is meant to be a reminder mainly for myself and destined to be updated over time.&lt;/p&gt;</description>
+    </item>
+    
+    <item>
+      <title>A simple heterogeneous container in C&amp;plus;&amp;plus; without relying on &#39;variant&#39; nor &#39;any&#39;</title>
+      <link>https://fabien.pean.pro/blog/2020/08/a-simple-heterogeneous-container-in-cplusplus-without-relying-on-variant-nor-any/</link>
+      <pubDate>Sun, 02 Aug 2020 00:00:00 +0000</pubDate>
+      
+      <guid>https://fabien.pean.pro/blog/2020/08/a-simple-heterogeneous-container-in-cplusplus-without-relying-on-variant-nor-any/</guid>
+      <description>Building an heterogeneous container: basic ingredients In a precedent post, I outlined the implementation of an heterogeneous dynamic array. Let us try now to reflect on what was done to draw some genericity out of it.
 The basic ingredients to build an heterogeneous container are:
-data the object ptr where the object is stored: a pointer or offset allowing to find the object in memory tag what is the type of that object: a unique way to identify types at runtime.</description></item><item><title>Implementing an heterogeneous dynamic array in C&amp;plus;&amp;plus;</title><link>https://fabien.pean.pro/blog/2020/07/implementing-an-heterogeneous-dynamic-array-in-cplusplus/</link><pubDate>Fri, 10 Jul 2020 00:00:00 +0000</pubDate><guid>https://fabien.pean.pro/blog/2020/07/implementing-an-heterogeneous-dynamic-array-in-cplusplus/</guid><description>Introduction heterogeneous: consisting of dissimilar or diverse constituents
-dynamic array: a dynamic array is a random access, variable-size list data structure that allows elements to be added or removed. [&amp;hellip;] A simple dynamic array can be constructed by allocating an array of fixed-size, typically larger than the number of elements immediately required. The elements of the dynamic array are stored contiguously at the start of the underlying array, [&amp;hellip;]</description></item></channel></rss>
+ data the object ptr where the object is stored: a pointer or offset allowing to find the object in memory tag what is the type of that object: a unique way to identify types at runtime.</description>
+    </item>
+    
+    <item>
+      <title>Implementing an heterogeneous dynamic array in C&amp;plus;&amp;plus;</title>
+      <link>https://fabien.pean.pro/blog/2020/07/implementing-an-heterogeneous-dynamic-array-in-cplusplus/</link>
+      <pubDate>Fri, 10 Jul 2020 00:00:00 +0000</pubDate>
+      
+      <guid>https://fabien.pean.pro/blog/2020/07/implementing-an-heterogeneous-dynamic-array-in-cplusplus/</guid>
+      <description>Introduction  heterogeneous: consisting of dissimilar or diverse constituents
+dynamic array: a dynamic array is a random access, variable-size list data structure that allows elements to be added or removed. [&amp;hellip;] A simple dynamic array can be constructed by allocating an array of fixed-size, typically larger than the number of elements immediately required. The elements of the dynamic array are stored contiguously at the start of the underlying array, [&amp;hellip;]</description>
+    </item>
+    
+  </channel>
+</rss>
