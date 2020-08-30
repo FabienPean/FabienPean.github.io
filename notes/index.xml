@@ -1,2 +1,25 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Notes on My Personal Website</title><link>https://fabien.pean.pro/notes/</link><description>Recent content in Notes on My Personal Website</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Sun, 29 Mar 2020 19:21:01 +0200</lastBuildDate><atom:link href="https://fabien.pean.pro/notes/index.xml" rel="self" type="application/rss+xml"/><item><title>WTF C&amp;plus;&amp;plus;</title><link>https://fabien.pean.pro/notes/wtf-cplusplus/</link><pubDate>Sun, 30 Aug 2020 20:54:34 +0200</pubDate><guid>https://fabien.pean.pro/notes/wtf-cplusplus/</guid><description>In this page, I enumerate various C++ fragments that sparkled my incomprehension when I encountered them, or made my head scratch far too long. This page is meant to be a reminder mainly for myself and destined to be updated over time.
-No implicit conversion for arrays of 1 element 1 2 std::array&amp;lt;int,1&amp;gt; arr {42}; int v = arr; // ❌ That&amp;#39;s a no-no Filesystem library and operator / Operator / does not always act relative to the previous path&amp;hellip; A leading slash is always considered as referring to the root, therefore the input path is considered absolute instead of relative.</description></item></channel></rss>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Notes on My Personal Website</title>
+    <link>https://fabien.pean.pro/notes/</link>
+    <description>Recent content in Notes on My Personal Website</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Sun, 29 Mar 2020 19:21:01 +0200</lastBuildDate>
+    
+	<atom:link href="https://fabien.pean.pro/notes/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>WTF C&amp;plus;&amp;plus;</title>
+      <link>https://fabien.pean.pro/notes/wtf-cplusplus/</link>
+      <pubDate>Sun, 30 Aug 2020 20:54:34 +0200</pubDate>
+      
+      <guid>https://fabien.pean.pro/notes/wtf-cplusplus/</guid>
+      <description>In this page, I enumerate various C++ fragments that sparkled my incomprehension when I encountered them, or made my head scratch far too long. This page is meant to be a reminder mainly for myself and destined to be updated over time.
+No implicit conversion for arrays of 1 element 1 2  std::array&amp;lt;int,1&amp;gt; arr {42}; int v = arr; // ❌ That&amp;#39;s a no-no   Filesystem library and operator / Operator / does not always act relative to the previous path&amp;hellip; A leading slash is always considered as referring to the root, therefore the input path is considered absolute instead of relative.</description>
+    </item>
+    
+  </channel>
+</rss>
