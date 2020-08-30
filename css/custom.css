@@ -41,6 +41,14 @@ p > img {
     filter: brightness(86.666%);/* exact percentage need to shift a pure white background to my light color background #DDD */
     max-width:100%;
 }
+h1 {
+    margin-block-start: 0.8em;
+    margin-block-end: 0.6em;
+}
+h2,h3,h4,h5,h6 {
+    margin-block-start: 0.8em;
+    margin-block-end: 0.4em;
+}
 h1,h2,h3,h4,h5,h6{
     text-align:left;
     text-align-last:right;
