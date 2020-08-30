@@ -1,3 +1,35 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>News on My Personal Website</title><link>https://fabien.pean.pro/news/</link><description>Recent content in News on My Personal Website</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Sun, 29 Mar 2020 19:21:01 +0200</lastBuildDate><atom:link href="https://fabien.pean.pro/news/index.xml" rel="self" type="application/rss+xml"/><item><title>New paper published in Medical Engineering and Physics</title><link>https://fabien.pean.pro/news/2020/07/new-paper-published-in-medical-engineering-and-physics/</link><pubDate>Thu, 09 Jul 2020 00:00:00 +0000</pubDate><guid>https://fabien.pean.pro/news/2020/07/new-paper-published-in-medical-engineering-and-physics/</guid><description>My paper titled Surface-based Modeling of Muscles: Functional Simulation of the Shoulder is now online ! Elsevier provides free access to it until 27/08/2020 at this address: https://authors.elsevier.com/a/1bM-N4p3hgSJXN</description></item><item><title>Welcome to my website, I will be your guide</title><link>https://fabien.pean.pro/news/2020/03/welcome-to-my-website-i-will-be-your-guide/</link><pubDate>Sun, 29 Mar 2020 19:21:01 +0200</pubDate><guid>https://fabien.pean.pro/news/2020/03/welcome-to-my-website-i-will-be-your-guide/</guid><description>A warm welcome to my personal website. After a long maturation time, it is finally online! :tada:
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>News on My Personal Website</title>
+    <link>https://fabien.pean.pro/news/</link>
+    <description>Recent content in News on My Personal Website</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Sun, 29 Mar 2020 19:21:01 +0200</lastBuildDate>
+    
+	<atom:link href="https://fabien.pean.pro/news/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>New paper published in Medical Engineering and Physics</title>
+      <link>https://fabien.pean.pro/news/2020/07/new-paper-published-in-medical-engineering-and-physics/</link>
+      <pubDate>Thu, 09 Jul 2020 00:00:00 +0000</pubDate>
+      
+      <guid>https://fabien.pean.pro/news/2020/07/new-paper-published-in-medical-engineering-and-physics/</guid>
+      <description>My paper titled Surface-based Modeling of Muscles: Functional Simulation of the Shoulder is now online ! Elsevier provides free access to it until 27/08/2020 at this address: https://authors.elsevier.com/a/1bM-N4p3hgSJXN</description>
+    </item>
+    
+    <item>
+      <title>Welcome to my website, I will be your guide</title>
+      <link>https://fabien.pean.pro/news/2020/03/welcome-to-my-website-i-will-be-your-guide/</link>
+      <pubDate>Sun, 29 Mar 2020 19:21:01 +0200</pubDate>
+      
+      <guid>https://fabien.pean.pro/news/2020/03/welcome-to-my-website-i-will-be-your-guide/</guid>
+      <description>A warm welcome to my personal website. After a long maturation time, it is finally online! :tada:
 It was developed from scratch with Hugo, a great static site generator, and inspired myself or sometimes reused bits from the nice Academic theme by Georges Cushen. During the journey, I learned a lot about html, css and hugo.
-Why from scratch? For two main reasons: one is that I had a precise design in mind, and the other was that I wanted to keep it as minimal as possible for my needs.</description></item></channel></rss>
+Why from scratch? For two main reasons: one is that I had a precise design in mind, and the other was that I wanted to keep it as minimal as possible for my needs.</description>
+    </item>
+    
+  </channel>
+</rss>
