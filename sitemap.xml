@@ -1,1 +1,55 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml"><url><loc>https://fabien.pean.pro/</loc><lastmod>2018-03-02T00:27:05+01:00</lastmod><changefreq>monthly</changefreq><priority>0.5</priority></url><url><loc>https://fabien.pean.pro/notes/wtf-cplusplus/</loc><lastmod>2020-08-30T20:54:34+02:00</lastmod><changefreq>monthly</changefreq><priority>0.5</priority></url><url><loc>https://fabien.pean.pro/blog/2020/08/a-simple-heterogeneous-container-in-cplusplus-without-relying-on-variant-nor-any/</loc><lastmod>2020-08-02T17:31:33+02:00</lastmod><changefreq>monthly</changefreq><priority>0.5</priority></url><url><loc>https://fabien.pean.pro/home/about/</loc><lastmod>2020-07-11T19:03:55+02:00</lastmod><changefreq>monthly</changefreq><priority>0.5</priority></url><url><loc>https://fabien.pean.pro/blog/2020/07/implementing-an-heterogeneous-dynamic-array-in-cplusplus/</loc><lastmod>2020-07-14T01:15:45+02:00</lastmod><changefreq>monthly</changefreq><priority>0.5</priority></url><url><loc>https://fabien.pean.pro/news/2020/07/new-paper-published-in-medical-engineering-and-physics/</loc><lastmod>2020-07-10T16:31:27+02:00</lastmod><changefreq>monthly</changefreq><priority>0.5</priority></url><url><loc>https://fabien.pean.pro/news/2020/03/welcome-to-my-website-i-will-be-your-guide/</loc><lastmod>2020-03-29T19:21:01+02:00</lastmod><changefreq>monthly</changefreq><priority>0.5</priority></url></urlset>
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+  xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  
+  <url>
+    <loc>https://fabien.pean.pro/</loc>
+    <lastmod>2018-03-02T00:27:05+01:00</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  
+  <url>
+    <loc>https://fabien.pean.pro/notes/wtf-cplusplus/</loc>
+    <lastmod>2020-08-30T23:05:03+02:00</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>https://fabien.pean.pro/blog/2020/08/a-simple-heterogeneous-container-in-cplusplus-without-relying-on-variant-nor-any/</loc>
+    <lastmod>2020-08-02T17:31:33+02:00</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>https://fabien.pean.pro/home/about/</loc>
+    <lastmod>2020-07-11T19:03:55+02:00</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>https://fabien.pean.pro/blog/2020/07/implementing-an-heterogeneous-dynamic-array-in-cplusplus/</loc>
+    <lastmod>2020-07-14T01:15:45+02:00</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>https://fabien.pean.pro/news/2020/07/new-paper-published-in-medical-engineering-and-physics/</loc>
+    <lastmod>2020-07-10T16:31:27+02:00</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>https://fabien.pean.pro/news/2020/03/welcome-to-my-website-i-will-be-your-guide/</loc>
+    <lastmod>2020-03-29T19:21:01+02:00</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+</urlset>
