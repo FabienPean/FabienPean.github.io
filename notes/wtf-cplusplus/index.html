@@ -1,268 +1,54 @@
-<!DOCTYPE html>
-<html lang="en-us">
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="">
-    <meta name="author" content="Fabien Péan">
-    <meta name="google-site-verification" content="_OCqKj2I4fVqJsqpa9uq0utQ55W1kx93lTIQtHZ88mM" />
-    <link rel="shortcut icon" type="image/png" href="/img/logo.svg"/>
-    <title>Fabien Péan &middot; Personal Website</title>
-    
-    <meta name="robots" content="index,follow" /> 
-    <meta name="googlebot" content="index,follow" />
-    <link rel=stylesheet type="text/css" href="/css/normalize.css">
-    <link rel=stylesheet href="/vendor/colors/css/colors.min.css">
-    <link rel="stylesheet" href="/vendor/academicons/css/academicons.min.css"/>
-    
-    
-    
-    
-	<style>
-    :root{--font-monospace: "Source Code Pro";
-          --font-sans-serif:"Inter";}
-	</style>
-    
-    <link href="https://fonts.googleapis.com/css?family=Inter%7cSource&#43;Code&#43;Pro&amp;display=swap" rel="stylesheet" type="text/css">
+<!doctype html><html lang=en-us><!doctype html><html lang=en><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content><meta name=author content="Fabien Péan"><meta name=google-site-verification content="_OCqKj2I4fVqJsqpa9uq0utQ55W1kx93lTIQtHZ88mM"><link rel="shortcut icon" type=image/png href=/img/logo.svg><title>Fabien Péan &#183; Personal Website</title><meta name=robots content="index,follow"><meta name=googlebot content="index,follow"><link rel=stylesheet type=text/css href=/css/normalize.css><link rel=stylesheet href=/vendor/colors/css/colors.min.css><link rel=stylesheet href=/vendor/academicons/css/academicons.min.css><style>:root{--font-monospace: "Source Code Pro";--font-sans-serif:"Inter"}</style><link href="https://fonts.googleapis.com/css?family=Inter%7cSource+Code+Pro&display=swap" rel=stylesheet type=text/css><link rel=stylesheet href=/css/custom.css></head><body><body><nav id=nav><figure id=logo class=image><img src=/img/logo.svg></figure><div id=branding><div class=branding-title>Fabien Péan</div><div class=branding-subtitle>PhD Student @ ETH Zurich</div></div><div id=menu><a class=menu-link href=/><div class=menu-item><span class=menu-label><i class="fas fa-home fa-fw"></i>&nbsp;Home</span></div></a><a class=menu-link href=/news><div class=menu-item><span class=menu-label><i class="fas fa-newspaper fa-fw"></i>&nbsp;News</span></div></a><a class=menu-link href=/blog><div class=menu-item><span class=menu-label><i class="fas fa-book fa-fw"></i>&nbsp;Blog</span></div></a><a class=menu-link href=/notes><div class=menu-item><span class=menu-label><i class="fas fa-sticky-note fa-fw"></i>&nbsp;Notes</span></div></a></div><div class=social><div class=social-list><div style="display:flex;flex-flow:row wrap;justify-content:center"><div class="social-button email"><a href=mailto:fabien@pean.pro rel=author><i class="fas fa-at fa-2x"></i></a></div><div class="social-button bitbucket"><a href=https://bitbucket.org/FabienPean rel="author external"><i class="fab fa-bitbucket fa-2x"></i></a></div><div class="social-button github"><a href=https://github.com/FabienPean rel="author external"><i class="fab fa-github fa-2x"></i></a></div><div class="social-button linkedin"><a href=https://www.linkedin.com/in/FabienPean rel="author external"><i class="fab fa-linkedin fa-2x"></i></a></div></div></div></div></nav><main id=main><div class=content><h1>WTF C++</h1><small><div class=subtitle style="display:flex;flex-flow:row wrap;justify-content:space-between"><span style="flex:1 0 auto;max-width:100%"><span>30/08/2020</span>&nbsp;&boxv;&nbsp;<a href=/notes>Notes</a></span><div class=tag-list><a href=/tags/c++><div class=tag>c++</div></a></div></div></small><br><p>In this page, I enumerate various C++ fragments that sparkled my incomprehension when I encountered them, or made my head scratch far too long. This page is meant to be a reminder mainly for myself and destined to be updated over time.</p><h2 id=no-implicit-conversion-for-arrays-of-1-element>No implicit conversion for arrays of 1 element</h2><div class=highlight><div style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">1
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">2
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cpp data-lang=cpp>std<span style=color:#ff79c6>::</span>array<span style=color:#ff79c6>&lt;</span><span style=color:#8be9fd>int</span>,<span style=color:#bd93f9>1</span><span style=color:#ff79c6>&gt;</span> arr {<span style=color:#bd93f9>42</span>};
+<span style=color:#8be9fd>int</span> v <span style=color:#ff79c6>=</span> arr; <span style=color:#6272a4>// ❌ That&#39;s a no-no 
+</span></code></pre></td></tr></table></div></div><h2 id=filesystem-library-and-operator->Filesystem library and operator /</h2><p>Operator / does not always act relative to the previous path&mldr; A leading slash is always considered as referring to the root, therefore the input path is considered absolute instead of relative. Moral of the story: omit it or do not forget the leading dot!</p><div class=highlight><div style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">1
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">2
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">3
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">4
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">5
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">6
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">7
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">8
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cpp data-lang=cpp><span style=color:#ff79c6>#include</span> <span style=color:#ff79c6>&lt;filesystem&gt;</span><span style=color:#ff79c6>
+</span><span style=color:#ff79c6></span><span style=color:#ff79c6>namespace</span> fs <span style=color:#ff79c6>=</span> std<span style=color:#ff79c6>::</span>filesystem;
+<span style=color:#8be9fd>int</span> <span style=color:#50fa7b>main</span>() {
+    fs<span style=color:#ff79c6>::</span>path some_path <span style=color:#ff79c6>=</span> fs<span style=color:#ff79c6>::</span>path(<span style=color:#f1fa8c>&#34;foo&#34;</span>); 
+    fs<span style=color:#ff79c6>::</span>path p1 <span style=color:#ff79c6>=</span> some_path <span style=color:#ff79c6>/</span> <span style=color:#f1fa8c>&#34;bar&#34;</span>;  <span style=color:#6272a4>// the result is &#34;foo/bar&#34; (appends)
+</span><span style=color:#6272a4></span>    fs<span style=color:#ff79c6>::</span>path p2 <span style=color:#ff79c6>=</span> some_path <span style=color:#ff79c6>/</span> <span style=color:#f1fa8c>&#34;/bar&#34;</span>; <span style=color:#6272a4>// the result is &#34;/bar&#34; (replaces)
+</span><span style=color:#6272a4></span>    fs<span style=color:#ff79c6>::</span>path p3 <span style=color:#ff79c6>=</span> some_path <span style=color:#ff79c6>/</span> <span style=color:#f1fa8c>&#34;./bar&#34;</span>;<span style=color:#6272a4>// the result is &#34;foo/./bar&#34; (appends)
+</span><span style=color:#6272a4></span>}
+</code></pre></td></tr></table></div></div><h2 id=initialization-of-stdvector>Initialization of std::vector</h2><div class=highlight><div style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">1
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">2
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cpp data-lang=cpp>std<span style=color:#ff79c6>::</span>vector<span style=color:#ff79c6>&lt;</span>size_t, N<span style=color:#ff79c6>&gt;</span> indices(N);<span style=color:#6272a4>// creates a vector of size N
+</span><span style=color:#6272a4></span>std<span style=color:#ff79c6>::</span>vector<span style=color:#ff79c6>&lt;</span>size_t, N<span style=color:#ff79c6>&gt;</span> indices{N};<span style=color:#6272a4>// creates a vector of size 1 containing N
+</span></code></pre></td></tr></table></div></div><h2 id=template-template-arguments-type-or-non-type-argument-headache>Template template arguments, type or non-type argument headache</h2><p>Template template arguments were made to allow passing template names around. However, a non-type template parameter and a type template parameter are not handled similarly by compilers and they cannot be easily mixed (<code>typename</code> should be for types and <code>auto</code> for non-types).</p><div class=highlight><div style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cpp data-lang=cpp><span style=color:#ff79c6>template</span><span style=color:#ff79c6>&lt;</span><span style=color:#ff79c6>template</span><span style=color:#ff79c6>&lt;</span><span style=color:#ff79c6>typename</span>... <span style=color:#6272a4>/**/</span><span style=color:#ff79c6>&gt;</span> <span style=color:#ff79c6>typename</span> Map<span style=color:#ff79c6>&gt;</span>
+<span style=color:#ff79c6>struct</span> <span style=color:#50fa7b>Foo</span> { Map<span style=color:#ff79c6>&lt;</span><span style=color:#8be9fd>int</span>,<span style=color:#8be9fd>int</span><span style=color:#ff79c6>&gt;</span> map; };
 
-    <link rel=stylesheet href="/css/custom.css" >
-  </head>
-  <body>
+<span style=color:#ff79c6>template</span><span style=color:#ff79c6>&lt;</span><span style=color:#ff79c6>typename</span> A, <span style=color:#ff79c6>typename</span> B, <span style=color:#ff79c6>typename</span> C <span style=color:#ff79c6>=</span> <span style=color:#8be9fd>int</span><span style=color:#ff79c6>&gt;</span>
+<span style=color:#ff79c6>struct</span> <span style=color:#50fa7b>Map_A</span> {};
+<span style=color:#ff79c6>template</span><span style=color:#ff79c6>&lt;</span><span style=color:#ff79c6>typename</span> A, <span style=color:#ff79c6>typename</span> B, <span style=color:#8be9fd>bool</span> C <span style=color:#ff79c6>=</span> <span style=color:#8be9fd;font-style:italic>false</span><span style=color:#ff79c6>&gt;</span>
+<span style=color:#ff79c6>struct</span> <span style=color:#50fa7b>Map_B</span> {};
 
-<body>  
-	<nav id="nav" >
-        <figure id="logo" class="image">
-        
-            <img src="/img/logo.svg">
-        
-        </figure>
-        <div id="branding">
-            <div class="branding-title">Fabien Péan</div>
-            <div class="branding-subtitle">PhD Student @ ETH Zurich</div>
-        </div>
-
-    <div id="menu">
-        <a class="menu-link" href="/">
-            <div class="menu-item">
-                <span class="menu-label"><i class="fas fa-home fa-fw"></i>&nbsp;Home</span>
-            </div>
-        </a>
-		
-		<a class="menu-link" href="/news">
-			<div class="menu-item">
-			<span class="menu-label"><i class="fas fa-newspaper fa-fw"></i>&nbsp;News</span>
-			</div>
-		</a>
-		
-		<a class="menu-link" href="/blog">
-			<div class="menu-item">
-			<span class="menu-label"><i class="fas fa-book fa-fw"></i>&nbsp;Blog</span>
-			</div>
-		</a>
-		
-		<a class="menu-link" href="/notes">
-			<div class="menu-item">
-			<span class="menu-label"><i class="fas fa-sticky-note fa-fw"></i>&nbsp;Notes</span>
-			</div>
-		</a>
-		
-    </div>
-	<div class="social">
-    <div class="social-list">
-		<div style="display:flex; flex-flow:row wrap; justify-content:center;">
-		
-			<div class="social-button email">
-				<a href="mailto:fabien@pean.pro" rel="author">
-					<i class="fas fa-at fa-2x"></i>
-				</a>
-			</div>
-		
-		
-			
-			
-			<div class="social-button bitbucket">
-				<a href="https://bitbucket.org/FabienPean" rel="author external">
-					<i class="fab fa-bitbucket fa-2x"></i>
-				</a>
-			</div>
-		
-			
-			
-			<div class="social-button github">
-				<a href="https://github.com/FabienPean" rel="author external">
-					<i class="fab fa-github fa-2x"></i>
-				</a>
-			</div>
-		
-			
-			
-			<div class="social-button linkedin">
-				<a href="https://www.linkedin.com/in/FabienPean" rel="author external">
-					<i class="fab fa-linkedin fa-2x"></i>
-				</a>
-			</div>
-		
-		</div>
-	</div>
-</div>
-</nav>
-
-	
-	
-	
-
-
-<main id="main">
-	<div class="content">
-		<h1 >WTF C&#43;&#43;</h1>
-        <small><div class="subtitle" style="display:flex;flex-flow:row wrap;justify-content:space-between;">
-        <span style="flex:1 0 auto;max-width:100%"><span>30/08/2020</span>&nbsp;&boxv;&nbsp;<a href="/notes">Notes</a>
-        </span><div class="tag-list"><a href="/tags/c&#43;&#43;"><div class="tag">c&#43;&#43;</div></a>
-</div></div></small>
-        <br><p>In this page, I enumerate various C++ fragments that sparkled my incomprehension when I encountered them, or made my head scratch far too long. This page is meant to be a reminder mainly for myself and destined to be updated over time.</p>
-<h2 id="no-implicit-conversion-for-arrays-of-1-element">No implicit conversion for arrays of 1 element</h2>
-<div class="highlight"><div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cpp" data-lang="cpp">std<span style="color:#ff79c6">::</span>array<span style="color:#ff79c6">&lt;</span><span style="color:#8be9fd">int</span>,<span style="color:#bd93f9">1</span><span style="color:#ff79c6">&gt;</span> arr {<span style="color:#bd93f9">42</span>};
-<span style="color:#8be9fd">int</span> v <span style="color:#ff79c6">=</span> arr; <span style="color:#6272a4">// ❌ That&#39;s a no-no 
-</span></code></pre></td></tr></table>
-</div>
-</div><h2 id="filesystem-library-and-operator-">Filesystem library and operator /</h2>
-<p>Operator / does not always act relative to the previous path&hellip; A leading slash is always considered as referring to the root, therefore the input path is considered absolute instead of relative. Moral of the story: omit it or do not forget the leading dot!</p>
-<div class="highlight"><div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">8
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cpp" data-lang="cpp"><span style="color:#ff79c6">#include</span> <span style="color:#ff79c6">&lt;filesystem&gt;</span><span style="color:#ff79c6">
-</span><span style="color:#ff79c6"></span><span style="color:#ff79c6">namespace</span> fs <span style="color:#ff79c6">=</span> std<span style="color:#ff79c6">::</span>filesystem;
-<span style="color:#8be9fd">int</span> <span style="color:#50fa7b">main</span>() {
-    fs<span style="color:#ff79c6">::</span>path some_path <span style="color:#ff79c6">=</span> fs<span style="color:#ff79c6">::</span>path(<span style="color:#f1fa8c">&#34;foo&#34;</span>); 
-    fs<span style="color:#ff79c6">::</span>path p1 <span style="color:#ff79c6">=</span> some_path <span style="color:#ff79c6">/</span> <span style="color:#f1fa8c">&#34;bar&#34;</span>;  <span style="color:#6272a4">// the result is &#34;foo/bar&#34; (appends)
-</span><span style="color:#6272a4"></span>    fs<span style="color:#ff79c6">::</span>path p2 <span style="color:#ff79c6">=</span> some_path <span style="color:#ff79c6">/</span> <span style="color:#f1fa8c">&#34;/bar&#34;</span>; <span style="color:#6272a4">// the result is &#34;/bar&#34; (replaces)
-</span><span style="color:#6272a4"></span>    fs<span style="color:#ff79c6">::</span>path p3 <span style="color:#ff79c6">=</span> some_path <span style="color:#ff79c6">/</span> <span style="color:#f1fa8c">&#34;./bar&#34;</span>;<span style="color:#6272a4">// the result is &#34;foo/./bar&#34; (appends)
-</span><span style="color:#6272a4"></span>}
-</code></pre></td></tr></table>
-</div>
-</div><h2 id="initialization-of-stdvector">Initialization of std::vector</h2>
-<div class="highlight"><div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cpp" data-lang="cpp">std<span style="color:#ff79c6">::</span>vector<span style="color:#ff79c6">&lt;</span>size_t, N<span style="color:#ff79c6">&gt;</span> indices(N);<span style="color:#6272a4">// creates a vector of size N
-</span><span style="color:#6272a4"></span>std<span style="color:#ff79c6">::</span>vector<span style="color:#ff79c6">&lt;</span>size_t, N<span style="color:#ff79c6">&gt;</span> indices{N};<span style="color:#6272a4">// creates a vector of size 1 containing N
-</span></code></pre></td></tr></table>
-</div>
-</div><h2 id="template-template-arguments-type-or-non-type-argument-headache">Template template arguments, type or non-type argument headache</h2>
-<p>Template template arguments were made to allow passing template names around. However, a non-type template parameter and a type template parameter are not handled similarly by compilers and they cannot be easily mixed (<code>typename</code> should be for types and <code>auto</code> for non-types).</p>
-<div class="highlight"><div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cpp" data-lang="cpp"><span style="color:#ff79c6">template</span><span style="color:#ff79c6">&lt;</span><span style="color:#ff79c6">template</span><span style="color:#ff79c6">&lt;</span><span style="color:#ff79c6">typename</span>... <span style="color:#6272a4">/**/</span><span style="color:#ff79c6">&gt;</span> <span style="color:#ff79c6">typename</span> Map<span style="color:#ff79c6">&gt;</span>
-<span style="color:#ff79c6">struct</span> <span style="color:#50fa7b">Foo</span> { Map<span style="color:#ff79c6">&lt;</span><span style="color:#8be9fd">int</span>,<span style="color:#8be9fd">int</span><span style="color:#ff79c6">&gt;</span> map; };
-
-<span style="color:#ff79c6">template</span><span style="color:#ff79c6">&lt;</span><span style="color:#ff79c6">typename</span> A, <span style="color:#ff79c6">typename</span> B, <span style="color:#ff79c6">typename</span> C <span style="color:#ff79c6">=</span> <span style="color:#8be9fd">int</span><span style="color:#ff79c6">&gt;</span>
-<span style="color:#ff79c6">struct</span> <span style="color:#50fa7b">Map_A</span> {};
-<span style="color:#ff79c6">template</span><span style="color:#ff79c6">&lt;</span><span style="color:#ff79c6">typename</span> A, <span style="color:#ff79c6">typename</span> B, <span style="color:#8be9fd">bool</span> C <span style="color:#ff79c6">=</span> <span style="color:#8be9fd;font-style:italic">false</span><span style="color:#ff79c6">&gt;</span>
-<span style="color:#ff79c6">struct</span> <span style="color:#50fa7b">Map_B</span> {};
-
-Foo<span style="color:#ff79c6">&lt;</span>Map_A<span style="color:#ff79c6">&gt;</span> foo_a{};
-Foo<span style="color:#ff79c6">&lt;</span>Map_B<span style="color:#ff79c6">&gt;</span> foo_b{};<span style="color:#6272a4">//fails on GCC 10, Clang 10 and VS2019
-</span></code></pre></td></tr></table>
-</div>
-</div><p>It leads to errors, while descriptive, can leave the user easily clueless: &ldquo;type/value mismatch at argument N in template parameter list for&hellip;&rdquo; for GCC, and
-&ldquo;template template argument has different template parameters than its corresponding template template parameter&rdquo; for Clang.</p>
-<p>Trying to circumvent the problem by enforcing only 2 template parameters and leaving out the default parameters, which <a href="https://stackoverflow.com/questions/48645226/template-template-parameter-and-default-values">should be valid</a> in C++17, will <a href="https://godbolt.org/#z:OYLghAFBqd5TKALEBjA9gEwKYFFMCWALugE4A0BIEAZugHZEDKqAhgDbYgCMALOQCse5dq3qhUAUgBMAIRmzyAZ2ydURAg2rZ6mAMLp2AVwC29HtPI7MAGQL1sAOVMAjbKQvkADuiXFN9AbGZp4%2BfhoMdg7OJm4e3JYqahH0TESspERBpuYJyqrY6gFpGURRTq7unkrpmdkheTWl5TFxFgCUyuhGpKhcAORE2CZeokOSAMx6RACeXjqsJtgA1ACC5Muz8/SLK4qbcwtLy3rLkwAiy/ZEk7iSAAyrNaRG6ssAsqxeAPqrZwDs8n%2B50m8keQxGY2wk2mhx2x3WB22u2W%2Bxc6EMJzOE0uNA4KluDyeRBeb0%2BP1kAKBIImYNWRIho1Y4ymjKhMK2R2wADpecsAPQAKkF/NuSK5Hy%2BhMez1eRGWADEMVTJV4YddKIwxSYpbSATS6USlegYeTfmK6OhvqxJIDbQajRjTV9vvIJrhlpbvi5bdTQfz%2BXiCOwlMsGMsAOJ6U4ATg2elE4mW3HuyzEmGWADUmNJ7twY0Siddljr7BB2r77f1OuwQP0AKz9cjmfr3JvoOt6BQKZZKbq9FYyCbcJtEOtt9qdADWIAmE25MfrEwAHEvlzG5wA2Te8VciOu8JsmED1%2B7N8ftutNpQgM9j1vV8hwWAoDA4fDEMiUah0RgsDhcHwgggJYiYSN2cj5MkATaLo9TmLmVi6C0lQeJu3i%2BP4DDwSBZ5hFh9AobEVToUkhQpCUdSGDkuFQeRxS1GU9gVMRaHKIxOGIU0mREW0m6dH2PR9HWbLMtCrJwiiiKcvCewbDJKKnBcVxau6RKymSLp/JWwKggywxMiysLIgi8mSccaIYuwWLKXiIbiXcMoknKqqulS9p6Y8%2BmQmJHIGeyEkmdg5AKUsYqhSs5LSsSpLyrIGQqlFUwatc2q6pSHm0kS8WkM6Pz0u6ywuBk1o6QaAZBiGYb0CcYHJvc2UZHlrpisVpDemV/qBqwwahuGCZiMA9WFo8xalvQ5ZlY%2BtYNk2LZtuQHb9F2cg9oJA5nNIEzSKOF6TuQSDYKwOAeOW%2B79Ie5DHqe54PotV7KLeIV7dOJ73Nym65vWX2bvc9xztw9bnRMc0Xvd/S7Q%2BnTPgg8AQK%2BDB0KQOr0H034QBgIzBu4N6wJjXjY6QACSmBoGBKZ5otXgpDe/QALQ1JgFxSKtcjcP8j4Y%2BgWOcMTpPACmljoNTAS0wzRBMziLPyGzHPQ/jhMkyAABuqBeD8yv5t80i8N8AAeO5UzTdb8ozaAQbIUI1NWnTYIQJCkAQpPcCIg1K9LCgiAQLi4%2BWNZ1o2t0LUtBj0EjKN9MsysENgADu7jLBAH4O5tw7tMsEz8imkMTq9vAxtyEz/DGvDF7wEwxjG257jNl3XWe82XhDj13ntT6IPDaCI2QEfBVQXM8zjcMK7z7vk39LvC8b9OM8zFvs5zI/uErAv3ELIsMGLs9S/PctPkvfMq2rGtazr%2BuG1Posm2bHtyFbRA21Y9tkE7IGu%2BI7sW17PvwPtM2B43cGodw5iEjtHOOCck7P1IKnaQ6dM7Z2elDToh1jpVDOrXI8b0g5N2vE9e8udyAznzoXMuZcK5V03DXOsIMcHgxzo/GaO0ro8D%2BnQpaDD9rKxxjBXgQA">fail</a> on Clang 10.</p>
-<div class="highlight"><div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cpp" data-lang="cpp"><span style="color:#ff79c6">template</span><span style="color:#ff79c6">&lt;</span><span style="color:#ff79c6">template</span><span style="color:#ff79c6">&lt;</span><span style="color:#ff79c6">typename</span>,<span style="color:#ff79c6">typename</span><span style="color:#ff79c6">&gt;</span> <span style="color:#ff79c6">typename</span> Map<span style="color:#ff79c6">&gt;</span>
-<span style="color:#ff79c6">struct</span> <span style="color:#50fa7b">Bar</span> { Map<span style="color:#ff79c6">&lt;</span><span style="color:#8be9fd">int</span>,<span style="color:#8be9fd">int</span><span style="color:#ff79c6">&gt;</span> map; };
-Bar<span style="color:#ff79c6">&lt;</span>Map_A<span style="color:#ff79c6">&gt;</span> bar_a{};<span style="color:#6272a4">//fails on Clang 10
-</span><span style="color:#6272a4"></span>Bar<span style="color:#ff79c6">&lt;</span>Map_B<span style="color:#ff79c6">&gt;</span> bar_b{};<span style="color:#6272a4">//fails on Clang 10
-</span></code></pre></td></tr></table>
-</div>
-</div></div>
-</main>
-
-	
-		<footer id="footer">
-    <div id="footer-inner">
-        &copy;&nbsp;2020&nbsp;&middot;&nbsp;Fabien Péan
-    </div>
-</footer>
-
-    
-    		<script>
-			window.FontAwesomeConfig = {
-				searchPseudoElements: true
-			}
-		</script>
-		<script async src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/js/all.min.js" integrity="sha256-MAgcygDRahs+F/Nk5Vz387whB4kSK9NXlDN3w58LLq0=" crossorigin="anonymous"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
-        <script async defer src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/1.6.0/clipboard.min.js"></script>
-		<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.18.1/highlight.min.js" integrity="sha256-eOgo0OtLL4cdq7RdwRUiGKLX9XsIJ7nGhWEKbohmVAQ=" crossorigin="anonymous"></script>
-		<script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/8.4.8/mermaid.min.js" integrity="sha256-lyWCDMnMeZiXRi7Zl54sZGKYmgQs4izcT7+tKc+KUBk=" crossorigin="anonymous"></script>
-		<script>
-			mermaid.initialize({ 
-				startOnLoad: true,
-				securityLevel: 'loose',
-				theme: 'default',
-				themeCSS: '',
-				cloneCssStyles: true,
-				useMaxWidth: true,
-				htmlLabels: false,
-				flowchart: { 
-					curve: 'basis' 
-				}
-			});
-		</script>
-		<script>
-			window.MathJax = {
-			  tex: {
-				inlineMath: [['$', '$'], ['\\(', '\\)']],
-				displayMath: [['$$', '$$'], ['\\[', '\\]']],
-				processEscapes: false,
-				processEnvironments: true
-			  },
-			  svg: {
-				fontCache: 'global'
-			  }
-			};
-		</script>
-		<script async type="text/javascript" id="MathJax-script" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
-		<script src="/js/custom.js"></script>
-
-</body>
-</html>
+Foo<span style=color:#ff79c6>&lt;</span>Map_A<span style=color:#ff79c6>&gt;</span> foo_a{};
+Foo<span style=color:#ff79c6>&lt;</span>Map_B<span style=color:#ff79c6>&gt;</span> foo_b{};<span style=color:#6272a4>//fails on GCC 10, Clang 10 and VS2019
+</span></code></pre></td></tr></table></div></div><p>It leads to errors, while descriptive, can leave the user easily clueless: &ldquo;type/value mismatch at argument N in template parameter list for&mldr;&rdquo; for GCC, and
+&ldquo;template template argument has different template parameters than its corresponding template template parameter&rdquo; for Clang.</p><p>Trying to circumvent the problem by enforcing only 2 template parameters and leaving out the default parameters, which <a href=https://stackoverflow.com/questions/48645226/template-template-parameter-and-default-values>should be valid</a> in C++17, will <a href=https://godbolt.org/#z:OYLghAFBqd5TKALEBjA9gEwKYFFMCWALugE4A0BIEAZugHZEDKqAhgDbYgCMALOQCse5dq3qhUAUgBMAIRmzyAZ2ydURAg2rZ6mAMLp2AVwC29HtPI7MAGQL1sAOVMAjbKQvkADuiXFN9AbGZp4%2BfhoMdg7OJm4e3JYqahH0TESspERBpuYJyqrY6gFpGURRTq7unkrpmdkheTWl5TFxFgCUyuhGpKhcAORE2CZeokOSAMx6RACeXjqsJtgA1ACC5Muz8/SLK4qbcwtLy3rLkwAiy/ZEk7iSAAyrNaRG6ssAsqxeAPqrZwDs8n%2B50m8keQxGY2wk2mhx2x3WB22u2W%2Bxc6EMJzOE0uNA4KluDyeRBeb0%2BP1kAKBIImYNWRIho1Y4ymjKhMK2R2wADpecsAPQAKkF/NuSK5Hy%2BhMez1eRGWADEMVTJV4YddKIwxSYpbSATS6USlegYeTfmK6OhvqxJIDbQajRjTV9vvIJrhlpbvi5bdTQfz%2BXiCOwlMsGMsAOJ6U4ATg2elE4mW3HuyzEmGWADUmNJ7twY0Siddljr7BB2r77f1OuwQP0AKz9cjmfr3JvoOt6BQKZZKbq9FYyCbcJtEOtt9qdADWIAmE25MfrEwAHEvlzG5wA2Te8VciOu8JsmED1%2B7N8ftutNpQgM9j1vV8hwWAoDA4fDEMiUah0RgsDhcHwgggJYiYSN2cj5MkATaLo9TmLmVi6C0lQeJu3i%2BP4DDwSBZ5hFh9AobEVToUkhQpCUdSGDkuFQeRxS1GU9gVMRaHKIxOGIU0mREW0m6dH2PR9HWbLMtCrJwiiiKcvCewbDJKKnBcVxau6RKymSLp/JWwKggywxMiysLIgi8mSccaIYuwWLKXiIbiXcMoknKqqulS9p6Y8%2BmQmJHIGeyEkmdg5AKUsYqhSs5LSsSpLyrIGQqlFUwatc2q6pSHm0kS8WkM6Pz0u6ywuBk1o6QaAZBiGYb0CcYHJvc2UZHlrpisVpDemV/qBqwwahuGCZiMA9WFo8xalvQ5ZlY%2BtYNk2LZtuQHb9F2cg9oJA5nNIEzSKOF6TuQSDYKwOAeOW%2B79Ie5DHqe54PotV7KLeIV7dOJ73Nym65vWX2bvc9xztw9bnRMc0Xvd/S7Q%2BnTPgg8AQK%2BDB0KQOr0H034QBgIzBu4N6wJjXjY6QACSmBoGBKZ5otXgpDe/QALQ1JgFxSKtcjcP8j4Y%2BgWOcMTpPACmljoNTAS0wzRBMziLPyGzHPQ/jhMkyAABuqBeD8yv5t80i8N8AAeO5UzTdb8ozaAQbIUI1NWnTYIQJCkAQpPcCIg1K9LCgiAQLi4%2BWNZ1o2t0LUtBj0EjKN9MsysENgADu7jLBAH4O5tw7tMsEz8imkMTq9vAxtyEz/DGvDF7wEwxjG257jNl3XWe82XhDj13ntT6IPDaCI2QEfBVQXM8zjcMK7z7vk39LvC8b9OM8zFvs5zI/uErAv3ELIsMGLs9S/PctPkvfMq2rGtazr%2BuG1Posm2bHtyFbRA21Y9tkE7IGu%2BI7sW17PvwPtM2B43cGodw5iEjtHOOCck7P1IKnaQ6dM7Z2elDToh1jpVDOrXI8b0g5N2vE9e8udyAznzoXMuZcK5V03DXOsIMcHgxzo/GaO0ro8D%2BnQpaDD9rKxxjBXgQA>fail</a> on Clang 10.</p><div class=highlight><div style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">1
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">2
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">3
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">4
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cpp data-lang=cpp><span style=color:#ff79c6>template</span><span style=color:#ff79c6>&lt;</span><span style=color:#ff79c6>template</span><span style=color:#ff79c6>&lt;</span><span style=color:#ff79c6>typename</span>,<span style=color:#ff79c6>typename</span><span style=color:#ff79c6>&gt;</span> <span style=color:#ff79c6>typename</span> Map<span style=color:#ff79c6>&gt;</span>
+<span style=color:#ff79c6>struct</span> <span style=color:#50fa7b>Bar</span> { Map<span style=color:#ff79c6>&lt;</span><span style=color:#8be9fd>int</span>,<span style=color:#8be9fd>int</span><span style=color:#ff79c6>&gt;</span> map; };
+Bar<span style=color:#ff79c6>&lt;</span>Map_A<span style=color:#ff79c6>&gt;</span> bar_a{};<span style=color:#6272a4>//fails on Clang 10
+</span><span style=color:#6272a4></span>Bar<span style=color:#ff79c6>&lt;</span>Map_B<span style=color:#ff79c6>&gt;</span> bar_b{};<span style=color:#6272a4>//fails on Clang 10
+</span></code></pre></td></tr></table></div></div></div></main><footer id=footer><div id=footer-inner>&copy;&nbsp;2020&nbsp;&#183;&nbsp;Fabien Péan</div></footer><script>window.FontAwesomeConfig={searchPseudoElements:true}</script><script async src=https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/js/all.min.js integrity="sha256-MAgcygDRahs+F/Nk5Vz387whB4kSK9NXlDN3w58LLq0=" crossorigin=anonymous></script><script src=https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin=anonymous></script><script async defer src=https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/1.6.0/clipboard.min.js></script><script src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.18.1/highlight.min.js integrity="sha256-eOgo0OtLL4cdq7RdwRUiGKLX9XsIJ7nGhWEKbohmVAQ=" crossorigin=anonymous></script><script src=https://cdnjs.cloudflare.com/ajax/libs/mermaid/8.4.8/mermaid.min.js integrity="sha256-lyWCDMnMeZiXRi7Zl54sZGKYmgQs4izcT7+tKc+KUBk=" crossorigin=anonymous></script><script>mermaid.initialize({startOnLoad:true,securityLevel:'loose',theme:'default',themeCSS:'',cloneCssStyles:true,useMaxWidth:true,htmlLabels:false,flowchart:{curve:'basis'}});</script><script>window.MathJax={tex:{inlineMath:[['$','$'],['\\(','\\)']],displayMath:[['$$','$$'],['\\[','\\]']],processEscapes:false,processEnvironments:true},svg:{fontCache:'global'}};</script><script async type=text/javascript id=MathJax-script src=https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js></script><script src=/js/custom.js></script></body></html>
