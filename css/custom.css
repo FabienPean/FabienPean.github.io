@@ -24,11 +24,19 @@
     --color-background:var(--color-lighter);
 	--color-text:var(--color-dark);
 }
-pre, code {
+pre { margin: 0.25em 0; }
+code {
+    background-color: var(--color-light);
+    border-radius:5px;
+    padding:0 3px;
+}
+pre code {
+    background-color: unset;
     font-family: var(--font-monospace);
     overflow-x: auto;
     overflow-y: hidden;
-    margin: 0.5em 0;
+    font-size: 0.9em;
+    padding:1px;
 }
 p {
     display: block;
@@ -48,13 +56,6 @@ h1 {
 h2,h3,h4,h5,h6 {
     margin-block-start: 0.8em;
     margin-block-end: 0.4em;
-}
-h1,h2,h3,h4,h5,h6{
-    text-align:left;
-    text-align-last:right;
-}
-h1::first-line,h2::first-line,h3::first-line,h4::first-line,h5::first-line,h6::first-line{
-    text-align-last:left;
 }
 .font-monospace{
 	font-family: var(--font-monospace);
