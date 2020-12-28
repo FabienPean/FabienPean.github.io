@@ -517,6 +517,7 @@ div.highlight > pre {
 }
 .MathJax {
     overflow-x:auto;
+    overflow-y:hidden;
 }
 /* Tooltip container */
 .tooltip {
