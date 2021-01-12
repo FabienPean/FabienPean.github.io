@@ -1,0 +1,132 @@
+<!doctype html><html lang=en-us><!doctype html><html lang=en><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content><meta name=author content="Fabien Péan"><meta name=google-site-verification content="_OCqKj2I4fVqJsqpa9uq0utQ55W1kx93lTIQtHZ88mM"><link rel="shortcut icon" type=image/png href=/img/logo.svg><title>Fabien Péan &#183; Personal Website</title><meta name=robots content="index,follow"><meta name=googlebot content="index,follow"><link rel=stylesheet type=text/css href=/css/normalize.css><link rel=stylesheet href=/vendor/colors/css/colors.min.css><link rel=stylesheet href=/vendor/academicons/css/academicons.min.css><style>:root{--font-monospace: "Source Code Pro";--font-sans-serif:"Inter"}</style><link href="https://fonts.googleapis.com/css?family=Inter%7cSource+Code+Pro&display=swap" rel=stylesheet type=text/css><link rel=stylesheet href=/css/custom.css></head><body><body><nav id=nav><figure id=logo class=image><img src=/img/logo.svg></figure><div id=branding><div class=branding-title>Fabien Péan</div><div class=branding-subtitle>PhD Student @ ETH Zurich</div></div><div id=menu><a class=menu-link href=/><div class=menu-item><span class=menu-label><i class="fas fa-home fa-fw"></i>&nbsp;Home</span></div></a><a class=menu-link href=/news><div class=menu-item><span class=menu-label><i class="fas fa-newspaper fa-fw"></i>&nbsp;News</span></div></a><a class=menu-link href=/blog><div class=menu-item><span class=menu-label><i class="fas fa-book fa-fw"></i>&nbsp;Blog</span></div></a><a class=menu-link href=/notes><div class=menu-item><span class=menu-label><i class="fas fa-sticky-note fa-fw"></i>&nbsp;Notes</span></div></a></div><div class=social><div class=social-list><div style="display:flex;flex-flow:row wrap;justify-content:center"><div class="social-button email"><a href=mailto:fabien@pean.pro rel=author><i class="fas fa-at fa-2x"></i></a></div><div class="social-button bitbucket"><a href=https://bitbucket.org/FabienPean rel="author external"><i class="fab fa-bitbucket fa-2x"></i></a></div><div class="social-button github"><a href=https://github.com/FabienPean rel="author external"><i class="fab fa-github fa-2x"></i></a></div><div class="social-button linkedin"><a href=https://www.linkedin.com/in/FabienPean rel="author external"><i class="fab fa-linkedin fa-2x"></i></a></div></div></div></div></nav><main id=main><div class=content><h1>TR-BDF2</h1><small><div class=subtitle style="display:flex;flex-flow:row wrap;justify-content:space-between"><span style="flex:1 0 auto;max-width:100%"><span class=tooltip>10/01/2021
+<span class=tooltiptext><small>updated on 13/01/2021</small></span>
+</span>&nbsp;&boxv;&nbsp;<a href=/notes>Notes</a></span><div class=tag-list><a href=/tags/numerical-analysis><div class=tag>numerical analysis</div></a><a href=/tags/timestepping><div class=tag>timestepping</div></a></div></div></small><br><h2 id=introduction>Introduction</h2><p>TR-BDF2 is a composite time-stepping scheme operating on a single step with two substeps. The first substep is relying on the <a href=../timestepping_implicit_midpoint_method>implicit midpoint</a> method (trapezoidal rule), while the second substep uses the second order <a href=../timestepping_bdf>backward differentiation formula</a>, hence the name TR-BDF2. It has been first described in <a href=https://doi.org/10.1109/T-ED.1985.22232>[Bank1985]</a>, and is sometimes called the Bathe method after <a href=https://doi.org/10.1016/j.compstruc.2005.08.001>[Bathe2005]</a>. The scheme is part of the Diagonally Implicit Runge Kutta (DIRK) family of methods. Under some condition, it can also be part of the singly DIRK subset, which means that the same Newton iteration matrix can be used for both sub-steps.</p><h2 id=notations>Notations</h2><p>Let be <span class="math inline">\(\mathbf{q}\)</span> be a field function of time <span class="math inline">\(t\)</span> and <span class="math inline">\(\mathbf{\dot q}, \mathbf{\ddot q}\)</span> be its first and second derivatives with respect to time, <span class="math display">\[
+\begin{aligned}
+\mathbf{q} &= \mathbf{q}(t)\\
+\mathbf{\dot q} &= \frac{\mathrm{d} \mathbf{q}}{\mathrm{d} t}\\
+\mathbf{\ddot q} &= \frac{\mathrm{d} \mathbf{\dot q}}{\mathrm{d} t}\\
+\end{aligned}
+\]</span> In order to make the description of the time integration algorithms less abstract, one can think of $,, $ as position, velocity and acceleration. Moreover, the balance of momentum equation is considered for a concrete derivation of the scheme. Therefore, <span class="math display">\[
+\notag
+\mathbf M \mathbf{\ddot q} +\mathbf{f} = 0 \quad \text{where} \quad \mathbf{f} = \mathbf{f}\left(\mathbf{q}(t),\mathbf{\dot q}(t)\right)
+\]</span> The mass matrix <span class="math inline">\(\mathbf{M}\)</span> is assumed constant. In addition, to facilitate the notations, the superscripts involving <span class="math inline">\(t\)</span> will be used to denote time points such that <span class="math inline">\(\mathbf{q}^{t+\tau} = \mathbf{q}(t+\tau)\)</span> represents the discrete value of <span class="math inline">\(\mathbf{q}\)</span> at time <span class="math inline">\(t+\tau\)</span>, while subscript involving <span class="math inline">\(n\)</span> as in <span class="math inline">\(\mathbf{q}_n^t\)</span> will represent the value of <span class="math inline">\(\mathbf{q}^t\)</span> at some iteration <span class="math inline">\(n\)</span>. The symbol <span class="math inline">\(\tau\)</span> represents the timestep.</p><h2 id=substeps>Substeps</h2><h3 id=implicit-midpoint>Implicit midpoint</h3><p>The implicit midpoint method is summarized below for the sake of completeness. The particularity here is that one can choose where the intermediate discrete state vector is computed. Indeed, one can pick any <span class="math inline">\(\gamma \in ]0,1[\)</span> which would yield <span class="math inline">\(\mathbf{q}^{t+\gamma\tau},\mathbf{\dot q}^{t+\gamma\tau}\)</span> than are then used in the three-point BDF2 method later on. The residual is formulated as follows</p><p><span class="math display">\[
+\begin{eqnarray*}
+\begin{aligned}
+\mathrm{R}=\begin{bmatrix}\mathrm{R}_q\\ \mathrm{R}_\dot q\end{bmatrix}=
+\begin{bmatrix}
+&\mathbf{q}^{t+\gamma\tau}-\mathbf{q}^t - \tfrac{\gamma\tau}{2}\left(\mathbf{\dot q}^{t}+\mathbf{\dot q}^{t+\gamma\tau}\right) \\
+&\mathbf{M}\left(\mathbf{\dot q}^{t+\gamma\tau} - \mathbf{\dot q}^t\right) - \tfrac{\gamma\tau}{2}\left(\mathbf{f}^{t}+\mathbf{f}^{t+\gamma\tau}\right) \\
+\end{bmatrix}
+\end{aligned}=0
+\end{eqnarray*}
+\]</span> Which gives the iterative procedure below <span class="math display">\[
+\begin{equation}
+\begin{aligned}
+\left(\mathbf{M}+\tfrac{\gamma\tau}{2}\mathbf{D}_n+\tfrac{(\gamma\tau)^2}{4}\mathbf{K}_n\right)\Delta\mathbf{\dot{q}}&=
+-\mathrm{R}_{\dot{q},n}
++\tfrac{\gamma\tau}{2}\mathbf{K}\mathrm{R}_{q,n}
+\\
+\mathbf{\dot{q}}^{t+\gamma\tau}_{n+1}&=\mathbf{\dot{q}}^{t+\gamma\tau}_n+\Delta\mathbf{\dot{q}}
+\\
+\mathbf{q}^{t+\gamma\tau}_{n+1} &= \mathbf{q}^t+ \tfrac{\gamma\tau}{2}\left(\mathbf{\dot q}^{t}+\mathbf{\dot q}^{t+\gamma\tau}_{n+1}\right)
+\\
+\mathbf{f}^{t+\gamma\tau}_{n+1} &= \mathbf{f}\left(\mathbf{q}^{t+\gamma\tau}_{n+1},\mathbf{\dot q}^{t+\gamma\tau}_{n+1}\right)
+\end{aligned}
+\label{eq:iteration_unrolled_midpoint}
+\end{equation}
+\]</span></p><h3 id=bdf2>BDF2</h3><p>The BDF2 is then used based on the two previous known solution at time <span class="math inline">\(t\)</span> and <span class="math inline">\(t+\gamma\tau\)</span>. The formula is written as <span class="math display">\[
+\frac{1}{\tau}\left(\frac{2-\gamma}{1-\gamma}\mathbf{q}^{t+\tau}
+- \frac{1}{\gamma(1-\gamma)}\mathbf{q}^{t+\gamma\tau}
++ \frac{1-\gamma}{\gamma}\mathbf{q}^{t}\right)
+=
+\mathbf{\dot{q}}^{t+\tau}
+\]</span> Applied to the current scenario, the residual is detailed as <span class="math display">\[
+\begin{eqnarray*}
+\begin{aligned}
+\mathrm{R}=\begin{bmatrix}\mathrm{R}_q\\ \mathrm{R}_\dot q\end{bmatrix}=
+\begin{bmatrix}
+&\mathbf{q}^{t+\tau} - \frac{1}{\gamma(2-\gamma)}\mathbf{q}^{t+\gamma\tau}+\frac{(1-\gamma)^2}{\gamma(2-\gamma)}\mathbf{q}^{t} - \tau\frac{1-\gamma}{2-\gamma}\mathbf{\dot q}^{t+\tau} \\
+&\mathbf{M}\left(\mathbf{\dot q}^{t+\tau} - \frac{1}{\gamma(2-\gamma)}\mathbf{q}^{t+\gamma\tau}+\frac{(1-\gamma)^2}{\gamma(2-\gamma)}\mathbf{q}^{t}\right) + \tau\frac{1-\gamma}{2-\gamma}\mathbf{f}^{t+\tau}
+\end{bmatrix}
+\end{aligned}=0
+\end{eqnarray*}
+\]</span> Which gives the iterative procedure below <span class="math display">\[
+\begin{equation}
+\begin{aligned}
+\left(\mathbf{M}+\tfrac{1-\gamma}{2-\gamma}\tau\mathbf{D}_n+\tfrac{(1-\gamma)^2}{(2-\gamma)^2}\tau^2\mathbf{K}_n\right)\Delta\mathbf{\dot{q}}&=
+-\mathrm{R}_{\dot{q},n}
++\tfrac{1-\gamma}{2-\gamma}\tau\mathbf{K}\mathrm{R}_{q,n}
+\\
+\mathbf{\dot{q}}^{t+\tau}_{n+1}&=\mathbf{\dot{q}}^{t+\tau}_n+\Delta\mathbf{\dot{q}}
+\\
+\mathbf{q}^{t+\tau}_{n+1} &= \frac{1}{\gamma(2-\gamma)}\mathbf{q}^{t+\gamma\tau} - \frac{(1-\gamma)^2}{\gamma(2-\gamma)}\mathbf{q}^{t} + \tau\frac{1-\gamma}{2-\gamma}\mathbf{\dot q}^{t+\tau}_{n+1}
+\\
+\mathbf{f}^{t+\gamma\tau}_{n+1} &= \mathbf{f}\left(\mathbf{q}^{t+\tau}_{n+1},\mathbf{\dot q}^{t+\tau}_{n+1}\right)
+\end{aligned}
+\label{eq:iteration_unrolled_bdf2}
+\end{equation}
+\]</span></p><h2 id=special-cases>Special cases</h2><p>A common and intuitive choice for <span class="math inline">\(\gamma\)</span> has been <span class="math inline">\(\frac{1}{2}\)</span>. The two intervals of the BDF2 are then balanced and it simplifies the resulting equations as such <span class="math display">\[
+\begin{equation}
+\begin{aligned}
+\left(\mathbf{M}+\tfrac{\tau}{3}\mathbf{D}_n+(\tfrac{\tau}{3})^2\mathbf{K}_n\right)\Delta\mathbf{\dot{q}}&=
+-\mathrm{R}_{\dot{q},n}
++\tfrac{\tau}{3}\mathbf{K}\mathrm{R}_{q,n}
+\\
+\mathbf{\dot{q}}^{t+\tau}_{n+1}&=\mathbf{\dot{q}}^{t+\tau}_n+\Delta\mathbf{\dot{q}}
+\\
+\mathbf{q}^{t+\tau}_{n+1} &= \tfrac{4}{3}\mathbf{q}^{t+\gamma\tau} - \tfrac{1}{3}\mathbf{q}^{t} + \tfrac{\tau}{3}\mathbf{\dot q}^{t+\tau}_{n+1}
+\\
+\mathbf{f}^{t+\gamma\tau}_{n+1} &= \mathbf{f}\left(\mathbf{q}^{t+\tau}_{n+1},\mathbf{\dot q}^{t+\tau}_{n+1}\right)
+\end{aligned}
+\end{equation}
+\]</span> An interesting choice for <span class="math inline">\(\gamma\)</span> noted by <a href=https://doi.org/10.1109/T-ED.1985.22232>[Bank1985]</a> is <span class="math inline">\(\sqrt{2}-2\)</span>. This strange value leads to identical iteration matrix for both sub-steps, although only for <em>linear</em> problems, i.e. when the stiffness and damping matrix are constant. Taking the scaling factor in front of the damping (or stiffness) matrix from <span class="math inline">\(\eqref{eq:iteration_unrolled_midpoint}\)</span> and <span class="math inline">\(\eqref{eq:iteration_unrolled_bdf2}\)</span> yields <span class="math display">\[
+\frac{\gamma}{2} = \frac{1-\gamma}{2-\gamma}
+\implies\tfrac{1}{2}\gamma^2-2\gamma+1=0
+\]</span> For which <span class="math inline">\(\gamma_1=2-\sqrt{2}\)</span> and <span class="math inline">\(\gamma_2=\sqrt{2}+2\)</span> are solutions of the equation. Since <span class="math inline">\(\gamma_2>1\)</span>, it has been often discarded as senseless until the study of <a href=https://doi.org/10.1016/j.compstruc.2018.02.007>[Noh2018]</a> on the characteristics of the scheme for <span class="math inline">\(\gamma>1\)</span>. (TODO check recent paper of Bathe if he looked at that)</p><p>Which to choose between the two then ? Well, it depends on the problem.</p><p>If the problem is linear, then the choice of <span class="math inline">\(\gamma=\sqrt{2}-2\)</span> is optimal since it reduces the computational cost of the scheme by avoiding an additional assembly of the linear system. On the other hand, it does not really matter for non-linear problems, as demonstrated in <a href=https://doi.org/10.1016/j.compstruc.2005.08.001>[Bathe2007]</a>. Indeed, an assembly of the system should theoretically be done at each Newton step until convergence. However, numerous tricks have been applied to reduce the amount of system assemblies with the aim of reducing the computational cost related to non-linear problems, where the actual effects of the choice of <span class="math inline">\(\gamma\)</span> are less clear.</p><h2 id=generalization-via-wilson-θ-method>Generalization via Wilson-θ method</h2><p>A generalization of the scheme can be done by replacing the first substep, the implicit midpoint, by its generalization with the <a href=../timestepping_theta>Wilson-θ</a> method. It provides a new parameter to play with beside <span class="math inline">\(\gamma\)</span>.</p><p><span class="math display">\[
+\begin{eqnarray*}
+\begin{aligned}
+\mathrm{R}=\begin{bmatrix}\mathrm{R}_q\\ \mathrm{R}_\dot q\end{bmatrix}=
+\begin{bmatrix}
+&\mathbf{q}^{t+\gamma\tau}-\mathbf{q}^t - \theta\gamma\tau\left(\mathbf{\dot q}^{t}+\mathbf{\dot q}^{t+\gamma\tau}\right) \\
+&\mathbf{M}\left(\mathbf{\dot q}^{t+\gamma\tau} - \mathbf{\dot q}^t\right) - \theta\gamma\tau\left(\mathbf{f}^{t}+\mathbf{f}^{t+\gamma\tau}\right) \\
+\end{bmatrix}
+\end{aligned}=0
+\end{eqnarray*}
+\]</span> Which gives the iterative procedure below <span class="math display">\[
+\begin{equation}
+\begin{aligned}
+\left(\mathbf{M}+\theta\gamma\tau\mathbf{D}_n+(\theta\gamma\tau)^2\mathbf{K}_n\right)\Delta\mathbf{\dot{q}}&=
+-\mathrm{R}_{\dot{q},n}
++\theta\gamma\tau\mathbf{K}\mathrm{R}_{q,n}
+\\
+\mathbf{\dot{q}}^{t+\gamma\tau}_{n+1}&=\mathbf{\dot{q}}^{t+\gamma\tau}_n+\Delta\mathbf{\dot{q}}
+\\
+\mathbf{q}^{t+\gamma\tau}_{n+1} &= \mathbf{q}^t+ \theta\gamma\tau\left(\mathbf{\dot q}^{t}+\mathbf{\dot q}^{t+\gamma\tau}_{n+1}\right)
+\\
+\mathbf{f}^{t+\gamma\tau}_{n+1} &= \mathbf{f}\left(\mathbf{q}^{t+\gamma\tau}_{n+1},\mathbf{\dot q}^{t+\gamma\tau}_{n+1}\right)
+\end{aligned}
+\label{eq:iteration_unrolled_theta}
+\end{equation}
+\]</span></p><p>The introduction of a new free parameter unlocks many possibilities. As a result, the choice of the parameter so that the iteration matrix is the same for both substeps (in the <em>linear</em> case) becomes flexible. Indeed, the equation is now <span class="math display">\[
+\begin{aligned}
+\theta\gamma=\frac{1-\gamma}{2-\gamma}
+\implies
+&\theta\gamma^2-(2\theta+1+)\gamma+1=0
+\end{aligned}
+\]</span> Which can be solved one way (getting <span class="math inline">\(\gamma\)</span> from a chosen <span class="math inline">\(\theta\)</span>) or the other (getting <span class="math inline">\(\theta\)</span> from a chosen <span class="math inline">\(\gamma\)</span>) <span class="math display">\[
+\begin{aligned}
+&\gamma_1=\frac{1+2\theta-\sqrt{4\theta^2+1}}{2\theta} & \gamma_2=\frac{1+2\theta+\sqrt{4\theta^2+1}}{2\theta}
+\\
+&\text{or}
+\\
+&\theta=\frac{1-\gamma}{\gamma(2-\gamma)}
+\end{aligned}
+\]</span> Choosing <span class="math inline">\(\theta=\tfrac{1}{2}\)</span> leads to the previously reported values of <span class="math inline">\(\gamma=2-\sqrt{2}\)</span> or <span class="math inline">\(\gamma=2+\sqrt{2}\)</span>. However, choosing first <span class="math inline">\(\gamma=\tfrac{1}{2}\)</span>, which simplifies the scheme coefficients as described above, yields <span class="math inline">\(\theta=\tfrac{2}{3}\)</span> to be able to reuse the same iteration matrix.</p><p>From a pure theoretical point of view, it might be interesting to find the parameters such that <span class="math inline">\(\theta=\gamma\)</span>. The equation to solve to get these is now a cubic polynomial <span class="math display">\[
+\gamma^3-2\gamma^2-2\gamma+1=0
+\]</span> which has three solutions <span class="math display">\[
+\begin{aligned}
+\gamma_1=&-1\\
+\gamma_2=&\frac{3-\sqrt{5}}{2}\approx0.382\\
+\gamma_3=&\frac{3+\sqrt{5}}{2}\approx2.618\\
+\end{aligned}
+\]</span></p><p>Alternatively, the first substep could be replaced with the <a href=https://en.wikipedia.org/wiki/Newmark-beta_method>Newmark-β</a> method, as in <a href=https://doi.org/10.1016/j.compstruc.2018.02.007>[Noh2018]</a> or any other single step scheme.</p><h2 id=gamma-above-one-and-beyond><span class="math inline">\(\gamma\)</span> above one and beyond</h2><p>In <a href=https://doi.org/10.1016/j.compstruc.2018.02.007>[Noh2018]</a>, the properties of the scheme are explored for many values of <span class="math inline">\(\gamma\)</span>, but fixed values for the Newmark-β part. The chosen values of the Newmark-β part ends up yielding the implicit midpoint method, in order to have second-order accuracy for any <span class="math inline">\(\gamma\)</span>. The values for <span class="math inline">\(\gamma\)</span> departs from the limited restricted range of [0,1]. The observations are the following:</p><ul><li>Amplitude decay: no decay at <span class="math inline">\(\gamma\rightarrow0\)</span>, then increases until a local maxima at <span class="math inline">\(\gamma=2-\sqrt{2}\)</span>, then decreases to no decay <span class="math inline">\(\gamma=1\)</span>, and sharply increases after for <span class="math inline">\(\gamma>1\)</span>. The decay overpasses the local maxima somewhere <span class="math inline">\(1.1&lt;\gamma&lt;1.15\)</span></li><li>Period elongation: locally maximum elongation at <span class="math inline">\(\gamma\rightarrow0\)</span>, then decreases to a local minimum at <span class="math inline">\(\gamma=2-\sqrt{2}\)</span>, then increases again above. The elongation overpasses the local maximum when <span class="math inline">\(\gamma=1\)</span>.</li><li>Spectral radius: shifts left for <span class="math inline">\(0&lt;\gamma&lt;2-\sqrt{2}\)</span>, then shifts right for <span class="math inline">\(2-\sqrt{2}&lt;\gamma&lt;1\)</span>, and sharply shifts left for <span class="math inline">\(\gamma>1\)</span>. The radius overpasses the spectral radius at <span class="math inline">\(\gamma=2-\sqrt{2}\)</span> somewhere between <span class="math inline">\(1.15&lt;\gamma&lt;1.2\)</span></li></ul><h2 id=references>References</h2><p><a href=https://www.doi.org/10.1109/T-ED.1985.22232>[Bank1985]</a> “Transient Simulation of Silicon Devices and Circuits” (1985)<br><a href=https://www.doi.org/10.1016/0168-9274(95)00115-8>[Hosea1996]</a> “Analysis and implementation of TR-BDF2” (1996)<br><a href=https://www.doi.org/10.1093/imanum/drp022>[Dharmaraja2010]</a> “Optimal stability for trapezoidal-backward difference split-steps” (2010)<br><a href=https://www.doi.org/10.1016/j.compstruc.2005.08.001>[Bathe2005]</a> “On a composite implicit time integration procedure for nonlinear dynamics” (2005)<br><a href=https://www.doi.org/10.1016/j.compstruc.2006.09.004>[Bathe2007]</a> “Conserving energy and momentum in nonlinear dynamics: A simple implicit time integration scheme” (2007)<br><a href=http://arxiv.org/abs/1505.07666>[Rezaei2015]</a> “Mixed timestepping schemes for nonsmooth mechanics with high frequency damping” (2015)<br><a href=https://mediatum.ub.tum.de/1422349>[Schindler2017]</a> “Consistent Time-Integration Schemes for Flexible Multibody Systems with Friction and Impacts” (2017)<br><a href=https://www.doi.org/10.1016/j.compstruc.2018.02.007>[Noh2018]</a> “Further insights into an implicit time integration scheme for structural dynamics” (2018)<br><a href=https://www.doi.org/10.1145/3272127.3275011>[Brown2018]</a> “Accurate dissipative forces in optimization integrators” (2018)</p></div></main><footer id=footer><div id=footer-inner>&copy;&nbsp;2020-2021&nbsp;&#183;&nbsp;Fabien Péan</div></footer><script>window.FontAwesomeConfig={searchPseudoElements:true}</script><script async src=https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/js/all.min.js integrity="sha256-MAgcygDRahs+F/Nk5Vz387whB4kSK9NXlDN3w58LLq0=" crossorigin=anonymous></script><script src=https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin=anonymous></script><script async defer src=https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/1.6.0/clipboard.min.js></script><script src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.18.1/highlight.min.js integrity="sha256-eOgo0OtLL4cdq7RdwRUiGKLX9XsIJ7nGhWEKbohmVAQ=" crossorigin=anonymous></script><script src=https://cdnjs.cloudflare.com/ajax/libs/mermaid/8.4.8/mermaid.min.js integrity="sha256-lyWCDMnMeZiXRi7Zl54sZGKYmgQs4izcT7+tKc+KUBk=" crossorigin=anonymous></script><script>mermaid.initialize({startOnLoad:true,securityLevel:'loose',theme:'default',themeCSS:'',cloneCssStyles:true,useMaxWidth:true,htmlLabels:false,flowchart:{curve:'basis'}});</script><script>window.MathJax={tex:{inlineMath:[['$','$'],['\\(','\\)']],displayMath:[['$$','$$'],['\\[','\\]']],processEscapes:false,processEnvironments:true,tags:'ams'},svg:{fontCache:'global',displayAlign:'left',displayIndent:'2emem'}};</script><script async type=text/javascript id=MathJax-script src=https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js></script><script src=/js/custom.js></script></body></html>
