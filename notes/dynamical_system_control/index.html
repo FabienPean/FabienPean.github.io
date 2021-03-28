@@ -61,9 +61,11 @@
 \]</span> where the right hand side is decomposed into a dependent and independent function of activation. The Schur complement of the system yields <span class="math display">\[
 \left(-\mathbf{E}-\mathbf{G}\mathbf{H}^{-1}\mathbf{G}^\T\right) \left(-\tau\Delta\boldsymbol\lambda\right) = \mathbf{g} - \mathbf{G}\mathbf{H}^{-1}\left(\mathbf{h}_{\not a}+\mathbf{h}_a\right)
 \]</span> and the increment in velocity is obtained via backsubstitution <span class="math display">\[
-\mathbf{H}\Delta\mathbf{\dot q} = \mathbf{h}_{\not a}+\mathbf{h}_a +\tau\mathbf{G}^\T\Delta\boldsymbol\lambda
+\begin{aligned}
+&\mathbf{H}\Delta\mathbf{\dot q} = \mathbf{h}_{\not a}+\mathbf{h}_a +\tau\mathbf{G}^\T\Delta\boldsymbol\lambda
 \\
-\mathbf{H}\Delta\mathbf{\dot q} = \mathbf{h}_{\not a}+\mathbf{h}_a +\tau\mathbf{G}^\T\left( \mathbf{E}+\mathbf{G}\mathbf{H}^{-1}\mathbf{G}^\T\right)^{-1} \left(\mathbf{g} - \mathbf{G}\mathbf{H}^{-1}\left(\mathbf{h}_{\not a}+\mathbf{h}_a\right)\right)
+&\mathbf{H}\Delta\mathbf{\dot q} = \mathbf{h}_{\not a}+\mathbf{h}_a +\tau\mathbf{G}^\T\left( \mathbf{E}+\mathbf{G}\mathbf{H}^{-1}\mathbf{G}^\T\right)^{-1} \left(\mathbf{g} - \mathbf{G}\mathbf{H}^{-1}\left(\mathbf{h}_{\not a}+\mathbf{h}_a\right)\right)
+\end{aligned}
 \]</span> The variation with respect to activation follows from the derivation of previous equations <span class="math display">\[
 \left(-\mathbf{E}-\mathbf{G}\mathbf{H}^{-1}\mathbf{G}^\T\right) \left(-\tau\frac{\partial\boldsymbol\lambda}{\partial \mathbf{a}} \right) = - \mathbf{G}\mathbf{H}^{-1}\frac{\partial\mathbf{h}_a}{\partial\mathbf{a}}
 \]</span> and <span class="math display">\[
