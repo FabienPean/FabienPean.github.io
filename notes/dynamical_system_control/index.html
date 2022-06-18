@@ -1,104 +1,229 @@
-<!doctype html><html lang=en-us><!doctype html><html lang=en><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content><meta name=author content="Fabien Péan"><meta name=google-site-verification content="_OCqKj2I4fVqJsqpa9uq0utQ55W1kx93lTIQtHZ88mM"><link rel="shortcut icon" type=image/png href=/img/logo.svg><title>Fabien Péan &#183; Personal Website</title><meta name=robots content="index,follow"><meta name=googlebot content="index,follow"><link rel=stylesheet type=text/css href=/css/normalize.css><link rel=stylesheet href=/vendor/colors/css/colors.min.css><link rel=stylesheet href=/vendor/academicons/css/academicons.min.css><style>:root{--font-monospace: "Source Code Pro";--font-sans-serif:"Inter"}</style><link href="https://fonts.googleapis.com/css?family=Inter%7cSource+Code+Pro&display=swap" rel=stylesheet type=text/css><link rel=stylesheet href=/css/custom.css></head><body><body><nav id=nav><figure id=logo class=image><img src=/img/logo.svg></figure><div id=branding><div class=branding-title>Fabien Péan</div><div class=branding-subtitle></div></div><div id=menu><a class=menu-link href=/><div class=menu-item><span class=menu-label><i class="fas fa-home fa-fw"></i>&nbsp;Home</span></div></a><a class=menu-link href=/news><div class=menu-item><span class=menu-label><i class="fas fa-newspaper fa-fw"></i>&nbsp;News</span></div></a><a class=menu-link href=/blog><div class=menu-item><span class=menu-label><i class="fas fa-pencil-alt fa-fw"></i>&nbsp;Blog</span></div></a><a class=menu-link href=/notes><div class=menu-item><span class=menu-label><i class="fas fa-sticky-note fa-fw"></i>&nbsp;Notes</span></div></a><a class=menu-link href=/projects><div class=menu-item><span class=menu-label><i class="fas fa-book fa-fw"></i>&nbsp;Projects</span></div></a></div><div class=social><div class=social-list><div style="display:flex;flex-flow:row wrap;justify-content:center"><div class="social-button email"><a href=mailto:fabien@pean.pro rel=author><i class="fas fa-at fa-2x"></i></a></div><div class="social-button bitbucket"><a href=https://bitbucket.org/FabienPean rel="author external"><i class="fab fa-bitbucket fa-2x"></i></a></div><div class="social-button github"><a href=https://github.com/FabienPean rel="author external"><i class="fab fa-github fa-2x"></i></a></div><div class="social-button linkedin"><a href=https://www.linkedin.com/in/FabienPean rel="author external"><i class="fab fa-linkedin fa-2x"></i></a></div></div></div></div></nav><main id=main><div class=content><h1>Dynamical system control</h1><small><div class=subtitle style="display:flex;flex-flow:row wrap;justify-content:space-between"><span style="flex:1 0 auto;max-width:100%"><span class=tooltip>28/03/2021
+<!doctype html><html lang=en-us><!doctype html><html lang=en><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content><meta name=author content="Fabien Péan"><meta name=google-site-verification content="_OCqKj2I4fVqJsqpa9uq0utQ55W1kx93lTIQtHZ88mM"><link rel="shortcut icon" type=image/png href=/img/logo.svg><title>Fabien Péan &#183; Personal Website</title><meta name=robots content="index,follow"><meta name=googlebot content="index,follow"><link rel=stylesheet type=text/css href=/css/normalize.css><link rel=stylesheet href=/vendor/colors/css/colors.min.css><link rel=stylesheet href=/vendor/academicons/css/academicons.min.css><style>:root{--font-monospace:"Source Code Pro";--font-sans-serif:"Inter"}</style><link href="https://fonts.googleapis.com/css?family=Inter%7cSource+Code+Pro&display=swap" rel=stylesheet type=text/css><link rel=stylesheet href=/css/custom.css></head><body><body><nav id=nav><figure id=logo class=image><img src=/img/logo.svg></figure><div id=branding><div class=branding-title>Fabien Péan</div><div class=branding-subtitle></div></div><div id=menu><a class=menu-link href=/><div class=menu-item><span class=menu-label><i class="fas fa-home fa-fw"></i>&nbsp;Home</span></div></a><a class=menu-link href=/news><div class=menu-item><span class=menu-label><i class="fas fa-newspaper fa-fw"></i>&nbsp;News</span></div></a><a class=menu-link href=/blog><div class=menu-item><span class=menu-label><i class="fas fa-pencil-alt fa-fw"></i>&nbsp;Blog</span></div></a><a class=menu-link href=/notes><div class=menu-item><span class=menu-label><i class="fas fa-sticky-note fa-fw"></i>&nbsp;Notes</span></div></a><a class=menu-link href=/projects><div class=menu-item><span class=menu-label><i class="fas fa-book fa-fw"></i>&nbsp;Projects</span></div></a></div><div class=social><div class=social-list><div style="display:flex;flex-flow:row wrap;justify-content:center"><div class="social-button email"><a href=mailto:fabien@pean.pro rel=author><i class="fas fa-at fa-2x"></i></a></div><div class="social-button bitbucket"><a href=https://bitbucket.org/FabienPean rel="author external"><i class="fab fa-bitbucket fa-2x"></i></a></div><div class="social-button github"><a href=https://github.com/FabienPean rel="author external"><i class="fab fa-github fa-2x"></i></a></div><div class="social-button linkedin"><a href=https://www.linkedin.com/in/FabienPean rel="author external"><i class="fab fa-linkedin fa-2x"></i></a></div></div></div></div></nav><main id=main><div class=content><h1>Dynamical system control</h1><small><div class=subtitle style="display:flex;flex-flow:row wrap;justify-content:space-between"><span style="flex:1 0 auto;max-width:100%"><span class=tooltip>28/03/2021
 <span class=tooltiptext><small>updated on 12/10/2021</small></span>
-</span>&nbsp;&boxv;&nbsp;<a href=/notes>Notes</a></span><div class=tag-list><a href=/tags/numerical-analysis><div class=tag>numerical analysis</div></a><a href=/tags/control><div class=tag>control</div></a></div></div></small><br><p><span class="math inline">\(\newcommand{\T}{\mathsf{\small{T}}}\newcommand{\d}{\mathrm{d}}\)</span></p><h2 id=notations>Notations</h2><p>Let <span class="math inline">\(\mathbf{q},\mathbf{\dot q},\mathbf{\ddot q}\)</span> be the generalized coordinates, velocities, and accelerations. The vector <span class="math inline">\(\mathbf{a}\)</span> represent the controllable parameters, which are to be read as the <em>activation</em> parameters. The superscripts involving <span class="math inline">\(t\)</span> will be used to denote time points such that <span class="math inline">\(\mathbf{q}^{t+\tau} = \mathbf{q}(t+\tau)\)</span> represents the discrete value of <span class="math inline">\(\mathbf{q}\)</span> at time <span class="math inline">\(t+\tau\)</span>, while subscript involving <span class="math inline">\(n\)</span> as in <span class="math inline">\(\mathbf{q}_n^t\)</span> will represent the value of <span class="math inline">\(\mathbf{q}^t\)</span> at some iteration <span class="math inline">\(n\)</span>. The symbol <span class="math inline">\(\tau\)</span> represents the timestep.</p><p>The constrained equation of motion is given as</p><p><span class="math display">\[
+</span>&nbsp;&boxv;&nbsp;<a href=/notes>Notes</a></span><div class=tag-list><a href=/tags/numerical-analysis><div class=tag>numerical analysis</div></a><a href=/tags/control><div class=tag>control</div></a></div></div></small><br><p><span class="math inline">\(\newcommand{\T}{\mathsf{\small{T}}}\newcommand{\d}{\mathrm{d}}\)</span></p><h2 id=notations>Notations</h2><p>Let <span class="math inline">\(\mathbf{q},\mathbf{\dot
+q},\mathbf{\ddot q}\)</span> be the generalized coordinates, velocities,
+and accelerations. The vector <span class="math inline">\(\mathbf{a}\)</span> represent the controllable
+parameters, which are to be read as the <em>activation</em> parameters.
+The superscripts involving <span class="math inline">\(t\)</span> will
+be used to denote time points such that <span class="math inline">\(\mathbf{q}^{t+\tau} = \mathbf{q}(t+\tau)\)</span>
+represents the discrete value of <span class="math inline">\(\mathbf{q}\)</span> at time <span class="math inline">\(t+\tau\)</span>, while subscript involving <span class="math inline">\(n\)</span> as in <span class="math inline">\(\mathbf{q}_n^t\)</span> will represent the value
+of <span class="math inline">\(\mathbf{q}^t\)</span> at some iteration
+<span class="math inline">\(n\)</span>. The symbol <span class="math inline">\(\tau\)</span> represents the timestep.</p><p>The constrained equation of motion is given as</p><p><span class="math display">\[
 \mathbf{M}\mathbf{\ddot q} +\mathbf{f}=\mathbf{G}^\T\boldsymbol\lambda
-\]</span> where <span class="math inline">\(\mathbf{M}\)</span> is the mass matrix, assumed constant, <span class="math inline">\(\mathbf{f}\)</span> is the force vector which contains internal and external forces <span class="math inline">\(\mathbf{f}=\mathbf{f}_\text{int}-\mathbf{f}_\text{ext}\)</span>, and <span class="math inline">\(\boldsymbol\lambda\)</span> are the Lagrange multipliers which enforce the respect of the constraints in the system. For the sake of simplicity, the constraints are assumed to be holonomic, i.e. <span class="math inline">\(\mathbf{g}\big(\mathbf{q}(t)\big)=0\)</span>, and enforced at velocity level via index reduction, i.e. <span class="math inline">\(\frac{\mathrm{d}\mathbf{g}}{\mathrm{d}\mathbf{q}}\mathbf{\dot q}=\mathbf{G}\mathbf{\dot q}=0\)</span></p><h2 id=discretization>Discretization</h2><p>The equation of motion is made explicit as such <span class="math display">\[
-\mathbf{M}\mathbf{\ddot q}(t)+\mathbf{f}(\mathbf{q}(t),\mathbf{\dot q}(t),\mathbf{a}(t))=\mathbf{G}^\T\!(\mathbf{q}(t))\boldsymbol{\lambda}(t)
-\]</span> The derivation is performed based on the <a href=/notes/timestepping_implicit_euler/>implicit Euler</a> scheme. The iterative procedure resulting from the Newton’s method yields <span class="math display">\[
+\]</span> where <span class="math inline">\(\mathbf{M}\)</span> is the
+mass matrix, assumed constant, <span class="math inline">\(\mathbf{f}\)</span> is the force vector which
+contains internal and external forces <span class="math inline">\(\mathbf{f}=\mathbf{f}_\text{int}-\mathbf{f}_\text{ext}\)</span>,
+and <span class="math inline">\(\boldsymbol\lambda\)</span> are the
+Lagrange multipliers which enforce the respect of the constraints in the
+system. For the sake of simplicity, the constraints are assumed to be
+holonomic, i.e. <span class="math inline">\(\mathbf{g}\big(\mathbf{q}(t)\big)=0\)</span>, and
+enforced at velocity level via index reduction, i.e. <span class="math inline">\(\frac{\mathrm{d}\mathbf{g}}{\mathrm{d}\mathbf{q}}\mathbf{\dot
+q}=\mathbf{G}\mathbf{\dot q}=0\)</span></p><h2 id=discretization>Discretization</h2><p>The equation of motion is made explicit as such <span class="math display">\[
+\mathbf{M}\mathbf{\ddot q}(t)+\mathbf{f}(\mathbf{q}(t),\mathbf{\dot
+q}(t),\mathbf{a}(t))=\mathbf{G}^\T\!(\mathbf{q}(t))\boldsymbol{\lambda}(t)
+\]</span> The derivation is performed based on the <a href=/notes/timestepping_implicit_euler/>implicit Euler</a> scheme.
+The iterative procedure resulting from the Newton’s method yields <span class="math display">\[
 \begin{equation}
 \begin{aligned}
 \mathbf{H}_n\Delta\mathbf{\dot{q}}&=
--\mathrm{R}_{\mathbf{\dot q},n}+\tau\left(\mathbf{K}+\frac{\partial\mathbf{G}_n}{\partial\mathbf{q}}\right)\mathrm{R}_{\mathbf{q},n} + \mathbf{G}_n^\T(\boldsymbol\lambda^{t+\tau}_n+\Delta\boldsymbol\lambda)
+-\mathrm{R}_{\mathbf{\dot
+q},n}+\tau\left(\mathbf{K}+\frac{\partial\mathbf{G}_n}{\partial\mathbf{q}}\right)\mathrm{R}_{\mathbf{q},n}
++
+\mathbf{G}_n^\T(\boldsymbol\lambda^{t+\tau}_n+\Delta\boldsymbol\lambda)
 -\tau\mathbf{A}_n\Delta\mathbf{a}
 \\
 \mathbf{\dot{q}}^{t+\tau}_{n+1}&=\mathbf{\dot{q}}^{t+\tau}_n+\Delta\mathbf{\dot{q}}
 \\
-\boldsymbol{\lambda}^{t+\tau}_{n+1} &= \boldsymbol{\lambda}^{t+\tau}_{n} + \Delta\boldsymbol\lambda
+\boldsymbol{\lambda}^{t+\tau}_{n+1} &=
+\boldsymbol{\lambda}^{t+\tau}_{n} + \Delta\boldsymbol\lambda
 \\
-\mathbf{a}^{t+\tau}_{n+1} &= \mathbf{a}^{t+\tau}_n + \Delta\mathbf{a}
+\mathbf{a}^{t+\tau}_{n+1} &= \mathbf{a}^{t+\tau}_n +
+\Delta\mathbf{a}
 \\
-\mathbf{q}^{t+\tau}_{n+1} &= \mathbf{q}^t+ \tau\mathbf{\dot q}^{t+\tau}_{n+1}
+\mathbf{q}^{t+\tau}_{n+1} &= \mathbf{q}^t+ \tau\mathbf{\dot
+q}^{t+\tau}_{n+1}
 \\
-\mathbf{f}^{t+\tau}_{n+1} &= \mathbf{f}\left(\mathbf{q}^{t+\tau}_{n+1},\mathbf{\dot q}^{t+\tau}_{n+1},\mathbf{a}^{t+\tau}_{n+1}\right)
+\mathbf{f}^{t+\tau}_{n+1} &=
+\mathbf{f}\left(\mathbf{q}^{t+\tau}_{n+1},\mathbf{\dot
+q}^{t+\tau}_{n+1},\mathbf{a}^{t+\tau}_{n+1}\right)
 \end{aligned}
 \end{equation}
 \]</span> with <span class="math display">\[
 \begin{aligned}
-&\mathbf{H} = \mathbf{M}+\tau\mathbf{D}+\tau^2\left(\mathbf{K}+\frac{\partial\mathbf{G}}{\partial\mathbf{q}}\boldsymbol\lambda_n\right)\\
-&\mathbf{D} = \frac{\partial\mathbf{f}}{\partial\mathbf{\dot q}},\, \mathbf{K} = \frac{\partial\mathbf{f}}{\partial\mathbf{q}},\,\mathbf{A} = \frac{\partial\mathbf{f}}{\partial\mathbf{a}}\\
-&\mathrm{R}_{\mathbf{\dot q},n} = \mathbf{M}\left(\mathbf{\dot q}^t-\mathbf{\dot q}^{t+\tau}_n\right)-\tau\mathbf{f}^{t+\tau}_n\\
-&\mathrm{R}_{\mathbf{q},n} = \mathbf{q}^t-\mathbf{q}^{t+\tau}_n+\tau\mathbf{\dot q}^{t+\tau}_n
+&\mathbf{H} =
+\mathbf{M}+\tau\mathbf{D}+\tau^2\left(\mathbf{K}+\frac{\partial\mathbf{G}}{\partial\mathbf{q}}\boldsymbol\lambda_n\right)\\
+&\mathbf{D} = \frac{\partial\mathbf{f}}{\partial\mathbf{\dot q}},\,
+\mathbf{K} = \frac{\partial\mathbf{f}}{\partial\mathbf{q}},\,\mathbf{A}
+= \frac{\partial\mathbf{f}}{\partial\mathbf{a}}\\
+&\mathrm{R}_{\mathbf{\dot q},n} = \mathbf{M}\left(\mathbf{\dot
+q}^t-\mathbf{\dot q}^{t+\tau}_n\right)-\tau\mathbf{f}^{t+\tau}_n\\
+&\mathrm{R}_{\mathbf{q},n} =
+\mathbf{q}^t-\mathbf{q}^{t+\tau}_n+\tau\mathbf{\dot q}^{t+\tau}_n
 \end{aligned}
-\]</span></p><p>wherein the iteration subscript for matrices have been omitted for the sake of clarity. Since the residual on position is projected at every iteration, which means <span class="math inline">\(\mathrm{R}_\mathbf{q}=0\)</span>, the system can be further simplified as <span class="math display">\[
+\]</span></p><p>wherein the iteration subscript for matrices have been omitted for
+the sake of clarity. Since the residual on position is projected at
+every iteration, which means <span class="math inline">\(\mathrm{R}_\mathbf{q}=0\)</span>, the system can
+be further simplified as <span class="math display">\[
 \begin{equation}
 \begin{aligned}
 \mathbf{H}\Delta\mathbf{\dot{q}}&=
--\mathrm{R}_{\mathbf{\dot q},n}+ \mathbf{G}^\T(\boldsymbol\lambda^{t+\tau}_n+\Delta\boldsymbol\lambda)
+-\mathrm{R}_{\mathbf{\dot q},n}+
+\mathbf{G}^\T(\boldsymbol\lambda^{t+\tau}_n+\Delta\boldsymbol\lambda)
 -\tau\mathbf{A}\Delta\mathbf{a}
 \\
 \end{aligned}
 \end{equation}
 \]</span></p><p>which provides the discretized residual <span class="math display">\[
-\mathbf{Q} = \mathbf{H}\Delta\mathbf{\dot{q}}+\mathrm{R}_{\mathbf{\dot q},n} + \tau\mathbf{A}\Delta\mathbf{a} - \mathbf{G}^\T(\boldsymbol\lambda^{t+\tau}_n+\Delta\boldsymbol\lambda) = 0
-\]</span></p><h2 id=direct-and-adjoint-formulation>Direct and Adjoint formulation</h2><p>At each iteration, one seeks a new set of activation that enable to reach a desired state. <span class="math display">\[
-\arg\min_{\Delta\mathbf{a}} \;L(\mathbf{\dot q}^{t+\tau}) \quad \text{s.t.} \quad \mathbf{Q}=0
-\]</span> The state is implicitly a function of the control variables. The gradient of the objective needed for gradient-based optimization is derived as <span class="math display">\[
+\mathbf{Q} = \mathbf{H}\Delta\mathbf{\dot{q}}+\mathrm{R}_{\mathbf{\dot
+q},n} + \tau\mathbf{A}\Delta\mathbf{a} -
+\mathbf{G}^\T(\boldsymbol\lambda^{t+\tau}_n+\Delta\boldsymbol\lambda) =
+0
+\]</span></p><h2 id=direct-and-adjoint-formulation>Direct and Adjoint
+formulation</h2><p>At each iteration, one seeks a new set of activation that enable to
+reach a desired state. <span class="math display">\[
+\arg\min_{\Delta\mathbf{a}} \;L(\mathbf{\dot q}^{t+\tau}) \quad
+\text{s.t.} \quad \mathbf{Q}=0
+\]</span> The state is implicitly a function of the control variables.
+The gradient of the objective needed for gradient-based optimization is
+derived as <span class="math display">\[
 \begin{aligned}
-\frac{\d\mathrm{L}}{\d\mathbf{a}} &= \cancelto{0}{\frac{\partial\mathrm{L}}{\partial\mathbf{a}}} + \frac{\partial\mathrm{L}}{\partial\mathbf{\dot q}} \frac{\partial\mathbf{\dot q}}{\partial\mathbf{a}}
+\frac{\d\mathrm{L}}{\d\mathbf{a}} &=
+\cancelto{0}{\frac{\partial\mathrm{L}}{\partial\mathbf{a}}} +
+\frac{\partial\mathrm{L}}{\partial\mathbf{\dot q}}
+\frac{\partial\mathbf{\dot q}}{\partial\mathbf{a}}
 \\
-&=\frac{\partial\mathrm{L}}{\partial\mathbf{\dot q}}\left(\frac{\partial\mathbf{Q}}{\partial\mathbf{\dot q}}\right)^{\!\!-1}\frac{\partial\mathbf{Q}}{\partial\mathbf{a}}
+&=\frac{\partial\mathrm{L}}{\partial\mathbf{\dot
+q}}\left(\frac{\partial\mathbf{Q}}{\partial\mathbf{\dot
+q}}\right)^{\!\!-1}\frac{\partial\mathbf{Q}}{\partial\mathbf{a}}
 \\
-&=\rlap{\underbrace{\frac{\partial\mathrm{L}}{\partial\mathbf{\dot q}}\left(\frac{\partial\mathbf{Q}}{\partial\mathbf{\dot q}}\right)^{\!\!-1}}_\text{Adjoint}}
-\phantom{\frac{\partial\mathrm{L}}{\partial\mathbf{\dot q}}}\overbrace{\phantom{\left(\frac{\partial\mathbf{Q}}{\partial\mathbf{\dot q}}\right)^{\!\!-1}}
+&=\rlap{\underbrace{\frac{\partial\mathrm{L}}{\partial\mathbf{\dot
+q}}\left(\frac{\partial\mathbf{Q}}{\partial\mathbf{\dot
+q}}\right)^{\!\!-1}}_\text{Adjoint}}
+\phantom{\frac{\partial\mathrm{L}}{\partial\mathbf{\dot
+q}}}\overbrace{\phantom{\left(\frac{\partial\mathbf{Q}}{\partial\mathbf{\dot
+q}}\right)^{\!\!-1}}
 \frac{\partial\mathbf{Q}}{\partial\mathbf{a}}}^\text{Direct}
 \\
-&= \frac{\partial\mathrm{L}}{\partial\mathbf{\dot q}} \mathbf{H}^{-1}\tau\mathbf{A}
+&= \frac{\partial\mathrm{L}}{\partial\mathbf{\dot q}}
+\mathbf{H}^{-1}\tau\mathbf{A}
 \end{aligned}
-\]</span> By computing the gradient with the direct approach, one needs to perform <span class="math inline">\(n_a\)</span> solve, the amount of control variables, while the adjoint method allows to perform only <span class="math inline">\(n_L\)</span> solve, equivalent to the amount of cost functions considered in the objective.</p><h2 id=abstract-view-and-discrete-derivatives>Abstract view and discrete derivatives</h2><p>The system of equations to solve at each iteration of the Newton’s algorithm can be abstracted into the following representation <span class="math display">\[
-\begin{bmatrix} \mathbf{H} & \phantom{-}\mathbf{G}^\T \\ \mathbf{G} & -\mathbf{E}\phantom{\T} \end{bmatrix}\begin{bmatrix} {\phantom{-\tau}\Delta\mathbf{\dot q}} \\ -\tau\Delta\boldsymbol{\lambda} \end{bmatrix}
+\]</span> By computing the gradient with the direct approach, one needs
+to perform <span class="math inline">\(n_a\)</span> solve, the amount of
+control variables, while the adjoint method allows to perform only <span class="math inline">\(n_L\)</span> solve, equivalent to the amount of
+cost functions considered in the objective.</p><h2 id=abstract-view-and-discrete-derivatives>Abstract view and
+discrete derivatives</h2><p>The system of equations to solve at each iteration of the Newton’s
+algorithm can be abstracted into the following representation <span class="math display">\[
+\begin{bmatrix} \mathbf{H} & \phantom{-}\mathbf{G}^\T \\ \mathbf{G}
+& -\mathbf{E}\phantom{\T} \end{bmatrix}\begin{bmatrix}
+{\phantom{-\tau}\Delta\mathbf{\dot q}} \\
+-\tau\Delta\boldsymbol{\lambda} \end{bmatrix}
 = \begin{bmatrix} \mathbf{h} \\ \mathbf{g} \end{bmatrix}
-\]</span></p><p>where factors have shifted around to present a symmetric matrix. Incorporating the knowledge of the activation parameter lead to the following refined description <span class="math display">\[
-\begin{bmatrix} \mathbf{H} & \phantom{-}\mathbf{G}^\T \\ \mathbf{G} & -\mathbf{E}\phantom{\T} \end{bmatrix}\begin{bmatrix} {\phantom{-\tau}\Delta\mathbf{\dot q}} \\ -\tau\Delta\boldsymbol{\lambda} \\\end{bmatrix}
-= \begin{bmatrix} \mathbf{h}_a + \mathbf{h}_{\not a}\\ \mathbf{g} \end{bmatrix}
-\]</span> where the right hand side is decomposed into a dependent and independent function of activation. The Schur complement of the system yields <span class="math display">\[
-\left(-\mathbf{E}-\mathbf{G}\mathbf{H}^{-1}\mathbf{G}^\T\right) \left(-\tau\Delta\boldsymbol\lambda\right) = \mathbf{g} - \mathbf{G}\mathbf{H}^{-1}\left(\mathbf{h}_{\not a}+\mathbf{h}_a\right)
-\]</span> and the increment in velocity is obtained via backsubstitution <span class="math display">\[
+\]</span></p><p>where factors have shifted around to present a symmetric matrix.
+Incorporating the knowledge of the activation parameter lead to the
+following refined description <span class="math display">\[
+\begin{bmatrix} \mathbf{H} & \phantom{-}\mathbf{G}^\T \\ \mathbf{G}
+& -\mathbf{E}\phantom{\T} \end{bmatrix}\begin{bmatrix}
+{\phantom{-\tau}\Delta\mathbf{\dot q}} \\
+-\tau\Delta\boldsymbol{\lambda} \\\end{bmatrix}
+= \begin{bmatrix} \mathbf{h}_a + \mathbf{h}_{\not a}\\ \mathbf{g}
+\end{bmatrix}
+\]</span> where the right hand side is decomposed into a dependent and
+independent function of activation. The Schur complement of the system
+yields <span class="math display">\[
+\left(-\mathbf{E}-\mathbf{G}\mathbf{H}^{-1}\mathbf{G}^\T\right)
+\left(-\tau\Delta\boldsymbol\lambda\right) = \mathbf{g} -
+\mathbf{G}\mathbf{H}^{-1}\left(\mathbf{h}_{\not a}+\mathbf{h}_a\right)
+\]</span> and the increment in velocity is obtained via backsubstitution
+<span class="math display">\[
 \begin{aligned}
-&\mathbf{H}\Delta\mathbf{\dot q} = \mathbf{h}_{\not a}+\mathbf{h}_a +\tau\mathbf{G}^\T\Delta\boldsymbol\lambda
+&\mathbf{H}\Delta\mathbf{\dot q} = \mathbf{h}_{\not a}+\mathbf{h}_a
++\tau\mathbf{G}^\T\Delta\boldsymbol\lambda
 \\
-&\mathbf{H}\Delta\mathbf{\dot q} = \mathbf{h}_{\not a}+\mathbf{h}_a +\tau\mathbf{G}^\T\left( \mathbf{E}+\mathbf{G}\mathbf{H}^{-1}\mathbf{G}^\T\right)^{-1} \left(\mathbf{g} - \mathbf{G}\mathbf{H}^{-1}\left(\mathbf{h}_{\not a}+\mathbf{h}_a\right)\right)
+&\mathbf{H}\Delta\mathbf{\dot q} = \mathbf{h}_{\not a}+\mathbf{h}_a
++\tau\mathbf{G}^\T\left(
+\mathbf{E}+\mathbf{G}\mathbf{H}^{-1}\mathbf{G}^\T\right)^{-1}
+\left(\mathbf{g} - \mathbf{G}\mathbf{H}^{-1}\left(\mathbf{h}_{\not
+a}+\mathbf{h}_a\right)\right)
 \end{aligned}
-\]</span> The variation with respect to activation follows from the derivation of previous equations <span class="math display">\[
-\left(-\mathbf{E}-\mathbf{G}\mathbf{H}^{-1}\mathbf{G}^\T\right) \left(-\tau\frac{\partial\boldsymbol\lambda}{\partial \mathbf{a}} \right) = - \mathbf{G}\mathbf{H}^{-1}\frac{\partial\mathbf{h}_a}{\partial\mathbf{a}}
+\]</span> The variation with respect to activation follows from the
+derivation of previous equations <span class="math display">\[
+\left(-\mathbf{E}-\mathbf{G}\mathbf{H}^{-1}\mathbf{G}^\T\right)
+\left(-\tau\frac{\partial\boldsymbol\lambda}{\partial \mathbf{a}}
+\right) = -
+\mathbf{G}\mathbf{H}^{-1}\frac{\partial\mathbf{h}_a}{\partial\mathbf{a}}
 \]</span> and <span class="math display">\[
-\mathbf{H}\frac{\partial\mathbf{\dot q}}{\partial\mathbf{a}} =\frac{\partial\mathbf{h}_a}{\partial\mathbf{a}} -\tau\mathbf{G}^\T\left( \mathbf{E}+\mathbf{G}\mathbf{H}^{-1}\mathbf{G}^\T\right)^{-1} \mathbf{G}\mathbf{H}^{-1}\frac{\partial\mathbf{h}_a}{\partial\mathbf{a}}
-\]</span> Note that in that derivation, the use of such <span class="math inline">\(\frac{\partial\mathbf{\dot q}}{\partial\mathbf{a}}\)</span> in a controller leads to a constraint-aware solution: the variation of activation needed to reach a new state will be null if a constraint prevents to do so.</p><h2 id=target-velocity-or-tracking-cost>Target velocity (or tracking cost)</h2><p>Finding the activation that would provide the desired position or velocity can be formulated as a smooth quadratic term using a least square formulation. <span class="math display">\[
+\mathbf{H}\frac{\partial\mathbf{\dot q}}{\partial\mathbf{a}}
+=\frac{\partial\mathbf{h}_a}{\partial\mathbf{a}}
+-\tau\mathbf{G}^\T\left(
+\mathbf{E}+\mathbf{G}\mathbf{H}^{-1}\mathbf{G}^\T\right)^{-1}
+\mathbf{G}\mathbf{H}^{-1}\frac{\partial\mathbf{h}_a}{\partial\mathbf{a}}
+\]</span> Note that in that derivation, the use of such <span class="math inline">\(\frac{\partial\mathbf{\dot
+q}}{\partial\mathbf{a}}\)</span> in a controller leads to a
+constraint-aware solution: the variation of activation needed to reach a
+new state will be null if a constraint prevents to do so.</p><h2 id=target-velocity-or-tracking-cost>Target velocity (or tracking
+cost)</h2><p>Finding the activation that would provide the desired position or
+velocity can be formulated as a smooth quadratic term using a least
+square formulation. <span class="math display">\[
 \begin{align*}
-& L = \tfrac{1}{2}\left\Vert \mathbf{\dot q}^{*}-\mathbf{P}\mathbf{\dot q}^{t+\tau} \right\Vert_2^2 \\
-%& \frac{\d L}{\d \mathbf{a}} = \frac{\partial L}{\partial\mathbf{\dot q}}\frac{\partial \mathbf{\dot q}}{\partial\mathbf{a}}\\
+& L = \tfrac{1}{2}\left\Vert \mathbf{\dot
+q}^{*}-\mathbf{P}\mathbf{\dot q}^{t+\tau} \right\Vert_2^2 \\
+%& \frac{\d L}{\d \mathbf{a}} = \frac{\partial
+L}{\partial\mathbf{\dot q}}\frac{\partial \mathbf{\dot
+q}}{\partial\mathbf{a}}\\
 \end{align*}
-\]</span> where <span class="math inline">\(\mathbf{P}\)</span>​ projects the global state to the target space and <span class="math inline">\(\mathbf{\dot q}^*\)</span>​ is the target velocity. The gradient and hessian of the cost function are <span class="math display">\[
+\]</span> where <span class="math inline">\(\mathbf{P}\)</span>​ projects
+the global state to the target space and <span class="math inline">\(\mathbf{\dot q}^*\)</span>​ is the target velocity.
+The gradient and hessian of the cost function are <span class="math display">\[
 \begin{align*}
-& \frac{\d L}{\d \mathbf{a}} = -(\mathbf{\dot q}^{*}-\mathbf{P}\mathbf{\dot q}^{t+\tau})^\T \mathbf{P}\frac{\partial \mathbf{\dot q}}{\partial\mathbf{a}}\\
+& \frac{\d L}{\d \mathbf{a}} = -(\mathbf{\dot
+q}^{*}-\mathbf{P}\mathbf{\dot q}^{t+\tau})^\T \mathbf{P}\frac{\partial
+\mathbf{\dot q}}{\partial\mathbf{a}}\\
 & \frac{\d L}{\d \mathbf{aa}} =
-\frac{\partial \mathbf{\dot q}}{\partial\mathbf{a}}\mathbf{P}^\T\mathbf{P}\frac{\partial \mathbf{\dot q}}{\partial\mathbf{a}}
--(\mathbf{\dot q}^{*}-\mathbf{P}\mathbf{\dot q}^{t+\tau})^\T\frac{\partial \mathbf{\dot q}}{\partial\mathbf{aa}}
+\frac{\partial \mathbf{\dot
+q}}{\partial\mathbf{a}}\mathbf{P}^\T\mathbf{P}\frac{\partial
+\mathbf{\dot q}}{\partial\mathbf{a}}
+-(\mathbf{\dot q}^{*}-\mathbf{P}\mathbf{\dot
+q}^{t+\tau})^\T\frac{\partial \mathbf{\dot q}}{\partial\mathbf{aa}}
 \end{align*}
-\]</span> Note that the higher order derivative <span class="math inline">\(\frac{\partial\mathbf{\dot q}}{\partial\mathbf{aa}}\)</span> is often neglected. The detailed form can be obtained by plugging in the following <span class="math display">\[
-\mathbf{H}\frac{\partial\mathbf{\dot q}}{\partial\mathbf{a}} = -\tau\mathbf{A}+\tau\mathbf{G}^\T\frac{\partial\boldsymbol\lambda}{\partial\mathbf{a}}
-\]</span></p><h2 id=target-force-from-constraint>Target force from constraint</h2><p>Similarly, forces (or impulses) resulting from constraints in the dynamical system can be converted to a smooth quadratic energy term using a least square formulation. <span class="math display">\[
+\]</span> Note that the higher order derivative <span class="math inline">\(\frac{\partial\mathbf{\dot
+q}}{\partial\mathbf{aa}}\)</span> is often neglected. The detailed form
+can be obtained by plugging in the following <span class="math display">\[
+\mathbf{H}\frac{\partial\mathbf{\dot q}}{\partial\mathbf{a}} =
+-\tau\mathbf{A}+\tau\mathbf{G}^\T\frac{\partial\boldsymbol\lambda}{\partial\mathbf{a}}
+\]</span></p><h2 id=target-force-from-constraint>Target force from constraint</h2><p>Similarly, forces (or impulses) resulting from constraints in the
+dynamical system can be converted to a smooth quadratic energy term
+using a least square formulation. <span class="math display">\[
 \begin{align*}
-& L = \tfrac{1}{2}\left\Vert \tau\boldsymbol\lambda^{*}-\tau\mathbf{P}_\lambda\boldsymbol\lambda \right\Vert_2^2 \\
-%& \frac{\d L}{\d \mathbf{a}} = \frac{\partial L}{\partial\mathbf{\dot q}}\frac{\partial \mathbf{\dot q}}{\partial\mathbf{a}}\\
+& L = \tfrac{1}{2}\left\Vert
+\tau\boldsymbol\lambda^{*}-\tau\mathbf{P}_\lambda\boldsymbol\lambda
+\right\Vert_2^2 \\
+%& \frac{\d L}{\d \mathbf{a}} = \frac{\partial
+L}{\partial\mathbf{\dot q}}\frac{\partial \mathbf{\dot
+q}}{\partial\mathbf{a}}\\
 \end{align*}
-\]</span> where <span class="math inline">\(\mathbf{P}_{\lambda}\)</span> projects the global state to the target space and <span class="math inline">\(\boldsymbol\lambda^*\)</span> is the target force. The gradient and hessian of the cost function is as follows <span class="math display">\[
+\]</span> where <span class="math inline">\(\mathbf{P}_{\lambda}\)</span> projects the global
+state to the target space and <span class="math inline">\(\boldsymbol\lambda^*\)</span> is the target force.
+The gradient and hessian of the cost function is as follows <span class="math display">\[
 \begin{align*}
-& \frac{\d L}{\d \mathbf{a}} = -\tau^2(\boldsymbol\lambda^{*}-\mathbf{P}_\lambda\boldsymbol\lambda)^\T \mathbf{P}_\lambda\frac{\partial \boldsymbol\lambda}{\partial\mathbf{a}}\\
+& \frac{\d L}{\d \mathbf{a}} =
+-\tau^2(\boldsymbol\lambda^{*}-\mathbf{P}_\lambda\boldsymbol\lambda)^\T
+\mathbf{P}_\lambda\frac{\partial
+\boldsymbol\lambda}{\partial\mathbf{a}}\\
 & \frac{\d L}{\d \mathbf{aa}} =
 \tau\frac{\partial\boldsymbol\lambda}{\partial\mathbf{a}}\mathbf{P}_\lambda^\T\mathbf{P}_\lambda\frac{\partial\boldsymbol\lambda}{\partial\mathbf{a}}\tau
 -\tau^2(\boldsymbol\lambda^{*}-\mathbf{P}_\lambda\boldsymbol\lambda^{t+\tau})^\T\frac{\partial\boldsymbol\lambda}{\partial\mathbf{aa}}
 \end{align*}
-\]</span></p><p>Note that the higher order derivative <span class="math inline">\(\frac{\partial\boldsymbol\lambda}{\partial\mathbf{aa}}\)</span> is often neglected. The detailed form can be obtained by plugging in the following <span class="math display">\[
-\tau\frac{\partial\boldsymbol\lambda}{\partial\mathbf{a}} = \left[\mathbf{E}+\mathbf{G}\mathbf{H}^{-1}\mathbf{G}\right]^{-1}\mathbf{G}\mathbf{H}^{-1}\mathbf{A}
+\]</span></p><p>Note that the higher order derivative <span class="math inline">\(\frac{\partial\boldsymbol\lambda}{\partial\mathbf{aa}}\)</span>
+is often neglected. The detailed form can be obtained by plugging in the
+following <span class="math display">\[
+\tau\frac{\partial\boldsymbol\lambda}{\partial\mathbf{a}} =
+\left[\mathbf{E}+\mathbf{G}\mathbf{H}^{-1}\mathbf{G}\right]^{-1}\mathbf{G}\mathbf{H}^{-1}\mathbf{A}
 \\
-\]</span></p></div></main><footer id=footer><div id=footer-inner>&copy;&nbsp;2020-2022&nbsp;&#183;&nbsp;Fabien Péan</div></footer><script>window.FontAwesomeConfig={searchPseudoElements:true}</script><script async src=https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/js/all.min.js integrity="sha256-MAgcygDRahs+F/Nk5Vz387whB4kSK9NXlDN3w58LLq0=" crossorigin=anonymous></script><script src=https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin=anonymous></script><script async defer src=https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/1.6.0/clipboard.min.js></script><script src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.18.1/highlight.min.js integrity="sha256-eOgo0OtLL4cdq7RdwRUiGKLX9XsIJ7nGhWEKbohmVAQ=" crossorigin=anonymous></script><script src=https://cdnjs.cloudflare.com/ajax/libs/mermaid/8.4.8/mermaid.min.js integrity="sha256-lyWCDMnMeZiXRi7Zl54sZGKYmgQs4izcT7+tKc+KUBk=" crossorigin=anonymous></script><script>mermaid.initialize({startOnLoad:true,securityLevel:'loose',theme:'default',themeCSS:'',cloneCssStyles:true,useMaxWidth:true,htmlLabels:false,flowchart:{curve:'basis'}});</script><script>window.MathJax={tex:{inlineMath:[['$','$'],['\\(','\\)']],displayMath:[['$$','$$'],['\\[','\\]']],processEscapes:false,processEnvironments:true,tags:'ams'},svg:{fontCache:'global',displayAlign:'left',displayIndent:'2emem'}};</script><script async type=text/javascript id=MathJax-script src=https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js></script><script src=/js/custom.js></script></body></html>
+\]</span></p></div></main><footer id=footer><div id=footer-inner>&copy;&nbsp;2020-2022&nbsp;&#183;&nbsp;Fabien Péan</div></footer><script>window.FontAwesomeConfig={searchPseudoElements:!0}</script><script src=https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/js/all.min.js integrity="sha512-6PM0qYu5KExuNcKt5bURAoT6KCThUmHRewN3zUFNaoI6Di7XJPTMoT6K0nsagZKk2OB4L7E3q1uQKHNHd4stIQ==" crossorigin=anonymous referrerpolicy=no-referrer></script>
+<script src=https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js referrerpolicy=no-referrer></script>
+<script src=https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.11/clipboard.min.js integrity="sha512-7O5pXpc0oCRrxk8RUfDYFgn0nO1t+jLuIOQdOMRp4APB7uZ4vSjspzp5y6YDtDs4VzUSTbWzBFZ/LKJhnyFOKw==" crossorigin=anonymous referrerpolicy=no-referrer></script>
+<script src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.1/highlight.min.js integrity="sha512-yUUc0qWm2rhM7X0EFe82LNnv2moqArj5nro/w1bi05A09hRVeIZbN6jlMoyu0+4I/Bu4Ck/85JQIU82T82M28w==" crossorigin=anonymous referrerpolicy=no-referrer></script>
+<script src=https://cdnjs.cloudflare.com/ajax/libs/mermaid/9.1.2/mermaid.min.js integrity="sha512-8ZrL1m0+KXHylxkFJdFtFCauQdV/KZMjSBL9iydsyIfiB1LwYBlGegX8dUlLnUtRDrTgWKP6pPVyOqa2VrqoNA==" crossorigin=anonymous referrerpolicy=no-referrer></script>
+<script>mermaid.initialize({startOnLoad:!0,securityLevel:"loose",theme:"default",themeCSS:"",cloneCssStyles:!0,useMaxWidth:!0,htmlLabels:!1,flowchart:{curve:"basis"}})</script><script>window.MathJax={tex:{inlineMath:[["$","$"],["\\(","\\)"]],displayMath:[["$$","$$"],["\\[","\\]"]],processEscapes:!1,processEnvironments:!0,tags:"ams"},svg:{fontCache:"global",displayAlign:"left",displayIndent:"2emem"}}</script><script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+<script id=MathJax-script async src=https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js></script>
+<script src=/js/custom.js></script></body></html>

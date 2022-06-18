@@ -1,36 +1,95 @@
-<!doctype html><html lang=en-us><!doctype html><html lang=en><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content><meta name=author content="Fabien Péan"><meta name=google-site-verification content="_OCqKj2I4fVqJsqpa9uq0utQ55W1kx93lTIQtHZ88mM"><link rel="shortcut icon" type=image/png href=/img/logo.svg><title>Fabien Péan &#183; Personal Website</title><meta name=robots content="index,follow"><meta name=googlebot content="index,follow"><link rel=stylesheet type=text/css href=/css/normalize.css><link rel=stylesheet href=/vendor/colors/css/colors.min.css><link rel=stylesheet href=/vendor/academicons/css/academicons.min.css><style>:root{--font-monospace: "Source Code Pro";--font-sans-serif:"Inter"}</style><link href="https://fonts.googleapis.com/css?family=Inter%7cSource+Code+Pro&display=swap" rel=stylesheet type=text/css><link rel=stylesheet href=/css/custom.css></head><body><body><nav id=nav><figure id=logo class=image><img src=/img/logo.svg></figure><div id=branding><div class=branding-title>Fabien Péan</div><div class=branding-subtitle></div></div><div id=menu><a class=menu-link href=/><div class=menu-item><span class=menu-label><i class="fas fa-home fa-fw"></i>&nbsp;Home</span></div></a><a class=menu-link href=/news><div class=menu-item><span class=menu-label><i class="fas fa-newspaper fa-fw"></i>&nbsp;News</span></div></a><a class=menu-link href=/blog><div class=menu-item><span class=menu-label><i class="fas fa-pencil-alt fa-fw"></i>&nbsp;Blog</span></div></a><a class=menu-link href=/notes><div class=menu-item><span class=menu-label><i class="fas fa-sticky-note fa-fw"></i>&nbsp;Notes</span></div></a><a class=menu-link href=/projects><div class=menu-item><span class=menu-label><i class="fas fa-book fa-fw"></i>&nbsp;Projects</span></div></a></div><div class=social><div class=social-list><div style="display:flex;flex-flow:row wrap;justify-content:center"><div class="social-button email"><a href=mailto:fabien@pean.pro rel=author><i class="fas fa-at fa-2x"></i></a></div><div class="social-button bitbucket"><a href=https://bitbucket.org/FabienPean rel="author external"><i class="fab fa-bitbucket fa-2x"></i></a></div><div class="social-button github"><a href=https://github.com/FabienPean rel="author external"><i class="fab fa-github fa-2x"></i></a></div><div class="social-button linkedin"><a href=https://www.linkedin.com/in/FabienPean rel="author external"><i class="fab fa-linkedin fa-2x"></i></a></div></div></div></div></nav><main id=main><div class=content><h1>Nitsche method for weakly enforced Dirichlet boundary conditions</h1><small><div class=subtitle style="display:flex;flex-flow:row wrap;justify-content:space-between"><span style="flex:1 0 auto;max-width:100%"><span class=tooltip>22/11/2021
-<span class=tooltiptext><small>updated on 25/11/2021</small></span>
-</span>&nbsp;&boxv;&nbsp;<a href=/notes>Notes</a></span><div class=tag-list><a href=/tags/numerical-analysis><div class=tag>numerical analysis</div></a><a href=/tags/constraint><div class=tag>constraint</div></a></div></div></small><br><h2 id=disclaimer>Disclaimer</h2><p>For the sake of simplicity, the following post focuses on weak Dirichlet boundary conditions applied to the linear elastostatics problem. This document reflects my understanding and interpretation of the method. If you spot a mistake, please let me know !</p><h2 id=context>Context</h2><p>Numerical models of physical systems are often represented as Boundary Value Problem, which consists of a Partial Differential Equation governing the domain accompanied by boundary conditions, known values on the boundary of the domain. Boundary conditions are effectively constraints: they are values that must be enforced at some coordinates. Boundary conditions applied directly on the unknown field are called essential or Dirichlet boundary conditions. The spatial discretization required by the weak form of the problem is often chosen to match the boundary of the domain of interest. Together with an interpolating polynomial space, this enables to statically condense out known values from the resulting linear system of equations. However, this does not have to be the case, and the discretized space can cover the domain of interest. In such cases, the essential boundary conditions cannot be straightforwardly enforced.</p><h2 id=penalty-method>Penalty method</h2><p>The penalty method is a way to apply constraint to a system relying only on primal unknown fields. It consists in augmenting the potential energy of the system with an additional term. <span class="math display">\[
+<!doctype html><html lang=en-us><!doctype html><html lang=en><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content><meta name=author content="Fabien Péan"><meta name=google-site-verification content="_OCqKj2I4fVqJsqpa9uq0utQ55W1kx93lTIQtHZ88mM"><link rel="shortcut icon" type=image/png href=/img/logo.svg><title>Fabien Péan &#183; Personal Website</title><meta name=robots content="index,follow"><meta name=googlebot content="index,follow"><link rel=stylesheet type=text/css href=/css/normalize.css><link rel=stylesheet href=/vendor/colors/css/colors.min.css><link rel=stylesheet href=/vendor/academicons/css/academicons.min.css><style>:root{--font-monospace:"Source Code Pro";--font-sans-serif:"Inter"}</style><link href="https://fonts.googleapis.com/css?family=Inter%7cSource+Code+Pro&display=swap" rel=stylesheet type=text/css><link rel=stylesheet href=/css/custom.css></head><body><body><nav id=nav><figure id=logo class=image><img src=/img/logo.svg></figure><div id=branding><div class=branding-title>Fabien Péan</div><div class=branding-subtitle></div></div><div id=menu><a class=menu-link href=/><div class=menu-item><span class=menu-label><i class="fas fa-home fa-fw"></i>&nbsp;Home</span></div></a><a class=menu-link href=/news><div class=menu-item><span class=menu-label><i class="fas fa-newspaper fa-fw"></i>&nbsp;News</span></div></a><a class=menu-link href=/blog><div class=menu-item><span class=menu-label><i class="fas fa-pencil-alt fa-fw"></i>&nbsp;Blog</span></div></a><a class=menu-link href=/notes><div class=menu-item><span class=menu-label><i class="fas fa-sticky-note fa-fw"></i>&nbsp;Notes</span></div></a><a class=menu-link href=/projects><div class=menu-item><span class=menu-label><i class="fas fa-book fa-fw"></i>&nbsp;Projects</span></div></a></div><div class=social><div class=social-list><div style="display:flex;flex-flow:row wrap;justify-content:center"><div class="social-button email"><a href=mailto:fabien@pean.pro rel=author><i class="fas fa-at fa-2x"></i></a></div><div class="social-button bitbucket"><a href=https://bitbucket.org/FabienPean rel="author external"><i class="fab fa-bitbucket fa-2x"></i></a></div><div class="social-button github"><a href=https://github.com/FabienPean rel="author external"><i class="fab fa-github fa-2x"></i></a></div><div class="social-button linkedin"><a href=https://www.linkedin.com/in/FabienPean rel="author external"><i class="fab fa-linkedin fa-2x"></i></a></div></div></div></div></nav><main id=main><div class=content><h1>Nitsche method for weakly enforced Dirichlet boundary conditions</h1><small><div class=subtitle style="display:flex;flex-flow:row wrap;justify-content:space-between"><span style="flex:1 0 auto;max-width:100%"><span class=tooltip>22/11/2021
+<span class=tooltiptext><small>updated on 18/06/2022</small></span>
+</span>&nbsp;&boxv;&nbsp;<a href=/notes>Notes</a></span><div class=tag-list><a href=/tags/numerical-analysis><div class=tag>numerical analysis</div></a><a href=/tags/constraint><div class=tag>constraint</div></a></div></div></small><br><h2 id=disclaimer>Disclaimer</h2><p>For the sake of simplicity, the following post focuses on weak
+Dirichlet boundary conditions applied to the linear elastostatics
+problem. This document reflects my understanding and interpretation of
+the method. If you spot a mistake, please let me know !</p><h2 id=context>Context</h2><p>Numerical models of physical systems are often represented as
+Boundary Value Problem, which consists of a Partial Differential
+Equation governing the domain accompanied by boundary conditions, known
+values on the boundary of the domain. Boundary conditions are
+effectively constraints: they are values that must be enforced at some
+coordinates. Boundary conditions applied directly on the unknown field
+are called essential or Dirichlet boundary conditions. The spatial
+discretization required by the weak form of the problem is often chosen
+to match the boundary of the domain of interest. Together with an
+interpolating polynomial space, this enables to statically condense out
+known values from the resulting linear system of equations. However,
+this does not have to be the case, and the discretized space can cover
+the domain of interest. In such cases, the essential boundary conditions
+cannot be straightforwardly enforced.</p><h2 id=penalty-method>Penalty method</h2><p>The penalty method is a way to apply constraint to a system relying
+only on primal unknown fields. It consists in augmenting the potential
+energy of the system with an additional term. <span class="math display">\[
 \Pi(\mathbf{u})=\Pi_\text{system}(\mathbf{u})+\Pi_\text{penalty}(\mathbf{u})
-\]</span> The penalty term can conveniently be defined as a convex quadratic energy: <span class="math display">\[
-\Pi_\text{penalty}(\mathbf{u})=\tfrac{1}{2}\alpha\Vert g(\mathbf{u})\Vert^2
-\]</span></p><p>where <span class="math inline">\(g\)</span> is a scalar holonomic constraint and <span class="math inline">\(\alpha\)</span> the penalty factor. One can recognize the analogy with the potential energy of a spring <span class="math inline">\(\Pi_\text{spring}=\tfrac{1}{2}k(l-l_0)^2\)</span>.</p><p>Unfortunately, although appealing for its simplicity, the penalty method is not consistent.</p><p>So what is consistency, or for a method to be said consistent ? It means that the method can attain the exact desired solution. The penalty method is consistent only if <span class="math inline">\(\alpha\to\infty\)</span>. However, a high “stiffness” of the constraint results in severe ill-conditioning of the numerical system. For example, let us consider the following simple mechanical system of a mass attached to a spring:</p><p><img src=bc_nitsche_fig1.svg style=max-width:100%></p><p>The spring represents the energy from the constraint, while the weight of the particle represents the energy of the system. One understands easily that the spring will never reach its rest length down to an arbitrarily small tolerance (satisfaction of the constraint) unless the ratio mass over constraint stiffness tend to zero, which means either no energy in the system or infinitely high constraint stiffness.</p><p>To understand the source of this issue, we need to backtrack the variational formulation of the system.</p><h2 id=strong-form-of-the-problem>Strong form of the problem</h2><p>The equations of elastostatics used in the following are <span class="math display">\[
+\]</span> The penalty term can conveniently be defined as a convex
+quadratic energy: <span class="math display">\[
+\Pi_\text{penalty}(\mathbf{u})=\tfrac{1}{2}\alpha\Vert
+g(\mathbf{u})\Vert^2
+\]</span></p><p>where <span class="math inline">\(g\)</span> is a scalar holonomic
+constraint and <span class="math inline">\(\alpha\)</span> the penalty
+factor. One can recognize the analogy with the potential energy of a
+spring <span class="math inline">\(\Pi_\text{spring}=\tfrac{1}{2}k(l-l_0)^2\)</span>.</p><p>Unfortunately, although appealing for its simplicity, the penalty
+method is not consistent.</p><p>So what is consistency, or for a method to be said consistent ? It
+means that the method can attain the exact desired solution. The penalty
+method is consistent only if <span class="math inline">\(\alpha\to\infty\)</span>. However, a high
+“stiffness” of the constraint results in severe ill-conditioning of the
+numerical system. For example, let us consider the following simple
+mechanical system of a mass attached to a spring:</p><p><img src=bc_nitsche_fig1.svg style=max-width:100%></p><p>The spring represents the energy from the constraint, while the
+weight of the particle represents the energy of the system. One
+understands easily that the spring will never reach its rest length down
+to an arbitrarily small tolerance (satisfaction of the constraint)
+unless the ratio mass over constraint stiffness tend to zero, which
+means either no energy in the system or infinitely high constraint
+stiffness.</p><p>To understand the source of this issue, we need to backtrack the
+variational formulation of the system.</p><h2 id=strong-form-of-the-problem>Strong form of the problem</h2><p>The equations of elastostatics used in the following are <span class="math display">\[
 \begin{aligned}
-\nabla\cdot\boldsymbol\sigma + \mathbf{b} &=0 &&\text{in }\Omega&& \textsf{Balance of linear momentum}\\
-\boldsymbol\sigma&=\mathbb{C}:\boldsymbol\varepsilon && && \textsf{Constitutive equation}\\
-\boldsymbol\varepsilon &= \tfrac{1}{2}(\nabla\mathbf{u}^T+\nabla\mathbf{u}) && && \textsf{Kinematics compatibility}\\
-\boldsymbol\sigma &= \boldsymbol\sigma^T && &&\textsf{Balance of angular momentum}\\
-\mathbf{u}&=\mathbf{u}_d && \text{in }\Omega_d && \textsf{Dirichlet BC}\\
-{\boldsymbol\sigma\cdot\mathbf{n}}&=\mathbf{t}_n &&\text{in }\Omega_n && \textsf{Neumann BC}\\
+\nabla\cdot\boldsymbol\sigma + \mathbf{b} &=0 &&\text{in
+}\Omega&& \textsf{Balance of linear momentum}\\
+\boldsymbol\sigma&=\mathbb{C}:\boldsymbol\varepsilon &&
+&& \textsf{Constitutive equation}\\
+\boldsymbol\varepsilon &=
+\tfrac{1}{2}(\nabla\mathbf{u}^T+\nabla\mathbf{u}) && &&
+\textsf{Kinematics compatibility}\\
+\boldsymbol\sigma &= \boldsymbol\sigma^T &&
+&&\textsf{Balance of angular momentum}\\
+\mathbf{u}&=\mathbf{u}_d && \text{in }\Omega_d &&
+\textsf{Dirichlet BC}\\
+{\boldsymbol\sigma\cdot\mathbf{n}}&=\mathbf{t}_n &&\text{in
+}\Omega_n && \textsf{Neumann BC}\\
 \end{aligned}
-\]</span></p><p>where <span class="math inline">\(\mathbf{u}\)</span>, the displacement, is the principal unknown of the problem.</p><h2 id=weak-formulation>Weak formulation</h2><p>The weak form is obtained by multiplying a test function <span class="math inline">\(\mathbf{v}\)</span> and integrating over the domain. Unlike the strong form which enforces the equation pointwise, the weak form provides a solution in an “average” sense.<br><span class="math display">\[
+\]</span></p><p>where <span class="math inline">\(\mathbf{u}\)</span>, the
+displacement, is the principal unknown of the problem.</p><h2 id=weak-formulation>Weak formulation</h2><p>The weak form is obtained by multiplying a test function <span class="math inline">\(\mathbf{v}\)</span> and integrating over the
+domain. Unlike the strong form which enforces the equation pointwise,
+the weak form provides a solution in an “average” sense.<br><span class="math display">\[
 \begin{equation}
-\int_\Omega \mathbf{v}(\nabla\cdot\boldsymbol\sigma)-\int_\Omega\mathbf{v}\mathbf{b} = 0
+\int_\Omega
+\mathbf{v}(\nabla\cdot\boldsymbol\sigma)-\int_\Omega\mathbf{v}\mathbf{b}
+= 0
 \label{weak_balance}
 \end{equation}
-\]</span></p><p>Using integration by parts on the first term <span class="math inline">\(\int(ab)'=\int a'b+\int ab'\)</span> yields <span class="math display">\[
+\]</span></p><p>Using integration by parts on the first term <span class="math inline">\(\int(ab)'=\int a'b+\int ab'\)</span>
+yields <span class="math display">\[
 \int_\Omega\nabla\cdot(\mathbf{v}\boldsymbol\sigma)=\int_\Omega\mathbf{v}(\nabla\cdot\boldsymbol\sigma)+\int_\Omega\nabla\mathbf{v}:\boldsymbol\sigma
 \]</span> Using the divergence theorem, the left hand side becomes <span class="math display">\[
-\int_\Omega\nabla\cdot(\mathbf{v}\boldsymbol\sigma) = \int_{\partial\Omega}\mathbf{v}(\boldsymbol\sigma\cdot\mathbf{n})
+\int_\Omega\nabla\cdot(\mathbf{v}\boldsymbol\sigma) =
+\int_{\partial\Omega}\mathbf{v}(\boldsymbol\sigma\cdot\mathbf{n})
 \]</span> Combining both yields <span class="math display">\[
-\int_\Omega\mathbf{v}(\nabla\cdot\boldsymbol\sigma) = \int_{\partial\Omega}\mathbf{v}(\nabla\boldsymbol\sigma\cdot\mathbf{n}) -\int_\Omega\nabla\mathbf{v}:\boldsymbol\sigma
+\int_\Omega\mathbf{v}(\nabla\cdot\boldsymbol\sigma) =
+\int_{\partial\Omega}\mathbf{v}(\nabla\boldsymbol\sigma\cdot\mathbf{n})
+-\int_\Omega\nabla\mathbf{v}:\boldsymbol\sigma
 \]</span> Inserting it in <span class="math inline">\(\eqref{weak_balance}\)</span> leads to <span class="math display">\[
-\int_\Omega\nabla\mathbf{v}:\boldsymbol\sigma = \int_\Omega\mathbf{v}\mathbf{b} + \int_{\partial\Omega}\mathbf{v}(\nabla\boldsymbol\sigma\cdot\mathbf{n})
-\]</span> Considering that the boundary of the domain is perfectly divided into two subsets <span class="math inline">\(\partial\Omega=\partial\Omega_d\cup\partial\Omega_n\)</span> and <span class="math inline">\(\partial\Omega_d\cap\partial\Omega_n=\emptyset\)</span> <span class="math display">\[
+\int_\Omega\nabla\mathbf{v}:\boldsymbol\sigma =
+\int_\Omega\mathbf{v}\mathbf{b} +
+\int_{\partial\Omega}\mathbf{v}(\nabla\boldsymbol\sigma\cdot\mathbf{n})
+\]</span> Considering that the boundary of the domain is perfectly
+divided into two subsets <span class="math inline">\(\partial\Omega=\partial\Omega_d\cup\partial\Omega_n\)</span>
+and <span class="math inline">\(\partial\Omega_d\cap\partial\Omega_n=\emptyset\)</span>
+<span class="math display">\[
 \int_{\partial\Omega}\mathbf{v}(\boldsymbol\sigma\cdot\mathbf{n})
 = \int_{\partial\Omega_d}\mathbf{v}(\boldsymbol\sigma\cdot\mathbf{n})
 + \int_{\partial\Omega_n}\mathbf{v}(\boldsymbol\sigma\cdot\mathbf{n})
-\]</span> The Neumann boundary conditions can be straightforwardly substituted. Incorporating in the former equation yields the weak form of the problem <span class="math display">\[
+\]</span> The Neumann boundary conditions can be straightforwardly
+substituted. Incorporating in the former equation yields the weak form
+of the problem <span class="math display">\[
 \begin{equation}
 \int_\Omega\nabla\mathbf{v}:\boldsymbol\sigma
 = \int_\Omega\mathbf{v}\mathbf{b}
@@ -38,42 +97,110 @@
 + \int_{\partial\Omega_d}\mathbf{v}(\boldsymbol\sigma\cdot\mathbf{n})
 %+ \int_{\partial\Omega_d}\mathbf{v}(\mathbf{u}_d-\mathbf{u})
 \label{weak_general}
-\quad\text{and}\quad \mathbf{u}=\mathbf{u}_d\;\text{in}\;\partial\Omega_d
+\quad\text{and}\quad
+\mathbf{u}=\mathbf{u}_d\;\text{in}\;\partial\Omega_d
 \end{equation}
-\]</span> From here, the problem is often further simplified such that <span class="math inline">\(\mathbf{v}\)</span> vanishes on <span class="math inline">\(\partial\Omega_d\)</span> yielding <span class="math display">\[
+\]</span> From here, the problem is often further simplified such that
+<span class="math inline">\(\mathbf{v}\)</span> vanishes on <span class="math inline">\(\partial\Omega_d\)</span> yielding <span class="math display">\[
 \begin{equation}
 \int_{\partial\Omega_d}\mathbf{v}(\boldsymbol\sigma\cdot\mathbf{n})=0
 \label{missing_term}
 \end{equation}
-\]</span> and such that the discretization of <span class="math inline">\(\mathbf{u}\)</span> fulfills the Kronecker-delta property, which means that the field <span class="math inline">\(\mathbf{u}\)</span> is interpolated. This assumption implies that the Dirichlet boundary conditions <span class="math inline">\(\mathbf{u}=\mathbf{u}_d\)</span> can be strongly enforced on the nodes of the field <span class="math inline">\(\mathbf{u}\)</span> and statically condensed away from the resulting linear system. The reduced and often presented weak form is then <span class="math display">\[
+\]</span> and such that the discretization of <span class="math inline">\(\mathbf{u}\)</span> fulfills the Kronecker-delta
+property, which means that the field <span class="math inline">\(\mathbf{u}\)</span> is interpolated. This
+assumption implies that the Dirichlet boundary conditions <span class="math inline">\(\mathbf{u}=\mathbf{u}_d\)</span> can be strongly
+enforced on the nodes of the field <span class="math inline">\(\mathbf{u}\)</span> and statically condensed away
+from the resulting linear system. The reduced and often presented weak
+form is then <span class="math display">\[
 \begin{equation}
 \Pi_\text{system} =
 -\int_\Omega\nabla\mathbf{v}:\boldsymbol\sigma
 + \int_\Omega\mathbf{v}\mathbf{b}
 + \int_{\partial\Omega_n}\mathbf{v}\mathbf{t}_n
-\quad\text{with}\quad \mathbf{u}=\mathbf{u}_d\;\text{in}\;\partial\Omega_d
+\quad\text{with}\quad
+\mathbf{u}=\mathbf{u}_d\;\text{in}\;\partial\Omega_d
 \label{weak_reduced}
 \end{equation}
-\]</span> However, the rise of approximating discretization (B-Splines, RBF, etc) — as opposed to interpolating — and non-conforming discretization (material point method, finite cell method, etc) highlights the need for weakly imposed Dirichlet boundary conditions.</p><p>One can now get a better grasp why the usual penalty method lack of consistency, the term <span class="math inline">\(\int_{\partial\Omega_d}\mathbf{v}(\boldsymbol\sigma\cdot\mathbf{n})\)</span> is conveniently omitted from the standard formulation, and forgotten when it is needed back.</p><h2 id=nitsche-method>Nitsche method</h2><p>The lack of consistency of the penalty method comes from applying it onto the simplified weak form <span class="math inline">\(\eqref{weak_reduced}\)</span>. The Nitsche method, in essence, is relatively simple: applying the penalty method to the original problem <span class="math inline">\(\eqref{weak_general}\)</span>. That means incorporating the overlooked term <span class="math inline">\(\eqref{missing_term}\)</span>. <span class="math display">\[
+\]</span> However, the rise of approximating discretization (B-Splines,
+RBF, etc) — as opposed to interpolating — and non-conforming
+discretization (material point method, finite cell method, etc)
+highlights the need for weakly imposed Dirichlet boundary
+conditions.</p><p>One can now get a better grasp why the usual penalty method lack of
+consistency, the term <span class="math inline">\(\int_{\partial\Omega_d}\mathbf{v}(\boldsymbol\sigma\cdot\mathbf{n})\)</span>
+is conveniently omitted from the standard formulation, and forgotten
+when it is needed back.</p><h2 id=nitsche-method>Nitsche method</h2><p>The lack of consistency of the penalty method comes from applying it
+onto the simplified weak form <span class="math inline">\(\eqref{weak_reduced}\)</span>. The Nitsche method,
+in essence, is relatively simple: applying the penalty method to the
+original problem <span class="math inline">\(\eqref{weak_general}\)</span>. That means
+incorporating the overlooked term <span class="math inline">\(\eqref{missing_term}\)</span>. <span class="math display">\[
 \begin{equation}
 \int_\Omega\nabla\mathbf{v}:\boldsymbol\sigma
 = \int_\Omega\mathbf{v}\mathbf{b}
 + \int_{\partial\Omega_n}\mathbf{v}\mathbf{t}_n
-+ \underbrace{\int_{\partial\Omega_d}\mathbf{v}(\boldsymbol\sigma\cdot\mathbf{n})
-+ \underbrace{\alpha\int_{\partial\Omega_d}\mathbf{v}(\mathbf{u}_d-\mathbf{u}}_\text{Penalty})}_\text{Nitsche}
++
+\underbrace{\int_{\partial\Omega_d}\mathbf{v}(\boldsymbol\sigma\cdot\mathbf{n})
++
+\underbrace{\alpha\int_{\partial\Omega_d}\mathbf{v}(\mathbf{u}_d-\mathbf{u}}_\text{Penalty})}_\text{Nitsche}
 \label{weak_general_dirichlet}
 \end{equation}
-\]</span></p><p>The weak form can be made symmetric by adding the term <span class="math inline">\(\int_{\partial\Omega_d}\mathbf{u}(\boldsymbol\sigma(\mathbf{v})\cdot\mathbf{n})\)</span></p><h3 id=physical-interpretation>Physical interpretation</h3><p>In brief, the penalty term pushes to fulfill the constraint, while the latter term cancels any existing energy in the system that may compete. Free from resistance, the penalty term can therefore lead to the exact fulfillment of the constraint. In a simplified view, reusing the previous example of the mass-spring, this looks like:</p><p><img src=bc_nitsche_fig2.svg style=max-width:100%></p><h2 id=linear-system-of-equations>Linear system of equations</h2><p>The system of equations resulting from the linearization yields something like that <span class="math display">\[
-\left[\mathbf{K}+\mathbf{K}_\text{p}-(\mathbf{K}_\text{n}+\mathbf{K}_\text{n}^T)\right] \Delta\mathbf{q}=\mathbf{f}+\mathbf{f}_\text{p}-\mathbf{f}_\text{n}
-\]</span> where <span class="math inline">\(\mathbf{K},\mathbf{K}_\text{p},\mathbf{K}_\text{n}\)</span> denotes the stiffness matrices, where <span class="math inline">\(\mathbf{f},\mathbf{f}_\text{p},\mathbf{f}_\text{n}\)</span> denotes the force vectors, and <span class="math inline">\(\mathbf{q}\)</span> is the discretized displacement field. The structure of the equation highlights the interpretation given in the previous section: the stiffness/force on the boundary <span class="math inline">\((\mathbf{K}_\text{n}/\mathbf{f}_\text{n})\)</span> is substracted from the stiffness/force within the system <span class="math inline">\((\mathbf{K},\mathbf{f})\)</span> onto which the stiffness/force of the penalty term <span class="math inline">\((\mathbf{K}_\text{p}/\mathbf{f}_\text{p})\)</span> is added. <span class="math display">\[
+\]</span></p><p>The weak form can be made symmetric by adding the term <span class="math inline">\(\int_{\partial\Omega_d}\mathbf{u}(\boldsymbol\sigma(\mathbf{v})\cdot\mathbf{n})\)</span></p><h3 id=physical-interpretation>Physical interpretation</h3><p>In brief, the penalty term pushes to fulfill the constraint, while
+the latter term cancels any existing energy in the system that may
+compete. Free from resistance, the penalty term can therefore lead to
+the exact fulfillment of the constraint. In a simplified view, reusing
+the previous example of the mass-spring, this looks like:</p><p><img src=bc_nitsche_fig2.svg style=max-width:100%></p><h2 id=linear-system-of-equations>Linear system of equations</h2><p>The system of equations resulting from the linearization yields
+something like that <span class="math display">\[
+\left[\mathbf{K}+\mathbf{K}_\text{p}-(\mathbf{K}_\text{n}+\mathbf{K}_\text{n}^T)\right]
+\Delta\mathbf{q}=\mathbf{f}+\mathbf{f}_\text{p}-\mathbf{f}_\text{n}
+\]</span> where <span class="math inline">\(\mathbf{K},\mathbf{K}_\text{p},\mathbf{K}_\text{n}\)</span>
+denotes the stiffness matrices, where <span class="math inline">\(\mathbf{f},\mathbf{f}_\text{p},\mathbf{f}_\text{n}\)</span>
+denotes the force vectors, and <span class="math inline">\(\mathbf{q}\)</span> is the discretized
+displacement field. The structure of the equation highlights the
+interpretation given in the previous section: the stiffness/force on the
+boundary <span class="math inline">\((\mathbf{K}_\text{n}/\mathbf{f}_\text{n})\)</span>
+is substracted from the stiffness/force within the system <span class="math inline">\((\mathbf{K},\mathbf{f})\)</span> onto which the
+stiffness/force of the penalty term <span class="math inline">\((\mathbf{K}_\text{p}/\mathbf{f}_\text{p})\)</span>
+is added. <span class="math display">\[
 \begin{aligned}
-\mathbf{K}_{\text{n},ab} &= \int_{\partial\Omega_d}\frac{\partial\mathbf{u}_i}{\partial\mathbf{q}_a}\frac{\partial\boldsymbol\sigma_{ij}}{\partial\boldsymbol\varepsilon_{kl}}\mathbf{n}_j\frac{\partial\boldsymbol\varepsilon_{kl}}{\partial\mathbf{q}_b}\\
-\mathbf{K}_{\text{p},ab} &= \alpha\int_{\partial\Omega_d}\frac{\partial\mathbf{u}_i}{\partial\mathbf{q}_a}\frac{\partial\mathbf{u}_i}{\partial\mathbf{q}_b}
+\mathbf{K}_{\text{n},ab} &=
+\int_{\partial\Omega_d}\frac{\partial\mathbf{u}_i}{\partial\mathbf{q}_a}\frac{\partial\boldsymbol\sigma_{ij}}{\partial\boldsymbol\varepsilon_{kl}}\mathbf{n}_j\frac{\partial\boldsymbol\varepsilon_{kl}}{\partial\mathbf{q}_b}\\
+\mathbf{K}_{\text{p},ab} &=
+\alpha\int_{\partial\Omega_d}\frac{\partial\mathbf{u}_i}{\partial\mathbf{q}_a}\frac{\partial\mathbf{u}_i}{\partial\mathbf{q}_b}
 \end{aligned}
-\]</span></p><h2 id=connection-to-lagrange-multipliers>Connection to Lagrange multipliers</h2><p>Lagrange multipliers are an convenient way to enforce constraints consistently. Unlike the penalty and Nitsche method, it increases the size of the numerical system by adding unknowns. <span class="math display">\[
+\]</span></p><h2 id=connection-to-lagrange-multipliers>Connection to Lagrange
+multipliers</h2><p>Lagrange multipliers are an convenient way to enforce constraints
+consistently. Unlike the penalty and Nitsche method, it increases the
+size of the numerical system by adding unknowns. <span class="math display">\[
 \Pi(\mathbf{u},\boldsymbol\lambda)=\Pi_\text{system}(\mathbf{u})+\Pi_\text{lagrange}(\mathbf{u},\boldsymbol\lambda)
-\]</span> where the new term, in the case of weakly enforced boundary conditions, can be formulated as <span class="math display">\[
-\Pi_\text{lagrange}(\mathbf{u},\boldsymbol\lambda) = \int_{\partial\Omega_d}\boldsymbol\lambda(\mathbf{u}-\mathbf{u}_d)
-\]</span> One can notice the correspondence with <span class="math inline">\(\eqref{missing_term}\)</span> <span class="math display">\[
+\]</span> where the new term, for weakly enforced boundary conditions,
+can be formulated as <span class="math display">\[
+\Pi_\text{lagrange}(\mathbf{u},\boldsymbol\lambda) =
+\int_{\partial\Omega_d}\boldsymbol\lambda(\mathbf{u}-\mathbf{u}_d)
+\]</span> One can notice the correspondence with <span class="math inline">\(\eqref{missing_term}\)</span> if <span class="math display">\[
 \boldsymbol\lambda=\boldsymbol\sigma\mathbf{n}
-\]</span> Effectively, the Lagrange multiplier acts as an unknown but will result in finding missing term, representing the normal traction on the boundary.</p><h2 id=conclusion>Conclusion</h2><p>The Nitsche method is the correct (variationally consistent) version of the penalty method, which does not omit terms from the original weak form of the problem at hand. The Nitsche method requires knowledge of the actual problem to enforce the constraints, while the Lagrange multipliers, by considering new unknowns, allows to apply constraints without knowledge of the underlying problem. Nevertheless, the problem is rarely a black box in practice so that implementation of the Nitsche method should be moderately complex. The similarity to the <a href=https://en.wikipedia.org/wiki/Augmented_Lagrangian_method>augmented Lagrangian method</a> was not detailed, but is relatively straightforward for one familiar with the method.</p><h2 id=references>References</h2><p>(2008) <a href=http://arturo.imati.cnr.it/~marini/didattica/Metodi-engl/Intro2FEM.pdf>A gentle introduction to the Finite Element Method</a> by Francisco–Javier Sayas.</p><p>(2008) <a href=https://www.doi.org/10.1007/s00466-007-0196-4>A formulation for frictionless contact problems using a weak form introduced by Nitsche</a> by Wriggers and Zavarise.</p><p>(2017) <a href=https://www.doi.org/10.1007/978-3-319-71431-8_4>An overview of recent results on Nitsche’s method for contact problems</a> by Chouly, Fabre, Hild, Mlika, Pousin, and Renard.</p><p>(2019) <a href=https://www.doi.org/10.1016/j.cma.2019.01.035>Weak impositions of Dirichlet boundary conditions in solid mechanics: A critique of current approaches and extension to partially prescribed boundaries</a> by Lu, Augarde, Coombs, and Hu.</p></div></main><footer id=footer><div id=footer-inner>&copy;&nbsp;2020-2022&nbsp;&#183;&nbsp;Fabien Péan</div></footer><script>window.FontAwesomeConfig={searchPseudoElements:true}</script><script async src=https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/js/all.min.js integrity="sha256-MAgcygDRahs+F/Nk5Vz387whB4kSK9NXlDN3w58LLq0=" crossorigin=anonymous></script><script src=https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin=anonymous></script><script async defer src=https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/1.6.0/clipboard.min.js></script><script src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.18.1/highlight.min.js integrity="sha256-eOgo0OtLL4cdq7RdwRUiGKLX9XsIJ7nGhWEKbohmVAQ=" crossorigin=anonymous></script><script src=https://cdnjs.cloudflare.com/ajax/libs/mermaid/8.4.8/mermaid.min.js integrity="sha256-lyWCDMnMeZiXRi7Zl54sZGKYmgQs4izcT7+tKc+KUBk=" crossorigin=anonymous></script><script>mermaid.initialize({startOnLoad:true,securityLevel:'loose',theme:'default',themeCSS:'',cloneCssStyles:true,useMaxWidth:true,htmlLabels:false,flowchart:{curve:'basis'}});</script><script>window.MathJax={tex:{inlineMath:[['$','$'],['\\(','\\)']],displayMath:[['$$','$$'],['\\[','\\]']],processEscapes:false,processEnvironments:true,tags:'ams'},svg:{fontCache:'global',displayAlign:'left',displayIndent:'2emem'}};</script><script async type=text/javascript id=MathJax-script src=https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js></script><script src=/js/custom.js></script></body></html>
+\]</span> Effectively, the Lagrange multiplier is an unknown in the
+system, and its interpretation here is the normal traction on the
+boundary.</p><h2 id=conclusion>Conclusion</h2><p>The Nitsche method is the correct (variationally consistent) version
+of the penalty method, which does not omit terms from the original weak
+form of the problem at hand. The Nitsche method requires knowledge of
+the actual problem to enforce the constraints, while the Lagrange
+multipliers, by considering new unknowns, allows to apply constraints
+without knowledge of the underlying problem. Nevertheless, the problem
+is rarely a black box in practice so that implementation of the Nitsche
+method should be moderately complex. The similarity to the <a href=https://en.wikipedia.org/wiki/Augmented_Lagrangian_method>augmented
+Lagrangian method</a> was highlighted but not detailed.</p><h2 id=references>References</h2><p>(2008) <a href=http://arturo.imati.cnr.it/~marini/didattica/Metodi-engl/Intro2FEM.pdf>A
+gentle introduction to the Finite Element Method</a> by Francisco–Javier
+Sayas.</p><p>(2008) <a href=https://www.doi.org/10.1007/s00466-007-0196-4>A
+formulation for frictionless contact problems using a weak form
+introduced by Nitsche</a> by Wriggers and Zavarise.</p><p>(2017) <a href=https://www.doi.org/10.1007/978-3-319-71431-8_4>An
+overview of recent results on Nitsche’s method for contact problems</a>
+by Chouly, Fabre, Hild, Mlika, Pousin, and Renard.</p><p>(2019) <a href=https://www.doi.org/10.1016/j.cma.2019.01.035>Weak
+impositions of Dirichlet boundary conditions in solid mechanics: A
+critique of current approaches and extension to partially prescribed
+boundaries</a> by Lu, Augarde, Coombs, and Hu.</p></div></main><footer id=footer><div id=footer-inner>&copy;&nbsp;2020-2022&nbsp;&#183;&nbsp;Fabien Péan</div></footer><script>window.FontAwesomeConfig={searchPseudoElements:!0}</script><script src=https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/js/all.min.js integrity="sha512-6PM0qYu5KExuNcKt5bURAoT6KCThUmHRewN3zUFNaoI6Di7XJPTMoT6K0nsagZKk2OB4L7E3q1uQKHNHd4stIQ==" crossorigin=anonymous referrerpolicy=no-referrer></script>
+<script src=https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js referrerpolicy=no-referrer></script>
+<script src=https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.11/clipboard.min.js integrity="sha512-7O5pXpc0oCRrxk8RUfDYFgn0nO1t+jLuIOQdOMRp4APB7uZ4vSjspzp5y6YDtDs4VzUSTbWzBFZ/LKJhnyFOKw==" crossorigin=anonymous referrerpolicy=no-referrer></script>
+<script src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.1/highlight.min.js integrity="sha512-yUUc0qWm2rhM7X0EFe82LNnv2moqArj5nro/w1bi05A09hRVeIZbN6jlMoyu0+4I/Bu4Ck/85JQIU82T82M28w==" crossorigin=anonymous referrerpolicy=no-referrer></script>
+<script src=https://cdnjs.cloudflare.com/ajax/libs/mermaid/9.1.2/mermaid.min.js integrity="sha512-8ZrL1m0+KXHylxkFJdFtFCauQdV/KZMjSBL9iydsyIfiB1LwYBlGegX8dUlLnUtRDrTgWKP6pPVyOqa2VrqoNA==" crossorigin=anonymous referrerpolicy=no-referrer></script>
+<script>mermaid.initialize({startOnLoad:!0,securityLevel:"loose",theme:"default",themeCSS:"",cloneCssStyles:!0,useMaxWidth:!0,htmlLabels:!1,flowchart:{curve:"basis"}})</script><script>window.MathJax={tex:{inlineMath:[["$","$"],["\\(","\\)"]],displayMath:[["$$","$$"],["\\[","\\]"]],processEscapes:!1,processEnvironments:!0,tags:"ams"},svg:{fontCache:"global",displayAlign:"left",displayIndent:"2emem"}}</script><script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+<script id=MathJax-script async src=https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js></script>
+<script src=/js/custom.js></script></body></html>

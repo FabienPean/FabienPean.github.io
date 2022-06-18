@@ -38,6 +38,9 @@ pre code {
     font-size: 0.9em;
     padding:1px;
 }
+code > span { /* necessary to remove `display:flex` on span coming from lib update out of nowhere */
+    display: inline !important;
+}
 p {
     display: block;
     margin-block-start: 1%;

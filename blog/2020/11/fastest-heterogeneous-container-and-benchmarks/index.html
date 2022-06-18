@@ -1,509 +1,516 @@
-<!doctype html><html lang=en-us><!doctype html><html lang=en><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content><meta name=author content="Fabien Péan"><meta name=google-site-verification content="_OCqKj2I4fVqJsqpa9uq0utQ55W1kx93lTIQtHZ88mM"><link rel="shortcut icon" type=image/png href=/img/logo.svg><title>Fabien Péan &#183; Personal Website</title><meta name=robots content="index,follow"><meta name=googlebot content="index,follow"><link rel=stylesheet type=text/css href=/css/normalize.css><link rel=stylesheet href=/vendor/colors/css/colors.min.css><link rel=stylesheet href=/vendor/academicons/css/academicons.min.css><style>:root{--font-monospace: "Source Code Pro";--font-sans-serif:"Inter"}</style><link href="https://fonts.googleapis.com/css?family=Inter%7cSource+Code+Pro&display=swap" rel=stylesheet type=text/css><link rel=stylesheet href=/css/custom.css></head><body><body><nav id=nav><figure id=logo class=image><img src=/img/logo.svg></figure><div id=branding><div class=branding-title>Fabien Péan</div><div class=branding-subtitle></div></div><div id=menu><a class=menu-link href=/><div class=menu-item><span class=menu-label><i class="fas fa-home fa-fw"></i>&nbsp;Home</span></div></a><a class=menu-link href=/news><div class=menu-item><span class=menu-label><i class="fas fa-newspaper fa-fw"></i>&nbsp;News</span></div></a><a class=menu-link href=/blog><div class=menu-item><span class=menu-label><i class="fas fa-pencil-alt fa-fw"></i>&nbsp;Blog</span></div></a><a class=menu-link href=/notes><div class=menu-item><span class=menu-label><i class="fas fa-sticky-note fa-fw"></i>&nbsp;Notes</span></div></a><a class=menu-link href=/projects><div class=menu-item><span class=menu-label><i class="fas fa-book fa-fw"></i>&nbsp;Projects</span></div></a></div><div class=social><div class=social-list><div style="display:flex;flex-flow:row wrap;justify-content:center"><div class="social-button email"><a href=mailto:fabien@pean.pro rel=author><i class="fas fa-at fa-2x"></i></a></div><div class="social-button bitbucket"><a href=https://bitbucket.org/FabienPean rel="author external"><i class="fab fa-bitbucket fa-2x"></i></a></div><div class="social-button github"><a href=https://github.com/FabienPean rel="author external"><i class="fab fa-github fa-2x"></i></a></div><div class="social-button linkedin"><a href=https://www.linkedin.com/in/FabienPean rel="author external"><i class="fab fa-linkedin fa-2x"></i></a></div></div></div></div></nav><main id=main><div class=content><h1>Fastest heterogeneous container and benchmarks</h1><small><div class=subtitle style="display:flex;flex-flow:row wrap;justify-content:space-between"><span style="flex:1 0 auto;max-width:100%"><span class=tooltip>11/11/2020
-<span class=tooltiptext><small>updated on 27/12/2020</small></span>
-</span>&nbsp;&boxv;&nbsp;<a href=/blog>Blog</a></span><div class=tag-list><a href=/tags/c++><div class=tag>c++</div></a></div></div></small><br><p>While doing some benchmarks with the heterogeneous containers described <a href=/blog/2020/07/implementing-an-heterogeneous-dynamic-array-in-cplusplus/>here</a> and <a href=/blog/2020/08/a-simple-heterogeneous-container-in-cplusplus-without-relying-on-variant-nor-any/>here</a> along with some related containers, I could not but notice the performance of <a href=https://github.com/skypjack/entt>entt</a>, more specifically its <em>registry</em> class which relies on a modified sparse set data structure. In front of such witchcraft, I decided to delve behind the curtains and see for myself the performance of an heterogeneous container based on it.</p><h2 id=sparse-sets>Sparse sets</h2><p>Sparse sets are data structures widely covered (<a href=https://programmingpraxis.com/2012/03/09/sparse-sets/>1</a>, <a href=https://www.geeksforgeeks.org/sparse-set/>2</a>, <a href=https://skypjack.github.io/2019-09-25-ecs-baf-part-5/>3</a>, <a href=https://doi.org/10.1145/176454.176484>4</a>). I will give a shot here and explain succinctly and as clear as possible the concepts behind the data structure.</p><p>Sparse sets, in the pure form, are actually maps, they map integers $\mathbb N_1$ to integers $\mathbb N_2$. The main members of the structure are so called a sparse vector and a dense vector.</p><p>The sparse vector contains at index $n_1\in \mathbb N_1$ a value $n_2\in\mathbb N_2$.</p><p>The dense vector contains at index $n_2\in \mathbb N_2$ a value $n_1\in\mathbb N_1$.</p><p>What makes the sparse vector sparse is that not all consecutive values within $\mathbb N_1$ are valid. On the contrary, all consecutive values within $\mathbb N_2$ exist.</p><p>For example, assuming that we expect $\mathbb N_1$ to cover the range of integers up to $2^{32}$, i.e. $\mathbb N_1$ = <code>uint32</code>; and $\mathbb N_2$ to cover up to $2^{8}$, i.e. $\mathbb N_2$=<code>uint8</code>; then the sparse vector can be represented by <code>std::vector&lt;uint8></code> and the dense vector by <code>std::vector&lt;uint32></code>. Here, the data structure can store only up to $256$ values, bounded by the maximum value describable by $\mathbb N_2$, but these values can spread up to $2^{32}$ representing an index in the sparse vector. Theoretically, the resulting sparse vector can be as big as $\max(\mathbb N_1) \times \log_2(\max(\mathbb N_2))~$bytes$=2^{32}\times8\approx34\text{Gb}$&mldr; just to store up to $256$ values. Obviously, this is not great. As such, the sparse vector is good enough to store relatively sparse but near-consecutive range of values. Basically, forget storing hash values in there since they usually aim for a great dispersion of the values over the available range.</p><p>Alright so far so good, we can store pairs of integers&mldr; yey. Fortunately, adapting it to store any sequence of objects is a matter of adding another array that follows the ordering of the dense vector.</p><div class=highlight><div style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">1
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">2
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">3
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">4
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">5
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">6
-</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cpp data-lang=cpp><span style=color:#ff79c6>template</span><span style=color:#ff79c6>&lt;</span><span style=color:#ff79c6>typename</span> N1, <span style=color:#ff79c6>typename</span> N2, <span style=color:#ff79c6>typename</span> ObjectT<span style=color:#ff79c6>&gt;</span>
-<span style=color:#ff79c6>struct</span> <span style=color:#50fa7b>SparseSet</span> {
-    <span style=color:#ff79c6>using</span> sparse_vector <span style=color:#ff79c6>=</span> std<span style=color:#ff79c6>::</span>vector<span style=color:#ff79c6>&lt;</span>N2<span style=color:#ff79c6>&gt;</span>;
-    <span style=color:#ff79c6>using</span> dense_vector  <span style=color:#ff79c6>=</span> std<span style=color:#ff79c6>::</span>vector<span style=color:#ff79c6>&lt;</span>N1<span style=color:#ff79c6>&gt;</span>;
-    <span style=color:#ff79c6>using</span> object_vector <span style=color:#ff79c6>=</span> std<span style=color:#ff79c6>::</span>vector<span style=color:#ff79c6>&lt;</span>ObjectT<span style=color:#ff79c6>&gt;</span>;
-};
-</code></pre></td></tr></table></div></div><h2 id=into-an-heterogeneous-container>Into an heterogeneous container</h2><p>Two alternatives are presented below following the path laid out by the previous posts. The first rely on a type-erased pointer to store the object, while the second is based on manual memory management akin to the heterogeneous dynamic array.</p><p>The mandatory part is the generator of consecutive identifier for types. Fortunately, it is relatively simple thanks to atomic integers or static template variables.</p><div class=highlight><div style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">1
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">2
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">3
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">4
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">5
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">6
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">7
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">8
-</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cpp data-lang=cpp><span style=color:#ff79c6>using</span> typeid_t <span style=color:#ff79c6>=</span> std<span style=color:#ff79c6>::</span><span style=color:#8be9fd>uint32_t</span>;
-<span style=color:#ff79c6>class</span> <span style=color:#50fa7b>TypeCounter</span> {
-    <span style=color:#ff79c6>static</span> <span style=color:#ff79c6>inline</span> typeid_t i <span style=color:#ff79c6>=</span> <span style=color:#bd93f9>0</span>;
-    <span style=color:#ff79c6>public</span><span style=color:#ff79c6>:</span>
-    <span style=color:#ff79c6>template</span><span style=color:#ff79c6>&lt;</span><span style=color:#ff79c6>typename</span> T<span style=color:#ff79c6>&gt;</span>
-    <span style=color:#ff79c6>static</span> <span style=color:#ff79c6>inline</span> <span style=color:#ff79c6>const</span> <span style=color:#ff79c6>auto</span> id <span style=color:#ff79c6>=</span> i<span style=color:#ff79c6>++</span>;
-};
-<span style=color:#ff79c6>template</span><span style=color:#ff79c6>&lt;</span><span style=color:#ff79c6>typename</span> T<span style=color:#ff79c6>&gt;</span> <span style=color:#ff79c6>inline</span> <span style=color:#ff79c6>auto</span> typeid_v <span style=color:#ff79c6>=</span> TypeCounter<span style=color:#ff79c6>::</span>id<span style=color:#ff79c6>&lt;</span>T<span style=color:#ff79c6>&gt;</span>;
-</code></pre></td></tr></table></div></div><h3 id=alternative-1-the-easy-way-unique-pointers-are-you-friends>Alternative 1: the easy way, unique pointers are you friends</h3><p>The values within $\mathbb N_1$ represent a type identifier, except for the value representing absence of meaningful value. $\mathbb N_2$ only defines how many values can be stored, the fewer it is the more memory is saved when the sparse vector grows. Here $\mathbb N_2$ is chosen to hold within a byte. The object type is abstracted into a void pointer <code>std::unique_ptr&lt;void,void(*)(void*)></code>. The members are:</p><div class=highlight><div style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">1
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">2
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">3
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">4
-</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cpp data-lang=cpp>std<span style=color:#ff79c6>::</span>vector<span style=color:#ff79c6>&lt;</span>std<span style=color:#ff79c6>::</span><span style=color:#8be9fd>uint8_t</span><span style=color:#ff79c6>&gt;</span> sparse;
-std<span style=color:#ff79c6>::</span>vector<span style=color:#ff79c6>&lt;</span>typeid_t<span style=color:#ff79c6>&gt;</span>     dense ;
-<span style=color:#ff79c6>using</span> ptr_t <span style=color:#ff79c6>=</span> std<span style=color:#ff79c6>::</span>unique_ptr<span style=color:#ff79c6>&lt;</span><span style=color:#8be9fd>void</span>,<span style=color:#8be9fd>void</span>(<span style=color:#ff79c6>*</span>)(<span style=color:#8be9fd>void</span><span style=color:#ff79c6>*</span>)<span style=color:#ff79c6>&gt;</span>;
-std<span style=color:#ff79c6>::</span>vector<span style=color:#ff79c6>&lt;</span>ptr_t<span style=color:#ff79c6>&gt;</span>        objects;
-</code></pre></td></tr></table></div></div><p>Retrieving a type from the container is a (almost) one liner:</p><div class=highlight><div style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">1
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">2
-</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cpp data-lang=cpp><span style=color:#ff79c6>template</span><span style=color:#ff79c6>&lt;</span><span style=color:#ff79c6>typename</span> T, <span style=color:#ff79c6>typename</span> U <span style=color:#ff79c6>=</span> std<span style=color:#ff79c6>::</span>remove_reference_t<span style=color:#ff79c6>&lt;</span>T<span style=color:#ff79c6>&gt;&gt;</span>
-<span style=color:#ff79c6>decltype</span>(<span style=color:#ff79c6>auto</span>) get() { <span style=color:#ff79c6>return</span> <span style=color:#ff79c6>*</span><span style=color:#ff79c6>static_cast</span><span style=color:#ff79c6>&lt;</span>U<span style=color:#ff79c6>*&gt;</span>(objects[sparse[typeid_v<span style=color:#ff79c6>&lt;</span>U<span style=color:#ff79c6>&gt;</span>]].get()); }
-</code></pre></td></tr></table></div></div><p>Insertion is a bit more involved because auxiliary sparse and dense vector must be updated:</p><div class=highlight><div style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">13
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">14
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">15
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">16
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">17
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">18
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">19
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">20
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">21
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">22
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">23
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">24
-</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cpp data-lang=cpp><span style=color:#ff79c6>template</span><span style=color:#ff79c6>&lt;</span><span style=color:#ff79c6>typename</span>... Ts<span style=color:#ff79c6>&gt;</span>
-<span style=color:#8be9fd>void</span> insert(Ts<span style=color:#ff79c6>&amp;&amp;</span> ... values) {
-    <span style=color:#6272a4>// construct objects
-</span><span style=color:#6272a4></span>    objects.reserve(objects.size() <span style=color:#ff79c6>+</span> <span style=color:#ff79c6>sizeof</span>...(Ts));
-    <span style=color:#ff79c6>auto</span> construct <span style=color:#ff79c6>=</span> [<span style=color:#ff79c6>&amp;</span>](<span style=color:#ff79c6>auto</span><span style=color:#ff79c6>&amp;&amp;</span> t) {
-        <span style=color:#ff79c6>using</span> T <span style=color:#ff79c6>=</span> <span style=color:#ff79c6>decltype</span>(t);
-        <span style=color:#ff79c6>using</span> U <span style=color:#ff79c6>=</span> std<span style=color:#ff79c6>::</span>remove_reference_t<span style=color:#ff79c6>&lt;</span><span style=color:#ff79c6>decltype</span>(t)<span style=color:#ff79c6>&gt;</span>;
-        objects.push_back(
-            ptr_t{ <span style=color:#ff79c6>new</span> U{ std<span style=color:#ff79c6>::</span>forward<span style=color:#ff79c6>&lt;</span>T<span style=color:#ff79c6>&gt;</span>(t) },
-                  <span style=color:#ff79c6>+</span>[](<span style=color:#8be9fd>void</span><span style=color:#ff79c6>*</span> instance) { <span style=color:#ff79c6>delete</span> <span style=color:#ff79c6>static_cast</span><span style=color:#ff79c6>&lt;</span>U<span style=color:#ff79c6>*&gt;</span>(instance); } }
-        );
-    };
-    (construct(std<span style=color:#ff79c6>::</span>forward<span style=color:#ff79c6>&lt;</span>Ts<span style=color:#ff79c6>&gt;</span>(values)), ...);
-    <span style=color:#6272a4>// update sparse vector
-</span><span style=color:#6272a4></span>    <span style=color:#ff79c6>const</span> <span style=color:#ff79c6>auto</span> max_id <span style=color:#ff79c6>=</span> std<span style=color:#ff79c6>::</span>max({typeid_v<span style=color:#ff79c6>&lt;</span>Ts<span style=color:#ff79c6>&gt;</span>...});
-    <span style=color:#ff79c6>if</span> (max_id <span style=color:#ff79c6>&gt;=</span> sparse.size()) 
-        sparse.resize(max_id<span style=color:#ff79c6>+</span><span style=color:#bd93f9>1</span>, <span style=color:#ff79c6>-</span><span style=color:#bd93f9>1</span>);
-    <span style=color:#ff79c6>const</span> <span style=color:#ff79c6>auto</span> ids <span style=color:#ff79c6>=</span> std<span style=color:#ff79c6>::</span>array{typeid_v<span style=color:#ff79c6>&lt;</span>Ts<span style=color:#ff79c6>&gt;</span>...};
-    <span style=color:#ff79c6>for</span>(<span style=color:#8be9fd>int</span> i<span style=color:#ff79c6>=</span>ids.size();i<span style=color:#ff79c6>&gt;</span><span style=color:#bd93f9>0</span>;<span style=color:#ff79c6>--</span>i)
-        sparse[ids[i<span style=color:#ff79c6>-</span><span style=color:#bd93f9>1</span>]] <span style=color:#ff79c6>=</span> i<span style=color:#ff79c6>-</span><span style=color:#bd93f9>1</span>;
-    <span style=color:#6272a4>// update dense vector
-</span><span style=color:#6272a4></span>    dense.reserve(dense.size()<span style=color:#ff79c6>+</span><span style=color:#ff79c6>sizeof</span>...(Ts));
-    (dense.push_back(typeid_v<span style=color:#ff79c6>&lt;</span>Ts<span style=color:#ff79c6>&gt;</span>), ...);
-}
-</code></pre></td></tr></table></div></div><p>Obviously, those are the &ldquo;<em>I know what I am doing</em>&rdquo; kind of function since insertion assumes types inserted were not already so before, and the object is expected to be there during access.</p><h3 id=alternative-2-the-harder-way-allocation-only-under-manual-supervision>Alternative 2: the harder way, allocation only under manual supervision</h3><p>The external level of indirection introduced by the <code>std::unique_ptr</code> and potential fragmentation can be avoided if we deal with the memory management by ourselves. The objects are stored sequentially as bytes in a buffer, and the location of each object must be stored elsewhere. Here I decided to store it within the dense vector along with the type identifier. To avoid alignment issues, I rely on the aligned allocator provided by the boost library. It yields:</p><div class=highlight><div style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
-</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cpp data-lang=cpp><span style=color:#ff79c6>template</span><span style=color:#ff79c6>&lt;</span><span style=color:#ff79c6>typename</span> T, size_t N<span style=color:#ff79c6>&gt;</span>
-<span style=color:#ff79c6>using</span> aligned_allocator <span style=color:#ff79c6>=</span> boost<span style=color:#ff79c6>::</span>alignment<span style=color:#ff79c6>::</span>aligned_allocator<span style=color:#ff79c6>&lt;</span>T, N<span style=color:#ff79c6>&gt;</span>;
-<span style=color:#ff79c6>static</span> <span style=color:#ff79c6>constexpr</span> <span style=color:#ff79c6>inline</span> <span style=color:#ff79c6>auto</span> max_alignment <span style=color:#ff79c6>=</span> <span style=color:#bd93f9>256UL</span>;
-<span style=color:#ff79c6>using</span> offset_t <span style=color:#ff79c6>=</span> std<span style=color:#ff79c6>::</span><span style=color:#8be9fd>uint32_t</span>;
-<span style=color:#ff79c6>using</span> destructor_t <span style=color:#ff79c6>=</span> <span style=color:#8be9fd>void</span>(<span style=color:#ff79c6>*</span>)(<span style=color:#8be9fd>void</span><span style=color:#ff79c6>*</span>);
-<span style=color:#ff79c6>struct</span> <span style=color:#50fa7b>typeid_offset_dtor</span> { typeid_t tag; offset_t offset; destructor_t dtor; };
-
-std<span style=color:#ff79c6>::</span>vector<span style=color:#ff79c6>&lt;</span>std<span style=color:#ff79c6>::</span><span style=color:#8be9fd>uint8_t</span><span style=color:#ff79c6>&gt;</span> sparse;
-std<span style=color:#ff79c6>::</span>vector<span style=color:#ff79c6>&lt;</span>typeid_offset_dtor<span style=color:#ff79c6>&gt;</span> dense;
-std<span style=color:#ff79c6>::</span>vector<span style=color:#ff79c6>&lt;</span>std<span style=color:#ff79c6>::</span>byte, aligned_allocator<span style=color:#ff79c6>&lt;</span>std<span style=color:#ff79c6>::</span>byte, max_alignment<span style=color:#ff79c6>&gt;&gt;</span> objects;
-</code></pre></td></tr></table></div></div><p>The extra indirection is directly visible, and embedded within the container. For lookup, the memory access must be <em>cleaned</em> to obtain a usable pointer from bytes.</p><div class=highlight><div style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">1
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">2
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">3
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">4
-</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cpp data-lang=cpp><span style=color:#ff79c6>template</span><span style=color:#ff79c6>&lt;</span><span style=color:#ff79c6>typename</span> T<span style=color:#ff79c6>&gt;</span>
-<span style=color:#ff79c6>decltype</span>(<span style=color:#ff79c6>auto</span>) get() { <span style=color:#ff79c6>return</span> do_get<span style=color:#ff79c6>&lt;</span>T<span style=color:#ff79c6>&gt;</span>(dense[sparse[typeid_v<span style=color:#ff79c6>&lt;</span>T<span style=color:#ff79c6>&gt;</span>]].offset); }
-<span style=color:#ff79c6>template</span><span style=color:#ff79c6>&lt;</span><span style=color:#ff79c6>typename</span> T, <span style=color:#ff79c6>typename</span> U <span style=color:#ff79c6>=</span> std<span style=color:#ff79c6>::</span>remove_reference_t<span style=color:#ff79c6>&lt;</span>T<span style=color:#ff79c6>&gt;&gt;</span>
-U<span style=color:#ff79c6>&amp;</span> do_get(offset_t n) { <span style=color:#ff79c6>return</span> <span style=color:#ff79c6>*</span>std<span style=color:#ff79c6>::</span>launder(<span style=color:#ff79c6>reinterpret_cast</span><span style=color:#ff79c6>&lt;</span>U<span style=color:#ff79c6>*&gt;</span>(<span style=color:#ff79c6>&amp;</span>objects[n])); }
-</code></pre></td></tr></table></div></div><p>Insertion is analogous to alternative 1, except for the manual memory allocation. Fortunately, allocation of the buffer is similar to the implementation of the one for the heterogeneous dynamic array described in a previous post.</p><p>Move construction details were omitted for the sake of conciseness here, but are present below in the full snippet. Particularly, it was needed for avoiding undefined behavior on Linux.</p><h3 id=limitless-variations>Limitless variations</h3><p>A huge amount of combinations are possible depending on the preferred tradeoffs. For example, if wasting space is not a problem because only a very few amount of types will be stored, then duplicating the offset for object access within the sparse vector can be a good options for even faster random access.</p><div class=highlight><div style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
-</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cpp data-lang=cpp><span style=color:#ff79c6>struct</span> <span style=color:#50fa7b>v3</span>
-{
-    <span style=color:#ff79c6>using</span> offset_t <span style=color:#ff79c6>=</span> std<span style=color:#ff79c6>::</span><span style=color:#8be9fd>uint32_t</span>;
-	<span style=color:#ff79c6>struct</span> <span style=color:#50fa7b>denseid_offset</span> {std<span style=color:#ff79c6>::</span><span style=color:#8be9fd>uint8_t</span> denseid; offset_t offset;}
-    std<span style=color:#ff79c6>::</span>vector<span style=color:#ff79c6>&lt;</span>denseid_offset<span style=color:#ff79c6>&gt;</span> sparse;
-    <span style=color:#ff79c6>struct</span> <span style=color:#50fa7b>typeid_offset_dtor</span> {typeid_t tag; offset_t offset; destructor_t dtor;};
-    std<span style=color:#ff79c6>::</span>vector<span style=color:#ff79c6>&lt;</span>typeid_offset_dtor<span style=color:#ff79c6>&gt;</span> dense;
-    std<span style=color:#ff79c6>::</span>vector<span style=color:#ff79c6>&lt;</span>std<span style=color:#ff79c6>::</span>byte,aligned_allocator<span style=color:#ff79c6>&gt;</span> objects;
-    
-    <span style=color:#ff79c6>template</span><span style=color:#ff79c6>&lt;</span><span style=color:#ff79c6>typename</span> T<span style=color:#ff79c6>&gt;</span> <span style=color:#ff79c6>decltype</span>(<span style=color:#ff79c6>auto</span>) get() { <span style=color:#ff79c6>return</span> <span style=color:#ff79c6>*</span>do_get<span style=color:#ff79c6>&lt;</span>T<span style=color:#ff79c6>&gt;</span>(objects[sparse[tag]]);}
-};
-</code></pre></td></tr></table></div></div><p>Since there exists only a single destructor for a given type, the address of such function is itself a type identifier. Therefore, the dense vector could be further lighted away from the identifier representing the index within the sparse vector, at the cost of a more difficult dense-to-sparse lookup.</p><div class=highlight><div style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
-</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cpp data-lang=cpp><span style=color:#ff79c6>struct</span> <span style=color:#50fa7b>v4</span>
-{
-    <span style=color:#ff79c6>using</span> offset_t <span style=color:#ff79c6>=</span> std<span style=color:#ff79c6>::</span><span style=color:#8be9fd>uint32_t</span>;
-	<span style=color:#ff79c6>struct</span> <span style=color:#50fa7b>denseid_offset</span> {std<span style=color:#ff79c6>::</span><span style=color:#8be9fd>uint8_t</span> denseid; offset_t offset;}
-    std<span style=color:#ff79c6>::</span>vector<span style=color:#ff79c6>&lt;</span>denseid_offset<span style=color:#ff79c6>&gt;</span> sparse;
-    <span style=color:#ff79c6>struct</span> <span style=color:#50fa7b>offset_dtor</span> {offset_t offset; destructor_t dtor;};
-    std<span style=color:#ff79c6>::</span>vector<span style=color:#ff79c6>&lt;</span>offset_dtor<span style=color:#ff79c6>&gt;</span> dense;
-    
-	std<span style=color:#ff79c6>::</span>vector<span style=color:#ff79c6>&lt;</span>std<span style=color:#ff79c6>::</span>byte,aligned_allocator<span style=color:#ff79c6>&gt;</span> objects;
-    <span style=color:#ff79c6>template</span><span style=color:#ff79c6>&lt;</span><span style=color:#ff79c6>typename</span> T<span style=color:#ff79c6>&gt;</span> <span style=color:#ff79c6>decltype</span>(<span style=color:#ff79c6>auto</span>) get()
-    { <span style=color:#ff79c6>return</span> <span style=color:#ff79c6>*</span>std<span style=color:#ff79c6>::</span>launder(<span style=color:#ff79c6>reinterpret_cast</span><span style=color:#ff79c6>&lt;</span>T<span style=color:#ff79c6>*&gt;</span>(objects[sparse[tag].offset])); }
-};
-</code></pre></td></tr></table></div></div><h2 id=benchmarks>Benchmarks</h2><p>Results plotted here were computed with google benchmark. Two scenarios were considered, insertion and lookup. 32 random structures were generated with a python script. For the insertion scenario, tests were done for 1 to 8 types inserted within the container. For the lookup scenario, 32 types were first inserted within the containers, then measurements are performed for the query of 1 to 8 types out of the 32. The queried types are chosen randomly from the 32, but each type can only appear once. Benchmarks were run on an i7-6700k and repeated 11 times. Otherwise specified, tests were carried out on Windows and compiled with Clang 10.</p><h3 id=comparison-of-_maps_>Comparison of <em>maps</em></h3><p>Since a class of heterogeneous containers presented throughout these posts rely heavily on a map to access its content, let us have a look first of the performance of several kind of map implementations. Besides the standard library <a href=https://en.cppreference.com/w/cpp/container/unordered_map><code>std::unordered_map</code></a>, <a href=https://www.boost.org/doc/libs/1_74_0/doc/html/boost/container/flat_map.html><code>boost::flat_map</code></a>, <a href=https://abseil.io/docs/cpp/guides/container><code>abseil::flat_hash_map</code></a>, <a href=https://github.com/Tessil/robin-map><code>tsl::robin_map</code></a>, <a href=https://github.com/Tessil/hopscotch-map><code>tsl::hopscotch</code></a>, <a href=https://github.com/Tessil/sparse-map><code>tsl::sparse_map</code></a>, and <a href=https://github.com/greg7mdp/sparsepp><code>spp::sparsepp</code></a> were tested for the container described <a href=/blog/2020/08/a-simple-heterogeneous-container-in-cplusplus-without-relying-on-variant-nor-any/>here</a>.</p><iframe src=map_insert_win_clang.html scrolling=no title="Insertion time for different map implementations" frameborder=no allowtransparency=true allowfullscreen style=width:100%;min-height:500px></iframe><p>Insertion is fastest for the group of including <code>std::unordered_map</code>, <code>abseil::flat_hash_map</code>, <code>boost::flat_map</code> and <code>spp:sparsepp</code>. The <code>tsl::robin_map</code> follows up close. The slowest by a huge margin is <code>tsl::hopscotch</code>.</p><iframe src=map_get_win_clang.html scrolling=no title="Lookup time for different map implementations" frameborder=no allowtransparency=true allowfullscreen style=width:100%;min-height:500px></iframe><p>On lookup, both <code>tsl::robin_map</code> and <code>std::unordered_map</code> are the fastest. I must admit not expecting to find the standard container to be so fast considering all the &ldquo;horrible&rdquo; things said in general about them online.</p><p>In conclusion, <code>tsl::robin_map</code> and <code>std::unordered_map</code> offers the best performance for the task, especially considering lookup. A different but extensive suite of tests can be found <a href=https://tessil.github.io/2016/08/29/benchmark-hopscotch-map.html>here</a>. Nevertheless, bear in mind that such benchmarks are extremely platform and compiler sensitive ! For example <code>std::unordered_map</code> was found to be the slowest on lookup on <a href=https://en.wikipedia.org/wiki/Windows_Subsystem_for_Linux>WSL</a>. Therefore, <code>tsl::robin_map</code> is chosen as the map implementation owing to its consistency across platforms.</p><h3 id=heterogeneous-containers-showdown>Heterogeneous containers showdown</h3><p><em>hc</em> refers to this container, <em>ha</em> to this one, <em>hcs</em> is the pointer-based heterogeneous sparse set and <em>has</em> is the array-based heterogeneous sparse set. In addition, some other containers are added: <em>vecany</em> represents a <code>vector&lt;any></code>, <em>mapany</em> is based on <code>unordered_map&lt;typeid_t,any></code>, entt_ctx is a container akin to a <code>vector&lt;pair&lt;typeid_t,unique_ptr&lt;void,void(*)(void*)>>></code>. The two others (<em>andyg</em> and <em>entt_reg</em>) are data structures that can store <em>n</em> instances of a type, more generic and beyond scope but included out of curiosity. Insertion of objects inside the container is either done through a loop (1by1) or all objects are inserted at the same time (bulk).</p><iframe src=container_insert_wsl_clang.html scrolling=no title="Insertion time for different containers" frameborder=no allowtransparency=true allowfullscreen style=width:100%;min-height:500px></iframe><p><code>vecany</code> solution is the fastest on insertion for less than 7 types inserted owing to fewer memory allocation overall. However, beyond 7 types, the bulk insertion into an heterogeneous sparse set shows near constant time thanks to the absence of repeated heap allocation needed for each type as solution based on <code>unique_ptr&lt;void,...></code> and <code>std::any</code>.</p><iframe src=container_get_win_clang.html scrolling=no title="Lookup time for different containers" frameborder=no allowtransparency=true allowfullscreen style=width:100%;min-height:500px></iframe><p>Vector-based solution relying on linear iterations (vecany and entt_ctx) are off the chart, many times slower than the rest, and thus, hidden by default (click on their label to make them visible).</p><p>Sparse set-based solutions are significantly faster than <code>std::any</code> solutions and around 2 times faster than map-based heterogeneous containers. The main interesting fact is that data locality guaranteed by array of bytes' storage is slightly slower than the <code>std::unique_ptr</code> respective versions. The advantage of data locality for random access lookup, albeit only going through a few types, is not beneficial.</p><p>Note that results describe specifically Clang 10 on Windows, and the outcome across platforms may vary. The full set of results can be found <a href=https://github.com/FabienPean/heco>here</a>.</p><h2 id=conclusion>Conclusion</h2><p>Sparse sets seem the ideal data structure to store (near-consecutive) type identifiers and allowing fastest access to stored content. Storing objects contiguously into an array of bytes does not does not improve lookup nor insertion, worse so, since it affects them negatively.</p><p>This post concludes a the small series on heterogeneous containers in C++. It covered specifically containers that can hold a single instance of each type. Meanwhile, you can find the code from my past and ongoing experiments on <a href=https://github.com/FabienPean/heco>github</a>.</p><h2 id=code>Code</h2><p>For the sake of completeness, the code of the containers are shown in full bellow (under MIT license). They can also be toyed around on <a href=https://godbolt.org/#z:OYLghAFBqd5QCxAYwPYBMCmBRdBLAF1QCcAaPECAM1QDsCBlZAQwBtMQBGAFlICsupVs1qhkAUgBMAISnTSAZ0ztkBPHUqZa6AMKpWAVwC2tEAGYAbKS3oAMnlqYAcsYBGmYlwCcAVlIAHVAVCdVo9QxNzK0DgtTp7Rxcjd09OX0VlTFVQhgJmYgJw41NLDJU42lz8ggTnNw9vPwU8gqLI0ubq2qSUxoBKRVQDYmQOAHIAegmAaj1/AE9iPGAEAmmIZD7pyQAGXemAMWZXPC1pgAVxHTNxAEEvEXEd26mnl5nzjyM8BWC6aZ%2B0wQHkwrnm02AxBEBEw6FI0yoxEwmGmqCo02QCHywEw8KI0xE4P8HgU/1QrjyDgcwDeUwJGNQC1R6IICEBpKoBAA7vkUSJ0ATfqhkHhmDCBehhcYtHkKgi8OwFOtWZhaTMpJIGGjubyNQNpvisGwAbQDcDplrOTykdMuYQEEM1kjmktsnR4Q5kIZ8KI1bb7Y7pqw8N9ZaEzSilisCEr8QYlPC0At4UYMHgqPMUx4cfD/AZXMGFAhSH78C68K4DDD4Qp88HRrQEwTtBMSNMlKxWAz/KclWiIxbtdbcc2BUQ/cTiKHppPSY2DahbQ6jAPLTqbYCqMNaD9gWPF5L26ga/m%2BFk1uPnnSVQj9KxUHbRAztCE6AoQGq/QAVc3HVAANxRJNFmWVZploVA1FGUczUBSdvl%2BcMIKglEizYLt3D9T1vVhE0CU7bte1RYh23zTp6FFLtAgKUI%2BxZc012HAA6T8rxmL8AAlsAtAB5A4vwAdVuAAlbiAEkGAuYSeIANTEgARbB5OmDVbkkiSNXhASxM4niAFUv2mIThOE24nC/ABNaY%2BOmMyrIAaTEpx5JLNjpmwAANc5RIYSSeOE6YxIAWXOWwxKU%2BEnJ0Ww9PkpyAHFpmkAzpicHjDLCoKdKU6Yvx43KuKMkTTPM8K/IOP0guwYSdA4syv1uaQxLCyz4QOHSnGwXzDn82yLhEr8xJ0PTbBEi49OE84eIYbizPkv00qcJyDmEhLsCq8ymMCpxUvy7AZOwcyLTq2xbAK2aDI4/y/ICnQePOCzVvijjDKu2xFOEyTpGwP0wsa2xuIOXq7NmUbgvheTbiC254q66yAvSriAr%2BpqWosrSuM46rttsnbbh0QaeKcP0bLu8zTIJ%2BE8uEwzesR6rtJm%2BERIkhLDmkoL4X02mDnhnGyc6gmxKJv1tM487eP44zuN6rHpj0ma%2BfpgLFNuMKnHi9Sdrlhg%2BMEkTsBY54pDMbCDCwcQzB0QDVBIS2fuNyRTdoL1zdVK3kGaH0CHtt4TbNi2Pa94NXF9x3nddwOdCMTBU2IeYw9uf2XZwy2dCrBVCATswHaTp2A/dnQ2GAEh7SMRPk8jwvXFQIICAmNhlloBvg2ARx0AAfXQ4UxRIJiEH8fwK/zlO3bT9QXUwZhy5zv3nhhIx/GEGE04IeZiVoaeUS/RP42paYpw75B/yRKgO7WS3lK9kAQCRVNAKP/9z7T6/b9jgDMA70%2BQRdz%2Bfatnes8gGyGNs8PeT417EjwJ3C%2BZgr4EHQDfAwDgCBmEkM/MwIDbhemYL8XK69MB6AMPQDwKkADsWDphUPbGGZAJpgyOANAQ6B58AQqTgdMHYltKHULzAWPAyAPzPGoQaWOS8xSF0gVoLeuVE4iM6FBehDggJvjWMwKsi5oHsOUngOQejMF%2BzIfNAx88xHL0kQQzeMdZE5yUYw9R%2BIpEsP/No/BxIiEkM8CAaBadAE/RMUnZ4LoDCqCBFkVAHdOAdwUP4fISglAEA7v4AgxBDE8KoeA4AM4UmsMvjQxBIBiF4AAI4GE/sk1JVt/yoGgfCap0CIAACo%2BgQHqegZpvsAnyIQTfG2RBKk6Ffsg%2BgAAODB3EYlxPduk/JvTzx2ytk4mB9sRHTCwI2aZbxukFL6QsnQFTxmrOoeSM8qgFDcLnrcERC9xEr0WZYmRX48QPJjkxN50xhKYGaHI6hWAvRSIgA41AWwcQEAgH0LZ1DxAUMhUczJ8tXGvzvh/L%2BmAqA/1GBggmnSZkiPTM%2BZomAAAe/gSIQGCAAL0wGiN5TEICfOaFsS%2BeSdgQuEUc1ZSICDbmmI0hRAij64P/sNRp9sIAnPPOcnw0hJnECUOIaVSyO7/jTnpX2Ph5oaqYqC8FEKukcuUPK9lHLqFcp5a/GgxBrSd1wefAwS9MDQEwMKvx4L4SgrTgy/%2B2BwW0r1TM6F81QFXOoTc8xq8XmYFpblc5s9jXTDaSaJQBQIBfnOZICwUgLDTGjf%2BNgZSFBspDVQ6FuLjmuFOTGJizoPCAXFRWyVTFKWOqZTIdseAqU0reamwt/rYWrKBQSlJITYHKQVbIDNCr5KAo0VmrNBomUwvjSa%2BFhk8l/NYACggfbl0cvhXpVxh9j6nyxRurder/FlqORKs5TE8xFg7q4ZgyAADWEBsnEGfhQ8CmAuTy1LbMkAlrrW%2BLFdu8hLl%2B0mpUjIcdU7Wk1PaUmvIv9F3SDWZkGENCxQCpYN8q2elRU5wgA4ciox/UQYg1BjlO7i2rMDRc3dVCNiqOICO8lPSgMkBAwA2NPq82GC%2BX0fUfrGN0ZEXSe16AJHtliXKlEuzUlMaHQSDR0wjDMCJR3LReTX4aaJRAADSqVW8fttGwNtGTX4ogPp7TApOlXzk0oJtHaW1Fug9Q2VznnSuZs5puzMH0OcHhAAWk4JZjlaBGxqLU9ApUunOP5ChAnb9xnfF8fM0YsTJrLXrBQWwvJcWXNUvBdwgrtiuGYOmCFkLeB3Medk1M8dcXmvVemJwKdU7XEYY2cVltgW2Ehfa9ljlkn/DSaw%2BspQCb5lKfE78rQ3mvm1sdVNqNzbwUDebV2ulabhMjaORANbd74wIEfc%2Bt9aXTM5xE28iLJasvGyywEt4wTQnAjQJE6JTnluJLBDCc5T2ZlhokRGjejyayudYcTONdH4WNzbrCLunYe79NcTXOuN8Ee0BjvQLHrd27I/vCwfpvj4Qw8vf2/ldCouEpJSRBwDC%2BRqds9j3Ho7pgWG4CNA70x4VoioAk3JHChkoLQRgrB/atDGAxMIPB%2BNCY7QA2TBgX5hJ6UprMe66NphBVktgCGXU1c8Ssgx/VGTghPiwG9/pwur5Q7Bc0hD0DGl1MQ672yQsib3ZoWx0JSqBdC/QGjozzCYEGmYDSKrgfnWsJj//dD1vh220/WsYPCz0Nm8l/G1%2BimX6ceGQQMZ3rGvyd57n2bYPMAsPjx3dPlTuJrd5/CxTj75gA8RZxvPVtX7/ZHNjpH3cSd7N7%2B3kcrOCfs86ZT%2BNre%2B99gbWcsT/aPsRKiV537beAebfXWi9Rm7eer6%2BxvoX8%2BIBH/Xz90/Y/02ZozUyjhWAqD74Tyv8Jx%2Br%2Bx7P7TtYF/vtTOvwByzQf2UiwHYDuRmT/xPy/xv3nUZA8F7kqWnR/zCU%2B0vwAJgKAPv1cTAOdU2XjSgM/z%2B1gIzVREnEQMvnP3f3QPk0AK%2BTnWwN32fwMAP3N2mAAD9CCMDiDt80NqMqFcsZ1xxSC8BpgQAeslB6sPM8AmJ69DMM0b0YxmsmJ48p1SBaAWDWAKlSAFdhYnAb5FJVdpILIfcGNg1rkzFQd7lwdrE/F%2B1B0kQ0BiBO4k8/d%2Bkd8l15sqEzViBTQ9FpV4M2lGl2wRg3cXcDRgACBmYvcdpn0KgpD6NPCGt2w7QCBMR1g4jQg%2BDlMRE8MURdCiYb4Vc1cNcvxxDHAuQIACBIithAF0NXAkRmAX1ecTU8jPdFcDCjdjDxDX5XDUB5gu4wVqdBV8MCYiMfUFARh9sqsGip5mi2DWjcF8iYiijtdyjf0qiajZFv0%2BVaERiXVxjyUpiqMZjGj5ir1Vk2iCj9CQA9cDp1jKjqjwMd5v09MP4mlhi8MDixVJjNhF1jF6iziWiOUn8X9xDZimjgSjkzCvDOVnVzVXM0RU0fcREs9%2B0YT%2B0Qc7kdApErFt4fkqEz0CEhDgUIRnUPD0MfDTRJQO4PUAExUm9pUN9x0rtsVZ4NUp0VCqBBdnUKMMT40sSLEbDt5nlhSEUEsClkUH5v4kRf4sU7DYcRE1VSCaSdVa81haA0MD54TfDeVX5hBiEsBiAIAkQUEPBSVY8vjVVDis1FCpVpBaAp1pjM9HtAk6NBSq88To000CSE1EMk0PAwUfTJ0M1o0pFC1yELi6Qh8ZN%2BQh03DURF8lDlMUDB1494sOEYzsS01aUxUUTqFB0f8Ey8k4NJ0NVxVuShcNT4QgUGDs1wNS1%2BC4VLcsk11H8shN1iTt0oTVl91O9JT35pS0UMU/5QNgEmyREKj5CLA7Tx1HSNUtg1VXjONgN8h0AxyfUGznsLi0TlNS1m1WFRCWUysWNos3CKyeSlDpVdFYNYMNVRShN4RRMqsYSTUxsJtUIfsZsU8mzUzYt0AMz4ECkktmAUt0NWSfSc5MsATfzVFVN8RbMdMOFdiClbNMh2cSMAKmJkB3BgAHA3UAQsKbBdUezrNEL7MgFHMpk%2BsSKcjPMftq0vlfNyKBtgtqtwsezBD8sjyOEisNsKMeLuJKt0Mas6sJz6KmtryALWshsOsOSNUcDFt1tfNW10NRDZKez3yZM1tvzSdlNjsa1iA61jt%2BKttESqBaUe1nSmz9yHdytlJhL1hjt70zsn1X1DNUsw9lV0t7ZSB0zms9E7yXJtSnCXCvlk9SdrsfV/jbsmI%2BTXTUTXTMTLDsTcSt5vTfTB0syW0Qt7ZX4QLs49BKzY8oj21O0LLu0vwL1IymzhjcFk0wUoBsckSqr2EdA8kJ8m52dW079s0/V8yLd948TJloIvZl8UzVFiVSUyq/5UpEVzLLKqqeyf8pqSICqX4HdycVk2cZRALIz8Im4Wq%2BhoLlrJr6cCRiBksNqqVz4trbFm09qANtsqBkSTqXtlN1qrZ1S7ruJHQ8xX9zDIs4KDy1gDz3BLUUQ8k7SaKBq%2BcUEDk1gDkbBXFC8Eb61K0FBZCxRmAd820wa0USBMBYaQaFwidUdIaOFhKmyuL6B7LOEyseKdBUoytArpAxK9ykiGsSbYl0AfQsk8koB2CkbtBWKeqMjJ9dqAqFLZLrK6KqE/qqwpax0RcodwbCaBsiAyaSdIa20ea%2BaezrkIlsrAs8k9b945AZr7TdEOSFiOVhb7NYMOEzanwLaHqlaezXyOUSaDzmBORSFdNVaCabQLbNbsrNKZhoafMSsfa/biB/UpgGUO194FBkAkQ/17UD5iE1BrF/gEgDAiUYNJBERkRwVxCHABMtFAgzTUlJBJB4RkJ1MAJ947SAQlQ9ILi58b8DRF5yUodfaYQ47OK2wSS6yVJFValmRLz4R68utxC1sEiTU5DbSkz7TVD7yYMLACBF5x017grrib47jsBYaW6JSb5iVMQRAcQqjF54RGyjFYaqTUQqx/recMTtzLlK5U4PZ6rAzh4I4v7BkUlqQ/6C5x465GiZ5c58sNN8Ki1Gz41B1%2BaOFWSMdWAcV0TOajkuDaDY8Kl2wezMbSNf6e9ONyxfRiMNQAcfZa7iamIiGChx56BSBJQ6xcQK8fyrYWGCx3Z/EfVuA66zAmIeASwKFJAhGyELMeyf6U1Ma6SdAuH2A8ztE8lBGeBYbpGhjtVnVGHvUd84E8l%2BH1HfhAzyUtHhV2HIr5GhhuHp9StpUuEFLmUOExHOAyEjGGrTG5HX4yGo9orlGOFKHwq9RX6EqoVMHVlsH4lMCvl8HbaqFCGNkGGSGCkfGxVAnvkaGCG6HEnhUUFmHrH2BFAu9K9OGCmeGxV%2BHSBVHeBS0XGJH76pHjGZGzG04FGeG9HjFlJqn3GTHZHtGrYUElGnHlJDHGmPG%2BnzHimOGrHWHbGIV7GuthnthxGenmmvHSGgHyG/Gln0nqHJBTCkr41H6qant5IxgBhWAQAxgfAxh1CrmdhbnUArn2rbz0NSRhhoITZOBbmCB7nzmBgX1zBBGzAQXQWwWwWrBLmxhuBbnTAxgHm/Krnbn3wdhSBfn4XznSA4BYAkA0BF4FQPByBKA8Wex2BPBgBOA9hSAqAFQB73wIBXA/nSAThN544rnvnSA8X2ceJaBWB5gmWsANNRB2ABW8BHC1BAJ3wMXrAiUsgqxxgEWzSoWEWQ4oR449AsB2WfmlgjAtWBgaB6AmA2AOBhGBBgthBRAUBWahAKx3xYA8SQAMdmhSBAJPAxhXGYXhM/LklaIrmQsxq4EJBXnXHqseIEWOxzxQhNBtA2hTBgsbBuh6hUgAgghXwwh9BihBAYg03E3kgGhgsI23RKgWhCgM3IgC3Mgi2qgChc3egC2S3Y3BBOga3lEeh82Bh3mRgTWLmrmbm7npWnmxgiURkLAQsucIRkA6FKWmJJB1hcBCA2wvn4Q9B8WyWYMzBwtZhWafm/mvXAWQWmJwWj3QXIWrmYX%2B2EXB3kWQBUX0WHmBhsXEAQAFaoiKAWNV383rB8B%2BlBADXGAWARXhGuQoR/A9WhBe3YWmXB2vn/RWRphh3R3x3gBJ32sdgZ2d2MW92gXD3j2j3wPoXIOB2kXFAb20Xd2e2xhJBCPL3iO73/mXWSQo3uAgA>compiler explorer</a>. Have fun !</p><h3 id=heco_1_sparseset_ptr>heco_1_sparseset_ptr</h3><div class=highlight><div style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">13
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">14
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">15
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">16
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">17
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">18
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">19
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">20
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">21
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">22
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">23
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">24
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">25
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">26
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">27
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">28
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">29
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">30
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">31
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">32
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">33
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">34
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">35
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">36
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">37
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">38
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">39
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">40
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">41
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">42
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">43
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">44
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">45
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">46
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">47
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">48
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">49
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">50
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">51
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">52
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">53
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">54
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">55
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">56
-</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cpp data-lang=cpp><span style=color:#ff79c6>#include</span><span style=color:#ff79c6>&lt;vector&gt;</span><span style=color:#ff79c6>
-</span><span style=color:#ff79c6>#include</span><span style=color:#ff79c6>&lt;cstdint&gt;</span><span style=color:#ff79c6>
-</span><span style=color:#ff79c6>#include</span><span style=color:#ff79c6>&lt;cstdlib&gt;</span><span style=color:#ff79c6>
-</span><span style=color:#ff79c6>#include</span><span style=color:#ff79c6>&lt;memory&gt;</span><span style=color:#ff79c6>
-</span><span style=color:#ff79c6>#include</span><span style=color:#ff79c6>&lt;utility&gt;</span><span style=color:#ff79c6>
-</span><span style=color:#ff79c6></span>
-<span style=color:#ff79c6>using</span> typeid_t <span style=color:#ff79c6>=</span> std<span style=color:#ff79c6>::</span><span style=color:#8be9fd>uint32_t</span>;
-<span style=color:#ff79c6>class</span> <span style=color:#50fa7b>TypeCounter</span> {
-    <span style=color:#ff79c6>static</span> <span style=color:#ff79c6>inline</span> typeid_t i <span style=color:#ff79c6>=</span> <span style=color:#bd93f9>0</span>;
-    <span style=color:#ff79c6>public</span><span style=color:#ff79c6>:</span>
-    <span style=color:#ff79c6>template</span><span style=color:#ff79c6>&lt;</span><span style=color:#ff79c6>typename</span> T<span style=color:#ff79c6>&gt;</span>
-    <span style=color:#ff79c6>static</span> <span style=color:#ff79c6>inline</span> <span style=color:#ff79c6>const</span> <span style=color:#ff79c6>auto</span> id <span style=color:#ff79c6>=</span> i<span style=color:#ff79c6>++</span>;
-};
-<span style=color:#ff79c6>template</span><span style=color:#ff79c6>&lt;</span><span style=color:#ff79c6>typename</span> T<span style=color:#ff79c6>&gt;</span> <span style=color:#ff79c6>inline</span> <span style=color:#ff79c6>auto</span> typeid_v <span style=color:#ff79c6>=</span> TypeCounter<span style=color:#ff79c6>::</span>id<span style=color:#ff79c6>&lt;</span>T<span style=color:#ff79c6>&gt;</span>;
-
-<span style=color:#ff79c6>struct</span> <span style=color:#50fa7b>heco_1_sparseset_ptr</span>
-{
-    <span style=color:#ff79c6>using</span> ptr_t <span style=color:#ff79c6>=</span> std<span style=color:#ff79c6>::</span>unique_ptr<span style=color:#ff79c6>&lt;</span><span style=color:#8be9fd>void</span>, <span style=color:#8be9fd>void</span>(<span style=color:#ff79c6>*</span>)(<span style=color:#8be9fd>void</span><span style=color:#ff79c6>*</span>)<span style=color:#ff79c6>&gt;</span>;
-    std<span style=color:#ff79c6>::</span>vector<span style=color:#ff79c6>&lt;</span>std<span style=color:#ff79c6>::</span><span style=color:#8be9fd>uint8_t</span><span style=color:#ff79c6>&gt;</span> sparse;
-    std<span style=color:#ff79c6>::</span>vector<span style=color:#ff79c6>&lt;</span>typeid_t<span style=color:#ff79c6>&gt;</span>     dense;
-    std<span style=color:#ff79c6>::</span>vector<span style=color:#ff79c6>&lt;</span>ptr_t<span style=color:#ff79c6>&gt;</span>        objects;
-
-    <span style=color:#ff79c6>template</span><span style=color:#ff79c6>&lt;</span><span style=color:#ff79c6>typename</span> T, <span style=color:#ff79c6>typename</span>... Rest<span style=color:#ff79c6>&gt;</span>
-    <span style=color:#ff79c6>decltype</span>(<span style=color:#ff79c6>auto</span>) get()
-    {
-        <span style=color:#ff79c6>using</span> U <span style=color:#ff79c6>=</span> std<span style=color:#ff79c6>::</span>remove_reference_t<span style=color:#ff79c6>&lt;</span>T<span style=color:#ff79c6>&gt;</span>;
-        <span style=color:#ff79c6>if</span> <span style=color:#50fa7b>constexpr</span> (<span style=color:#ff79c6>sizeof</span>...(Rest) <span style=color:#ff79c6>==</span> <span style=color:#bd93f9>0</span>)
-            <span style=color:#ff79c6>return</span> <span style=color:#ff79c6>*</span><span style=color:#ff79c6>static_cast</span><span style=color:#ff79c6>&lt;</span>U<span style=color:#ff79c6>*&gt;</span>(objects[sparse[typeid_v<span style=color:#ff79c6>&lt;</span>U<span style=color:#ff79c6>&gt;</span>]].get());
-        <span style=color:#ff79c6>else</span>
-            <span style=color:#ff79c6>return</span> std<span style=color:#ff79c6>::</span>forward_as_tuple(get<span style=color:#ff79c6>&lt;</span>T<span style=color:#ff79c6>&gt;</span>(), get<span style=color:#ff79c6>&lt;</span>Rest<span style=color:#ff79c6>&gt;</span>()...);
-    }
-
-    <span style=color:#ff79c6>template</span><span style=color:#ff79c6>&lt;</span><span style=color:#ff79c6>typename</span>... Ts<span style=color:#ff79c6>&gt;</span>
-    <span style=color:#8be9fd>void</span> insert(Ts<span style=color:#ff79c6>&amp;&amp;</span> ... values)
-    {
-        objects.reserve(objects.size() <span style=color:#ff79c6>+</span> <span style=color:#ff79c6>sizeof</span>...(Ts));
-        <span style=color:#ff79c6>auto</span> construct <span style=color:#ff79c6>=</span> [<span style=color:#ff79c6>&amp;</span>](<span style=color:#ff79c6>auto</span><span style=color:#ff79c6>&amp;&amp;</span> t) {
-            <span style=color:#ff79c6>using</span> T <span style=color:#ff79c6>=</span> <span style=color:#ff79c6>decltype</span>(t);
-            <span style=color:#ff79c6>using</span> U <span style=color:#ff79c6>=</span> std<span style=color:#ff79c6>::</span>remove_reference_t<span style=color:#ff79c6>&lt;</span><span style=color:#ff79c6>decltype</span>(t)<span style=color:#ff79c6>&gt;</span>;
-            objects.push_back(
-                std<span style=color:#ff79c6>::</span>unique_ptr<span style=color:#ff79c6>&lt;</span><span style=color:#8be9fd>void</span>, <span style=color:#8be9fd>void</span>(<span style=color:#ff79c6>*</span>)(<span style=color:#8be9fd>void</span><span style=color:#ff79c6>*</span>)<span style=color:#ff79c6>&gt;</span>{
-                <span style=color:#ff79c6>new</span> U{ std<span style=color:#ff79c6>::</span>forward<span style=color:#ff79c6>&lt;</span>T<span style=color:#ff79c6>&gt;</span>(t) }, <span style=color:#ff79c6>+</span>[](<span style=color:#8be9fd>void</span><span style=color:#ff79c6>*</span> instance) { <span style=color:#ff79c6>delete</span> <span style=color:#ff79c6>static_cast</span><span style=color:#ff79c6>&lt;</span>U<span style=color:#ff79c6>*&gt;</span>(instance); } });
-        };
-        (construct(std<span style=color:#ff79c6>::</span>forward<span style=color:#ff79c6>&lt;</span>Ts<span style=color:#ff79c6>&gt;</span>(values)), ...);
-        <span style=color:#6272a4>// update sparse vector
-</span><span style=color:#6272a4></span>        <span style=color:#ff79c6>const</span> <span style=color:#ff79c6>auto</span> max_id <span style=color:#ff79c6>=</span> std<span style=color:#ff79c6>::</span>max({ typeid_v<span style=color:#ff79c6>&lt;</span>Ts<span style=color:#ff79c6>&gt;</span>... });
-        <span style=color:#ff79c6>if</span> (max_id <span style=color:#ff79c6>&gt;=</span> sparse.size())
-            sparse.resize(max_id <span style=color:#ff79c6>+</span> <span style=color:#bd93f9>1</span>, <span style=color:#ff79c6>-</span><span style=color:#bd93f9>1</span>);
-        <span style=color:#ff79c6>const</span> <span style=color:#ff79c6>auto</span> ids <span style=color:#ff79c6>=</span> std<span style=color:#ff79c6>::</span>array{ typeid_v<span style=color:#ff79c6>&lt;</span>Ts<span style=color:#ff79c6>&gt;</span>... };
-        <span style=color:#ff79c6>for</span> (<span style=color:#8be9fd>int</span> i <span style=color:#ff79c6>=</span> ids.size(); i <span style=color:#ff79c6>&gt;</span> <span style=color:#bd93f9>0</span>; <span style=color:#ff79c6>--</span>i)
-            sparse[ids[i <span style=color:#ff79c6>-</span> <span style=color:#bd93f9>1</span>]] <span style=color:#ff79c6>=</span> i <span style=color:#ff79c6>-</span> <span style=color:#bd93f9>1</span>;
-        <span style=color:#6272a4>// update dense vector
-</span><span style=color:#6272a4></span>        dense.reserve(dense.size() <span style=color:#ff79c6>+</span> <span style=color:#ff79c6>sizeof</span>...(Ts));
-        (dense.push_back(typeid_v<span style=color:#ff79c6>&lt;</span>Ts<span style=color:#ff79c6>&gt;</span>), ...);
-    }
-};
-</code></pre></td></tr></table></div></div><h3 id=heco_1_sparseset_array>heco_1_sparseset_array</h3><div class=highlight><div style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">  1
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">  2
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">  3
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">  4
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">  5
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">  6
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">  7
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">  8
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">  9
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 10
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 11
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 12
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 13
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 14
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 15
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 16
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 17
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 18
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 19
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 20
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 21
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 22
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 23
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 24
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 25
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 26
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 27
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 28
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 29
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 30
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 31
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 32
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 33
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 34
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 35
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 36
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 37
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 38
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 39
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 40
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 41
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 42
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 43
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 44
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 45
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 46
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 47
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 48
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 49
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 50
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 51
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 52
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 53
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 54
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 55
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 56
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 57
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 58
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 59
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 60
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 61
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 62
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 63
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 64
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 65
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 66
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 67
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 68
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 69
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 70
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 71
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 72
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 73
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 74
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 75
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 76
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 77
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 78
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 79
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 80
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 81
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 82
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 83
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 84
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 85
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 86
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 87
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 88
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 89
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 90
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 91
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 92
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 93
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 94
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 95
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 96
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 97
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 98
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 99
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">100
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">101
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">102
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">103
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">104
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">105
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">106
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">107
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">108
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">109
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">110
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">111
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">112
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">113
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">114
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">115
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">116
-</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cpp data-lang=cpp><span style=color:#ff79c6>#include</span><span style=color:#ff79c6>&lt;vector&gt;</span><span style=color:#ff79c6>
-</span><span style=color:#ff79c6>#include</span><span style=color:#ff79c6>&lt;cstdint&gt;</span><span style=color:#ff79c6>
-</span><span style=color:#ff79c6>#include</span><span style=color:#ff79c6>&lt;cstdlib&gt;</span><span style=color:#ff79c6>
-</span><span style=color:#ff79c6>#include</span><span style=color:#ff79c6>&lt;memory&gt;</span><span style=color:#ff79c6>
-</span><span style=color:#ff79c6>#include</span><span style=color:#ff79c6>&lt;utility&gt;</span><span style=color:#ff79c6>
-</span><span style=color:#ff79c6>#include</span><span style=color:#ff79c6>&lt;algorithm&gt;</span><span style=color:#ff79c6>
-</span><span style=color:#ff79c6>#include</span><span style=color:#ff79c6>&lt;boost/align/aligned_allocator.hpp&gt;</span><span style=color:#ff79c6>
-</span><span style=color:#ff79c6></span>
-<span style=color:#ff79c6>using</span> typeid_t <span style=color:#ff79c6>=</span> std<span style=color:#ff79c6>::</span><span style=color:#8be9fd>uint32_t</span>;
-<span style=color:#ff79c6>class</span> <span style=color:#50fa7b>TypeCounter</span> {
-    <span style=color:#ff79c6>static</span> <span style=color:#ff79c6>inline</span> typeid_t i <span style=color:#ff79c6>=</span> <span style=color:#bd93f9>0</span>;
-    <span style=color:#ff79c6>public</span><span style=color:#ff79c6>:</span>
-    <span style=color:#ff79c6>template</span><span style=color:#ff79c6>&lt;</span><span style=color:#ff79c6>typename</span> T<span style=color:#ff79c6>&gt;</span>
-    <span style=color:#ff79c6>static</span> <span style=color:#ff79c6>inline</span> <span style=color:#ff79c6>const</span> <span style=color:#ff79c6>auto</span> id <span style=color:#ff79c6>=</span> i<span style=color:#ff79c6>++</span>;
-};
-<span style=color:#ff79c6>template</span><span style=color:#ff79c6>&lt;</span><span style=color:#ff79c6>typename</span> T<span style=color:#ff79c6>&gt;</span> <span style=color:#ff79c6>inline</span> <span style=color:#ff79c6>auto</span> typeid_v <span style=color:#ff79c6>=</span> TypeCounter<span style=color:#ff79c6>::</span>id<span style=color:#ff79c6>&lt;</span>T<span style=color:#ff79c6>&gt;</span>;
-
-<span style=color:#ff79c6>struct</span> <span style=color:#50fa7b>heco_1_sparseset_bytes</span>
-{
-    <span style=color:#ff79c6>template</span><span style=color:#ff79c6>&lt;</span><span style=color:#ff79c6>typename</span> T, size_t N<span style=color:#ff79c6>&gt;</span>
-    <span style=color:#ff79c6>using</span> aligned_allocator <span style=color:#ff79c6>=</span> boost<span style=color:#ff79c6>::</span>alignment<span style=color:#ff79c6>::</span>aligned_allocator<span style=color:#ff79c6>&lt;</span>T, N<span style=color:#ff79c6>&gt;</span>;
-    <span style=color:#ff79c6>static</span> <span style=color:#ff79c6>constexpr</span> <span style=color:#ff79c6>inline</span> <span style=color:#ff79c6>auto</span> max_alignment <span style=color:#ff79c6>=</span> <span style=color:#bd93f9>64UL</span>;
-    <span style=color:#ff79c6>using</span> offset_t <span style=color:#ff79c6>=</span> std<span style=color:#ff79c6>::</span><span style=color:#8be9fd>uint32_t</span>;
-
-    <span style=color:#ff79c6>enum</span> <span style=color:#ff79c6>class</span> <span style=color:#50fa7b>ACTION</span> { CONSTRUCT, COPY, MOVE, DESTROY };
-    <span style=color:#ff79c6>using</span> destructor_t <span style=color:#ff79c6>=</span> size_t(<span style=color:#ff79c6>*</span>)(<span style=color:#8be9fd>void</span><span style=color:#ff79c6>*</span>, <span style=color:#8be9fd>void</span><span style=color:#ff79c6>*</span>, ACTION);
-    <span style=color:#ff79c6>struct</span> <span style=color:#50fa7b>typeid_offset_dtor</span> { typeid_t tag; offset_t offset; destructor_t dtor; };
-
-    std<span style=color:#ff79c6>::</span>vector<span style=color:#ff79c6>&lt;</span>std<span style=color:#ff79c6>::</span><span style=color:#8be9fd>uint8_t</span><span style=color:#ff79c6>&gt;</span> sparse;
-    std<span style=color:#ff79c6>::</span>vector<span style=color:#ff79c6>&lt;</span>typeid_offset_dtor<span style=color:#ff79c6>&gt;</span> dense;
-    <span style=color:#ff79c6>using</span> vector_bytes <span style=color:#ff79c6>=</span> std<span style=color:#ff79c6>::</span>vector<span style=color:#ff79c6>&lt;</span>std<span style=color:#ff79c6>::</span>byte, aligned_allocator<span style=color:#ff79c6>&lt;</span>std<span style=color:#ff79c6>::</span>byte, max_alignment<span style=color:#ff79c6>&gt;&gt;</span>;
-    vector_bytes objects;
-
-    heco_1_sparseset_bytes() <span style=color:#ff79c6>=</span> <span style=color:#ff79c6>default</span>;
-    heco_1_sparseset_bytes(heco_1_sparseset_bytes<span style=color:#ff79c6>&amp;&amp;</span>) <span style=color:#ff79c6>=</span> <span style=color:#ff79c6>default</span>;
-    heco_1_sparseset_bytes(<span style=color:#ff79c6>const</span> heco_1_sparseset_bytes<span style=color:#ff79c6>&amp;</span>) <span style=color:#ff79c6>=</span> <span style=color:#ff79c6>delete</span>;
-    heco_1_sparseset_bytes<span style=color:#ff79c6>&amp;</span> <span style=color:#ff79c6>operator</span><span style=color:#ff79c6>=</span>(<span style=color:#ff79c6>const</span> heco_1_sparseset_bytes<span style=color:#ff79c6>&amp;</span>) <span style=color:#ff79c6>=</span> <span style=color:#ff79c6>delete</span>;
-    heco_1_sparseset_bytes<span style=color:#ff79c6>&amp;</span> <span style=color:#ff79c6>operator</span><span style=color:#ff79c6>=</span>(heco_1_sparseset_bytes<span style=color:#ff79c6>&amp;&amp;</span>) <span style=color:#ff79c6>=</span> <span style=color:#ff79c6>default</span>;
-    <span style=color:#ff79c6>~</span>heco_1_sparseset_bytes() {
-        <span style=color:#ff79c6>for</span> (<span style=color:#ff79c6>auto</span><span style=color:#ff79c6>&amp;</span> <span style=color:#8be9fd;font-style:italic>i</span> : dense)
-            i.dtor(<span style=color:#ff79c6>&amp;</span>objects[i.offset],<span style=color:#ff79c6>nullptr</span>,ACTION<span style=color:#ff79c6>::</span>DESTROY);
-    }
-
-    <span style=color:#ff79c6>template</span><span style=color:#ff79c6>&lt;</span><span style=color:#ff79c6>typename</span> T<span style=color:#ff79c6>&gt;</span>
-    <span style=color:#ff79c6>auto</span> record_destructor() {
-        <span style=color:#ff79c6>return</span> <span style=color:#ff79c6>+</span>[](<span style=color:#8be9fd>void</span><span style=color:#ff79c6>*</span> src, <span style=color:#8be9fd>void</span><span style=color:#ff79c6>*</span> tgt, ACTION action)
-        {
-            <span style=color:#ff79c6>switch</span> (action) {
-            <span style=color:#ff79c6>case</span> ACTION<span style=color:#ff79c6>::</span><span style=color:#8be9fd;font-style:italic>CONSTRUCT</span>: <span style=color:#ff79c6>new</span>(tgt) T; <span style=color:#ff79c6>break</span>;
-            <span style=color:#ff79c6>case</span> ACTION<span style=color:#ff79c6>::</span><span style=color:#8be9fd;font-style:italic>DESTROY</span>: std<span style=color:#ff79c6>::</span>destroy_at(<span style=color:#ff79c6>static_cast</span><span style=color:#ff79c6>&lt;</span>T<span style=color:#ff79c6>*&gt;</span>(src)); <span style=color:#ff79c6>break</span>;
-            <span style=color:#ff79c6>case</span> ACTION<span style=color:#ff79c6>::</span><span style=color:#8be9fd;font-style:italic>COPY</span>: <span style=color:#ff79c6>new</span>(tgt) T{ <span style=color:#ff79c6>*</span><span style=color:#ff79c6>static_cast</span><span style=color:#ff79c6>&lt;</span>T<span style=color:#ff79c6>*&gt;</span>(src) }; <span style=color:#ff79c6>break</span>;
-            <span style=color:#ff79c6>case</span> ACTION<span style=color:#ff79c6>::</span><span style=color:#8be9fd;font-style:italic>MOVE</span>: <span style=color:#ff79c6>new</span>(tgt) T{ std<span style=color:#ff79c6>::</span>move(<span style=color:#ff79c6>*</span><span style=color:#ff79c6>static_cast</span><span style=color:#ff79c6>&lt;</span>T<span style=color:#ff79c6>*&gt;</span>(src)) }; <span style=color:#ff79c6>break</span>;
-            <span style=color:#ff79c6>default</span><span style=color:#ff79c6>:</span> <span style=color:#ff79c6>break</span>;
-            }
-            <span style=color:#ff79c6>return</span> <span style=color:#50fa7b>sizeof</span>(T);
-        };
-    }
-
-    <span style=color:#ff79c6>template</span><span style=color:#ff79c6>&lt;</span><span style=color:#ff79c6>typename</span> T<span style=color:#ff79c6>&gt;</span>
-    <span style=color:#ff79c6>decltype</span>(<span style=color:#ff79c6>auto</span>) get() { <span style=color:#ff79c6>return</span> do_get<span style=color:#ff79c6>&lt;</span>T<span style=color:#ff79c6>&gt;</span>(dense[sparse[typeid_v<span style=color:#ff79c6>&lt;</span>T<span style=color:#ff79c6>&gt;</span>]].offset); }
-
-    <span style=color:#ff79c6>template</span><span style=color:#ff79c6>&lt;</span><span style=color:#ff79c6>typename</span> T, <span style=color:#ff79c6>typename</span> U <span style=color:#ff79c6>=</span> std<span style=color:#ff79c6>::</span>remove_reference_t<span style=color:#ff79c6>&lt;</span>T<span style=color:#ff79c6>&gt;&gt;</span>
-    U<span style=color:#ff79c6>&amp;</span> do_get(offset_t n) { <span style=color:#ff79c6>return</span> <span style=color:#ff79c6>*</span>std<span style=color:#ff79c6>::</span>launder(<span style=color:#ff79c6>reinterpret_cast</span><span style=color:#ff79c6>&lt;</span>U<span style=color:#ff79c6>*&gt;</span>(<span style=color:#ff79c6>&amp;</span>objects[n])); }
-
-    <span style=color:#ff79c6>template</span><span style=color:#ff79c6>&lt;</span><span style=color:#ff79c6>typename</span>... Ts<span style=color:#ff79c6>&gt;</span>
-    <span style=color:#8be9fd>void</span> insert(Ts<span style=color:#ff79c6>&amp;&amp;</span>... types) {
-        <span style=color:#6272a4>// allocate and construct objects
-</span><span style=color:#6272a4></span>        <span style=color:#ff79c6>const</span> <span style=color:#ff79c6>auto</span> offsets <span style=color:#ff79c6>=</span> allocate<span style=color:#ff79c6>&lt;</span>Ts...<span style=color:#ff79c6>&gt;</span>();
-        <span style=color:#ff79c6>auto</span> construct <span style=color:#ff79c6>=</span> [<span style=color:#ff79c6>&amp;</span>](offset_t n, <span style=color:#ff79c6>auto</span><span style=color:#ff79c6>&amp;&amp;</span> t) {
-             <span style=color:#ff79c6>using</span> T <span style=color:#ff79c6>=</span> <span style=color:#ff79c6>decltype</span>(t);
-            <span style=color:#ff79c6>using</span> U <span style=color:#ff79c6>=</span> std<span style=color:#ff79c6>::</span>remove_reference_t<span style=color:#ff79c6>&lt;</span>T<span style=color:#ff79c6>&gt;</span>;
-            <span style=color:#ff79c6>new</span>(<span style=color:#ff79c6>&amp;</span>objects[n]) U{ std<span style=color:#ff79c6>::</span>forward<span style=color:#ff79c6>&lt;</span>T<span style=color:#ff79c6>&gt;</span>(t) };
-        };
-        {size_t i <span style=color:#ff79c6>=</span> <span style=color:#bd93f9>0</span>; (construct(offsets[i<span style=color:#ff79c6>++</span>], types), ...); }
-        <span style=color:#6272a4>// update sparse vector
-</span><span style=color:#6272a4></span>        <span style=color:#ff79c6>const</span> <span style=color:#ff79c6>auto</span> ids <span style=color:#ff79c6>=</span> std<span style=color:#ff79c6>::</span>array{ typeid_v<span style=color:#ff79c6>&lt;</span>Ts<span style=color:#ff79c6>&gt;</span>... };
-        <span style=color:#ff79c6>const</span> <span style=color:#ff79c6>auto</span> max_id <span style=color:#ff79c6>=</span> <span style=color:#ff79c6>*</span>std<span style=color:#ff79c6>::</span>max_element(ids.cbegin(), ids.end());
-        <span style=color:#ff79c6>if</span> (max_id <span style=color:#ff79c6>&gt;=</span> sparse.size())
-            sparse.resize(max_id <span style=color:#ff79c6>+</span> <span style=color:#bd93f9>1</span>, <span style=color:#ff79c6>-</span><span style=color:#bd93f9>1</span>);
-        <span style=color:#ff79c6>for</span> (<span style=color:#8be9fd>int</span> i <span style=color:#ff79c6>=</span> ids.size(); i <span style=color:#ff79c6>&gt;</span> <span style=color:#bd93f9>0</span>; <span style=color:#ff79c6>--</span>i)
-            sparse[ids[i <span style=color:#ff79c6>-</span> <span style=color:#bd93f9>1</span>]] <span style=color:#ff79c6>=</span> i <span style=color:#ff79c6>-</span> <span style=color:#bd93f9>1</span>;
-        <span style=color:#6272a4>// update dense vector
-</span><span style=color:#6272a4></span>        dense.reserve(dense.size() <span style=color:#ff79c6>+</span> <span style=color:#ff79c6>sizeof</span>...(Ts));
-        {size_t i <span style=color:#ff79c6>=</span> <span style=color:#bd93f9>0</span>; (dense.push_back({ typeid_v<span style=color:#ff79c6>&lt;</span>Ts<span style=color:#ff79c6>&gt;</span>,offsets[i<span style=color:#ff79c6>++</span>], record_destructor<span style=color:#ff79c6>&lt;</span>Ts<span style=color:#ff79c6>&gt;</span>() }), ...); }
-    }
-
-    <span style=color:#ff79c6>template</span><span style=color:#ff79c6>&lt;</span><span style=color:#ff79c6>typename</span>... T<span style=color:#ff79c6>&gt;</span>
-    <span style=color:#ff79c6>auto</span> allocate()<span style=color:#ff79c6>-&gt;</span>std<span style=color:#ff79c6>::</span>array<span style=color:#ff79c6>&lt;</span>offset_t, <span style=color:#ff79c6>sizeof</span>...(T)<span style=color:#ff79c6>&gt;</span> {
-        <span style=color:#ff79c6>static_assert</span>(((<span style=color:#ff79c6>alignof</span>(T) <span style=color:#ff79c6>&lt;=</span> max_alignment) <span style=color:#ff79c6>&amp;&amp;</span> ...));
-        <span style=color:#ff79c6>using</span> <span style=color:#ff79c6>namespace</span> std;
-
-        <span style=color:#ff79c6>constexpr</span> size_t N <span style=color:#ff79c6>=</span> <span style=color:#ff79c6>sizeof</span>...(T);
-        <span style=color:#ff79c6>constexpr</span> array<span style=color:#ff79c6>&lt;</span>size_t, N<span style=color:#ff79c6>&gt;</span> alignments <span style=color:#ff79c6>=</span> { <span style=color:#ff79c6>alignof</span>(T)... };
-        <span style=color:#ff79c6>constexpr</span> array<span style=color:#ff79c6>&lt;</span>size_t, N<span style=color:#ff79c6>&gt;</span> sizes <span style=color:#ff79c6>=</span> { <span style=color:#ff79c6>sizeof</span>(T)... };
-
-        array<span style=color:#ff79c6>&lt;</span>offset_t, N<span style=color:#ff79c6>&gt;</span> output;
-
-        <span style=color:#ff79c6>const</span> size_t size_before <span style=color:#ff79c6>=</span> objects.size();
-        uintptr_t ptr_end <span style=color:#ff79c6>=</span> uintptr_t(objects.data() <span style=color:#ff79c6>+</span> size_before);
-        size_t to_allocate <span style=color:#ff79c6>=</span> <span style=color:#bd93f9>0</span>;
-        <span style=color:#ff79c6>for</span> (<span style=color:#8be9fd>int</span> i <span style=color:#ff79c6>=</span> <span style=color:#bd93f9>0</span>; i <span style=color:#ff79c6>&lt;</span> N; <span style=color:#ff79c6>++</span>i)
-        {
-            size_t padding <span style=color:#ff79c6>=</span> ((<span style=color:#ff79c6>~</span>ptr_end <span style=color:#ff79c6>+</span> <span style=color:#bd93f9>1</span>) <span style=color:#ff79c6>&amp;</span> (alignments[i] <span style=color:#ff79c6>-</span> <span style=color:#bd93f9>1</span>));
-            output[i] <span style=color:#ff79c6>=</span> size_before <span style=color:#ff79c6>+</span> to_allocate <span style=color:#ff79c6>+</span> padding;
-            to_allocate <span style=color:#ff79c6>+=</span> padding <span style=color:#ff79c6>+</span> sizes[i];
-            ptr_end <span style=color:#ff79c6>+=</span> padding <span style=color:#ff79c6>+</span> sizes[i];
-        }
-        size_t size_after <span style=color:#ff79c6>=</span> size_before <span style=color:#ff79c6>+</span> to_allocate;
-        <span style=color:#6272a4>// objects.resize(size_after);//Resizing screw up runtime on Linux &#34;free(): invalid pointer&#34;, not moving objects is UB
-</span><span style=color:#6272a4></span>        vector_bytes <span style=color:#50fa7b>tmp</span>(size_after);
-        <span style=color:#ff79c6>for</span> (<span style=color:#ff79c6>auto</span><span style=color:#ff79c6>&amp;&amp;</span> [tid, offset, dtor] <span style=color:#ff79c6>:</span> dense)
-            dtor(<span style=color:#ff79c6>&amp;</span>objects[offset], <span style=color:#ff79c6>&amp;</span>tmp[offset], ACTION<span style=color:#ff79c6>::</span>MOVE);
-        objects <span style=color:#ff79c6>=</span> std<span style=color:#ff79c6>::</span>exchange(tmp, {});
-        <span style=color:#ff79c6>return</span> output;
-    }
-};
-</code></pre></td></tr></table></div></div></div></main><footer id=footer><div id=footer-inner>&copy;&nbsp;2020-2022&nbsp;&#183;&nbsp;Fabien Péan</div></footer><script>window.FontAwesomeConfig={searchPseudoElements:true}</script><script async src=https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/js/all.min.js integrity="sha256-MAgcygDRahs+F/Nk5Vz387whB4kSK9NXlDN3w58LLq0=" crossorigin=anonymous></script><script src=https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin=anonymous></script><script async defer src=https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/1.6.0/clipboard.min.js></script><script src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.18.1/highlight.min.js integrity="sha256-eOgo0OtLL4cdq7RdwRUiGKLX9XsIJ7nGhWEKbohmVAQ=" crossorigin=anonymous></script><script src=https://cdnjs.cloudflare.com/ajax/libs/mermaid/8.4.8/mermaid.min.js integrity="sha256-lyWCDMnMeZiXRi7Zl54sZGKYmgQs4izcT7+tKc+KUBk=" crossorigin=anonymous></script><script>mermaid.initialize({startOnLoad:true,securityLevel:'loose',theme:'default',themeCSS:'',cloneCssStyles:true,useMaxWidth:true,htmlLabels:false,flowchart:{curve:'basis'}});</script><script>window.MathJax={tex:{inlineMath:[['$','$'],['\\(','\\)']],displayMath:[['$$','$$'],['\\[','\\]']],processEscapes:false,processEnvironments:true,tags:'ams'},svg:{fontCache:'global',displayAlign:'left',displayIndent:'2emem'}};</script><script async type=text/javascript id=MathJax-script src=https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js></script><script src=/js/custom.js></script></body></html>
+<!doctype html><html lang=en-us><!doctype html><html lang=en><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content><meta name=author content="Fabien Péan"><meta name=google-site-verification content="_OCqKj2I4fVqJsqpa9uq0utQ55W1kx93lTIQtHZ88mM"><link rel="shortcut icon" type=image/png href=/img/logo.svg><title>Fabien Péan &#183; Personal Website</title><meta name=robots content="index,follow"><meta name=googlebot content="index,follow"><link rel=stylesheet type=text/css href=/css/normalize.css><link rel=stylesheet href=/vendor/colors/css/colors.min.css><link rel=stylesheet href=/vendor/academicons/css/academicons.min.css><style>:root{--font-monospace:"Source Code Pro";--font-sans-serif:"Inter"}</style><link href="https://fonts.googleapis.com/css?family=Inter%7cSource+Code+Pro&display=swap" rel=stylesheet type=text/css><link rel=stylesheet href=/css/custom.css></head><body><body><nav id=nav><figure id=logo class=image><img src=/img/logo.svg></figure><div id=branding><div class=branding-title>Fabien Péan</div><div class=branding-subtitle></div></div><div id=menu><a class=menu-link href=/><div class=menu-item><span class=menu-label><i class="fas fa-home fa-fw"></i>&nbsp;Home</span></div></a><a class=menu-link href=/news><div class=menu-item><span class=menu-label><i class="fas fa-newspaper fa-fw"></i>&nbsp;News</span></div></a><a class=menu-link href=/blog><div class=menu-item><span class=menu-label><i class="fas fa-pencil-alt fa-fw"></i>&nbsp;Blog</span></div></a><a class=menu-link href=/notes><div class=menu-item><span class=menu-label><i class="fas fa-sticky-note fa-fw"></i>&nbsp;Notes</span></div></a><a class=menu-link href=/projects><div class=menu-item><span class=menu-label><i class="fas fa-book fa-fw"></i>&nbsp;Projects</span></div></a></div><div class=social><div class=social-list><div style="display:flex;flex-flow:row wrap;justify-content:center"><div class="social-button email"><a href=mailto:fabien@pean.pro rel=author><i class="fas fa-at fa-2x"></i></a></div><div class="social-button bitbucket"><a href=https://bitbucket.org/FabienPean rel="author external"><i class="fab fa-bitbucket fa-2x"></i></a></div><div class="social-button github"><a href=https://github.com/FabienPean rel="author external"><i class="fab fa-github fa-2x"></i></a></div><div class="social-button linkedin"><a href=https://www.linkedin.com/in/FabienPean rel="author external"><i class="fab fa-linkedin fa-2x"></i></a></div></div></div></div></nav><main id=main><div class=content><h1>Fastest heterogeneous container and benchmarks</h1><small><div class=subtitle style="display:flex;flex-flow:row wrap;justify-content:space-between"><span style="flex:1 0 auto;max-width:100%"><span class=tooltip>11/11/2020
+<span class=tooltiptext><small>updated on 18/06/2022</small></span>
+</span>&nbsp;&boxv;&nbsp;<a href=/blog>Blog</a></span><div class=tag-list><a href=/tags/c++><div class=tag>c++</div></a></div></div></small><br><p>While doing some benchmarks with the heterogeneous containers described <a href=/blog/2020/07/implementing-an-heterogeneous-dynamic-array-in-cplusplus/>here</a> and <a href=/blog/2020/08/a-simple-heterogeneous-container-in-cplusplus-without-relying-on-variant-nor-any/>here</a> along with some related containers, I could not but notice the performance of <a href=https://github.com/skypjack/entt>entt</a>, more specifically its <em>registry</em> class which relies on a modified sparse set data structure. In front of such witchcraft, I decided to delve behind the curtains and see for myself the performance of an heterogeneous container based on it.</p><h2 id=sparse-sets>Sparse sets</h2><p>Sparse sets are data structures widely covered (<a href=https://programmingpraxis.com/2012/03/09/sparse-sets/>1</a>, <a href=https://www.geeksforgeeks.org/sparse-set/>2</a>, <a href=https://skypjack.github.io/2019-09-25-ecs-baf-part-5/>3</a>, <a href=https://doi.org/10.1145/176454.176484>4</a>). I will give a shot here and explain succinctly and as clear as possible the concepts behind the data structure.</p><p>Sparse sets, in the pure form, are actually maps, they map integers $\mathbb N_1$ to integers $\mathbb N_2$. The main members of the structure are so called a sparse vector and a dense vector.</p><p>The sparse vector contains at index $n_1\in \mathbb N_1$ a value $n_2\in\mathbb N_2$.</p><p>The dense vector contains at index $n_2\in \mathbb N_2$ a value $n_1\in\mathbb N_1$.</p><p>What makes the sparse vector sparse is that not all consecutive values within $\mathbb N_1$ are valid. On the contrary, all consecutive values within $\mathbb N_2$ exist.</p><p>For example, assuming that we expect $\mathbb N_1$ to cover the range of integers up to $2^{32}$, i.e. $\mathbb N_1$ = <code>uint32</code>; and $\mathbb N_2$ to cover up to $2^{8}$, i.e. $\mathbb N_2$=<code>uint8</code>; then the sparse vector can be represented by <code>std::vector&lt;uint8></code> and the dense vector by <code>std::vector&lt;uint32></code>. Here, the data structure can store only up to $256$ values, bounded by the maximum value describable by $\mathbb N_2$, but these values can spread up to $2^{32}$ representing an index in the sparse vector. Theoretically, the resulting sparse vector can be as big as $\max(\mathbb N_1) \times \log_2(\max(\mathbb N_2))~$bytes$=2^{32}\times8\approx34\text{Gb}$&mldr; just to store up to $256$ values. Obviously, this is not great. As such, the sparse vector is good enough to store relatively sparse but near-consecutive range of values. Basically, forget storing hash values in there since they usually aim for a great dispersion of the values over the available range.</p><p>Alright so far so good, we can store pairs of integers&mldr; yey. Fortunately, adapting it to store any sequence of objects is a matter of adding another array that follows the ordering of the dense vector.</p><div class=highlight><div style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">3
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">4
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">5
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">6
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cpp data-lang=cpp><span style=display:flex><span><span style=color:#ff79c6>template</span><span style=color:#ff79c6>&lt;</span><span style=color:#ff79c6>typename</span> N1, <span style=color:#ff79c6>typename</span> N2, <span style=color:#ff79c6>typename</span> ObjectT<span style=color:#ff79c6>&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#ff79c6>struct</span> <span style=color:#50fa7b>SparseSet</span> {
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>using</span> sparse_vector <span style=color:#ff79c6>=</span> std<span style=color:#ff79c6>::</span>vector<span style=color:#ff79c6>&lt;</span>N2<span style=color:#ff79c6>&gt;</span>;
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>using</span> dense_vector  <span style=color:#ff79c6>=</span> std<span style=color:#ff79c6>::</span>vector<span style=color:#ff79c6>&lt;</span>N1<span style=color:#ff79c6>&gt;</span>;
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>using</span> object_vector <span style=color:#ff79c6>=</span> std<span style=color:#ff79c6>::</span>vector<span style=color:#ff79c6>&lt;</span>ObjectT<span style=color:#ff79c6>&gt;</span>;
+</span></span><span style=display:flex><span>};
+</span></span></code></pre></td></tr></table></div></div><h2 id=into-an-heterogeneous-container>Into an heterogeneous container</h2><p>Two alternatives are presented below following the path laid out by the previous posts. The first rely on a type-erased pointer to store the object, while the second is based on manual memory management akin to the heterogeneous dynamic array.</p><p>The mandatory part is the generator of consecutive identifier for types. Fortunately, it is relatively simple thanks to atomic integers or static template variables.</p><div class=highlight><div style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">3
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">4
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">5
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">6
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">7
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">8
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cpp data-lang=cpp><span style=display:flex><span><span style=color:#ff79c6>using</span> typeid_t <span style=color:#ff79c6>=</span> std<span style=color:#ff79c6>::</span><span style=color:#8be9fd>uint32_t</span>;
+</span></span><span style=display:flex><span><span style=color:#ff79c6>class</span> <span style=color:#50fa7b>TypeCounter</span> {
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>static</span> <span style=color:#ff79c6>inline</span> typeid_t i <span style=color:#ff79c6>=</span> <span style=color:#bd93f9>0</span>;
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>public</span><span style=color:#ff79c6>:</span>
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>template</span><span style=color:#ff79c6>&lt;</span><span style=color:#ff79c6>typename</span> T<span style=color:#ff79c6>&gt;</span>
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>static</span> <span style=color:#ff79c6>inline</span> <span style=color:#ff79c6>const</span> <span style=color:#ff79c6>auto</span> id <span style=color:#ff79c6>=</span> i<span style=color:#ff79c6>++</span>;
+</span></span><span style=display:flex><span>};
+</span></span><span style=display:flex><span><span style=color:#ff79c6>template</span><span style=color:#ff79c6>&lt;</span><span style=color:#ff79c6>typename</span> T<span style=color:#ff79c6>&gt;</span> <span style=color:#ff79c6>inline</span> <span style=color:#ff79c6>auto</span> typeid_v <span style=color:#ff79c6>=</span> TypeCounter<span style=color:#ff79c6>::</span>id<span style=color:#ff79c6>&lt;</span>T<span style=color:#ff79c6>&gt;</span>;
+</span></span></code></pre></td></tr></table></div></div><h3 id=alternative-1-the-easy-way-unique-pointers-are-you-friends>Alternative 1: the easy way, unique pointers are you friends</h3><p>The values within $\mathbb N_1$ represent a type identifier, except for the value representing absence of meaningful value. $\mathbb N_2$ only defines how many values can be stored, the fewer it is the more memory is saved when the sparse vector grows. Here $\mathbb N_2$ is chosen to hold within a byte. The object type is abstracted into a void pointer <code>std::unique_ptr&lt;void,void(*)(void*)></code>. The members are:</p><div class=highlight><div style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">3
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">4
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cpp data-lang=cpp><span style=display:flex><span>std<span style=color:#ff79c6>::</span>vector<span style=color:#ff79c6>&lt;</span>std<span style=color:#ff79c6>::</span><span style=color:#8be9fd>uint8_t</span><span style=color:#ff79c6>&gt;</span> sparse;
+</span></span><span style=display:flex><span>std<span style=color:#ff79c6>::</span>vector<span style=color:#ff79c6>&lt;</span>typeid_t<span style=color:#ff79c6>&gt;</span>     dense ;
+</span></span><span style=display:flex><span><span style=color:#ff79c6>using</span> ptr_t <span style=color:#ff79c6>=</span> std<span style=color:#ff79c6>::</span>unique_ptr<span style=color:#ff79c6>&lt;</span><span style=color:#8be9fd>void</span>,<span style=color:#8be9fd>void</span>(<span style=color:#ff79c6>*</span>)(<span style=color:#8be9fd>void</span><span style=color:#ff79c6>*</span>)<span style=color:#ff79c6>&gt;</span>;
+</span></span><span style=display:flex><span>std<span style=color:#ff79c6>::</span>vector<span style=color:#ff79c6>&lt;</span>ptr_t<span style=color:#ff79c6>&gt;</span>        objects;
+</span></span></code></pre></td></tr></table></div></div><p>Retrieving a type from the container is a (almost) one liner:</p><div class=highlight><div style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">2
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cpp data-lang=cpp><span style=display:flex><span><span style=color:#ff79c6>template</span><span style=color:#ff79c6>&lt;</span><span style=color:#ff79c6>typename</span> T, <span style=color:#ff79c6>typename</span> U <span style=color:#ff79c6>=</span> std<span style=color:#ff79c6>::</span>remove_reference_t<span style=color:#ff79c6>&lt;</span>T<span style=color:#ff79c6>&gt;&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#ff79c6>decltype</span>(<span style=color:#ff79c6>auto</span>) get() { <span style=color:#ff79c6>return</span> <span style=color:#ff79c6>*</span><span style=color:#ff79c6>static_cast</span><span style=color:#ff79c6>&lt;</span>U<span style=color:#ff79c6>*&gt;</span>(objects[sparse[typeid_v<span style=color:#ff79c6>&lt;</span>U<span style=color:#ff79c6>&gt;</span>]].get()); }
+</span></span></code></pre></td></tr></table></div></div><p>Insertion is a bit more involved because auxiliary sparse and dense vector must be updated:</p><div class=highlight><div style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">13
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">14
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">15
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">16
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">17
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">18
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">19
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">20
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">21
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">22
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">23
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">24
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cpp data-lang=cpp><span style=display:flex><span><span style=color:#ff79c6>template</span><span style=color:#ff79c6>&lt;</span><span style=color:#ff79c6>typename</span>... Ts<span style=color:#ff79c6>&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#8be9fd>void</span> insert(Ts<span style=color:#ff79c6>&amp;&amp;</span> ... values) {
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>// construct objects
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    objects.reserve(objects.size() <span style=color:#ff79c6>+</span> <span style=color:#ff79c6>sizeof</span>...(Ts));
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>auto</span> construct <span style=color:#ff79c6>=</span> [<span style=color:#ff79c6>&amp;</span>](<span style=color:#ff79c6>auto</span><span style=color:#ff79c6>&amp;&amp;</span> t) {
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>using</span> T <span style=color:#ff79c6>=</span> <span style=color:#ff79c6>decltype</span>(t);
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>using</span> U <span style=color:#ff79c6>=</span> std<span style=color:#ff79c6>::</span>remove_reference_t<span style=color:#ff79c6>&lt;</span><span style=color:#ff79c6>decltype</span>(t)<span style=color:#ff79c6>&gt;</span>;
+</span></span><span style=display:flex><span>        objects.push_back(
+</span></span><span style=display:flex><span>            ptr_t{ <span style=color:#ff79c6>new</span> U{ std<span style=color:#ff79c6>::</span>forward<span style=color:#ff79c6>&lt;</span>T<span style=color:#ff79c6>&gt;</span>(t) },
+</span></span><span style=display:flex><span>                  <span style=color:#ff79c6>+</span>[](<span style=color:#8be9fd>void</span><span style=color:#ff79c6>*</span> instance) { <span style=color:#ff79c6>delete</span> <span style=color:#ff79c6>static_cast</span><span style=color:#ff79c6>&lt;</span>U<span style=color:#ff79c6>*&gt;</span>(instance); } }
+</span></span><span style=display:flex><span>        );
+</span></span><span style=display:flex><span>    };
+</span></span><span style=display:flex><span>    (construct(std<span style=color:#ff79c6>::</span>forward<span style=color:#ff79c6>&lt;</span>Ts<span style=color:#ff79c6>&gt;</span>(values)), ...);
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>// update sparse vector
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    <span style=color:#ff79c6>const</span> <span style=color:#ff79c6>auto</span> max_id <span style=color:#ff79c6>=</span> std<span style=color:#ff79c6>::</span>max({typeid_v<span style=color:#ff79c6>&lt;</span>Ts<span style=color:#ff79c6>&gt;</span>...});
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>if</span> (max_id <span style=color:#ff79c6>&gt;=</span> sparse.size()) 
+</span></span><span style=display:flex><span>        sparse.resize(max_id<span style=color:#ff79c6>+</span><span style=color:#bd93f9>1</span>, <span style=color:#ff79c6>-</span><span style=color:#bd93f9>1</span>);
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>const</span> <span style=color:#ff79c6>auto</span> ids <span style=color:#ff79c6>=</span> std<span style=color:#ff79c6>::</span>array{typeid_v<span style=color:#ff79c6>&lt;</span>Ts<span style=color:#ff79c6>&gt;</span>...};
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>for</span>(<span style=color:#8be9fd>int</span> i<span style=color:#ff79c6>=</span>ids.size();i<span style=color:#ff79c6>&gt;</span><span style=color:#bd93f9>0</span>;<span style=color:#ff79c6>--</span>i)
+</span></span><span style=display:flex><span>        sparse[ids[i<span style=color:#ff79c6>-</span><span style=color:#bd93f9>1</span>]] <span style=color:#ff79c6>=</span> i<span style=color:#ff79c6>-</span><span style=color:#bd93f9>1</span>;
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>// update dense vector
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    dense.reserve(dense.size()<span style=color:#ff79c6>+</span><span style=color:#ff79c6>sizeof</span>...(Ts));
+</span></span><span style=display:flex><span>    (dense.push_back(typeid_v<span style=color:#ff79c6>&lt;</span>Ts<span style=color:#ff79c6>&gt;</span>), ...);
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></td></tr></table></div></div><p>Obviously, those are the &ldquo;<em>I know what I am doing</em>&rdquo; kind of function since insertion assumes types inserted were not already so before, and the object is expected to be there during access.</p><h3 id=alternative-2-the-harder-way-allocation-only-under-manual-supervision>Alternative 2: the harder way, allocation only under manual supervision</h3><p>The external level of indirection introduced by the <code>std::unique_ptr</code> and potential fragmentation can be avoided if we deal with the memory management by ourselves. The objects are stored sequentially as bytes in a buffer, and the location of each object must be stored elsewhere. Here I decided to store it within the dense vector along with the type identifier. To avoid alignment issues, I rely on the aligned allocator provided by the boost library. It yields:</p><div class=highlight><div style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cpp data-lang=cpp><span style=display:flex><span><span style=color:#ff79c6>template</span><span style=color:#ff79c6>&lt;</span><span style=color:#ff79c6>typename</span> T, size_t N<span style=color:#ff79c6>&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#ff79c6>using</span> aligned_allocator <span style=color:#ff79c6>=</span> boost<span style=color:#ff79c6>::</span>alignment<span style=color:#ff79c6>::</span>aligned_allocator<span style=color:#ff79c6>&lt;</span>T, N<span style=color:#ff79c6>&gt;</span>;
+</span></span><span style=display:flex><span><span style=color:#ff79c6>static</span> <span style=color:#ff79c6>constexpr</span> <span style=color:#ff79c6>inline</span> <span style=color:#ff79c6>auto</span> max_alignment <span style=color:#ff79c6>=</span> <span style=color:#bd93f9>256UL</span>;
+</span></span><span style=display:flex><span><span style=color:#ff79c6>using</span> offset_t <span style=color:#ff79c6>=</span> std<span style=color:#ff79c6>::</span><span style=color:#8be9fd>uint32_t</span>;
+</span></span><span style=display:flex><span><span style=color:#ff79c6>using</span> destructor_t <span style=color:#ff79c6>=</span> <span style=color:#8be9fd>void</span>(<span style=color:#ff79c6>*</span>)(<span style=color:#8be9fd>void</span><span style=color:#ff79c6>*</span>);
+</span></span><span style=display:flex><span><span style=color:#ff79c6>struct</span> <span style=color:#50fa7b>typeid_offset_dtor</span> { typeid_t tag; offset_t offset; destructor_t dtor; };
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>std<span style=color:#ff79c6>::</span>vector<span style=color:#ff79c6>&lt;</span>std<span style=color:#ff79c6>::</span><span style=color:#8be9fd>uint8_t</span><span style=color:#ff79c6>&gt;</span> sparse;
+</span></span><span style=display:flex><span>std<span style=color:#ff79c6>::</span>vector<span style=color:#ff79c6>&lt;</span>typeid_offset_dtor<span style=color:#ff79c6>&gt;</span> dense;
+</span></span><span style=display:flex><span>std<span style=color:#ff79c6>::</span>vector<span style=color:#ff79c6>&lt;</span>std<span style=color:#ff79c6>::</span>byte, aligned_allocator<span style=color:#ff79c6>&lt;</span>std<span style=color:#ff79c6>::</span>byte, max_alignment<span style=color:#ff79c6>&gt;&gt;</span> objects;
+</span></span></code></pre></td></tr></table></div></div><p>The extra indirection is directly visible, and embedded within the container. For lookup, the memory access must be <em>cleaned</em> to obtain a usable pointer from bytes.</p><div class=highlight><div style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">3
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">4
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cpp data-lang=cpp><span style=display:flex><span><span style=color:#ff79c6>template</span><span style=color:#ff79c6>&lt;</span><span style=color:#ff79c6>typename</span> T<span style=color:#ff79c6>&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#ff79c6>decltype</span>(<span style=color:#ff79c6>auto</span>) get() { <span style=color:#ff79c6>return</span> do_get<span style=color:#ff79c6>&lt;</span>T<span style=color:#ff79c6>&gt;</span>(dense[sparse[typeid_v<span style=color:#ff79c6>&lt;</span>T<span style=color:#ff79c6>&gt;</span>]].offset); }
+</span></span><span style=display:flex><span><span style=color:#ff79c6>template</span><span style=color:#ff79c6>&lt;</span><span style=color:#ff79c6>typename</span> T, <span style=color:#ff79c6>typename</span> U <span style=color:#ff79c6>=</span> std<span style=color:#ff79c6>::</span>remove_reference_t<span style=color:#ff79c6>&lt;</span>T<span style=color:#ff79c6>&gt;&gt;</span>
+</span></span><span style=display:flex><span>U<span style=color:#ff79c6>&amp;</span> do_get(offset_t n) { <span style=color:#ff79c6>return</span> <span style=color:#ff79c6>*</span>std<span style=color:#ff79c6>::</span>launder(<span style=color:#ff79c6>reinterpret_cast</span><span style=color:#ff79c6>&lt;</span>U<span style=color:#ff79c6>*&gt;</span>(<span style=color:#ff79c6>&amp;</span>objects[n])); }
+</span></span></code></pre></td></tr></table></div></div><p>Insertion is analogous to alternative 1, except for the manual memory allocation. Fortunately, allocation of the buffer is similar to the implementation of the one for the heterogeneous dynamic array described in a previous post.</p><p>Move construction details were omitted for the sake of conciseness here, but are present below in the full snippet. Particularly, it was needed for avoiding undefined behavior on Linux.</p><h3 id=limitless-variations>Limitless variations</h3><p>A huge amount of combinations are possible depending on the preferred tradeoffs. For example, if wasting space is not a problem because only a very few amount of types will be stored, then duplicating the offset for object access within the sparse vector can be a good options for even faster random access.</p><div class=highlight><div style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cpp data-lang=cpp><span style=display:flex><span><span style=color:#ff79c6>struct</span> <span style=color:#50fa7b>v3</span>
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>using</span> offset_t <span style=color:#ff79c6>=</span> std<span style=color:#ff79c6>::</span><span style=color:#8be9fd>uint32_t</span>;
+</span></span><span style=display:flex><span>	<span style=color:#ff79c6>struct</span> <span style=color:#50fa7b>denseid_offset</span> {std<span style=color:#ff79c6>::</span><span style=color:#8be9fd>uint8_t</span> denseid; offset_t offset;}
+</span></span><span style=display:flex><span>    std<span style=color:#ff79c6>::</span>vector<span style=color:#ff79c6>&lt;</span>denseid_offset<span style=color:#ff79c6>&gt;</span> sparse;
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>struct</span> <span style=color:#50fa7b>typeid_offset_dtor</span> {typeid_t tag; offset_t offset; destructor_t dtor;};
+</span></span><span style=display:flex><span>    std<span style=color:#ff79c6>::</span>vector<span style=color:#ff79c6>&lt;</span>typeid_offset_dtor<span style=color:#ff79c6>&gt;</span> dense;
+</span></span><span style=display:flex><span>    std<span style=color:#ff79c6>::</span>vector<span style=color:#ff79c6>&lt;</span>std<span style=color:#ff79c6>::</span>byte,aligned_allocator<span style=color:#ff79c6>&gt;</span> objects;
+</span></span><span style=display:flex><span>    
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>template</span><span style=color:#ff79c6>&lt;</span><span style=color:#ff79c6>typename</span> T<span style=color:#ff79c6>&gt;</span> <span style=color:#ff79c6>decltype</span>(<span style=color:#ff79c6>auto</span>) get() { <span style=color:#ff79c6>return</span> <span style=color:#ff79c6>*</span>do_get<span style=color:#ff79c6>&lt;</span>T<span style=color:#ff79c6>&gt;</span>(objects[sparse[tag]]);}
+</span></span><span style=display:flex><span>};
+</span></span></code></pre></td></tr></table></div></div><p>Since there exists only a single destructor for a given type, the address of such function is itself a type identifier. Therefore, the dense vector could be further lighted away from the identifier representing the index within the sparse vector, at the cost of a more difficult dense-to-sparse lookup.</p><div class=highlight><div style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cpp data-lang=cpp><span style=display:flex><span><span style=color:#ff79c6>struct</span> <span style=color:#50fa7b>v4</span>
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>using</span> offset_t <span style=color:#ff79c6>=</span> std<span style=color:#ff79c6>::</span><span style=color:#8be9fd>uint32_t</span>;
+</span></span><span style=display:flex><span>	<span style=color:#ff79c6>struct</span> <span style=color:#50fa7b>denseid_offset</span> {std<span style=color:#ff79c6>::</span><span style=color:#8be9fd>uint8_t</span> denseid; offset_t offset;}
+</span></span><span style=display:flex><span>    std<span style=color:#ff79c6>::</span>vector<span style=color:#ff79c6>&lt;</span>denseid_offset<span style=color:#ff79c6>&gt;</span> sparse;
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>struct</span> <span style=color:#50fa7b>offset_dtor</span> {offset_t offset; destructor_t dtor;};
+</span></span><span style=display:flex><span>    std<span style=color:#ff79c6>::</span>vector<span style=color:#ff79c6>&lt;</span>offset_dtor<span style=color:#ff79c6>&gt;</span> dense;
+</span></span><span style=display:flex><span>    
+</span></span><span style=display:flex><span>	std<span style=color:#ff79c6>::</span>vector<span style=color:#ff79c6>&lt;</span>std<span style=color:#ff79c6>::</span>byte,aligned_allocator<span style=color:#ff79c6>&gt;</span> objects;
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>template</span><span style=color:#ff79c6>&lt;</span><span style=color:#ff79c6>typename</span> T<span style=color:#ff79c6>&gt;</span> <span style=color:#ff79c6>decltype</span>(<span style=color:#ff79c6>auto</span>) get()
+</span></span><span style=display:flex><span>    { <span style=color:#ff79c6>return</span> <span style=color:#ff79c6>*</span>std<span style=color:#ff79c6>::</span>launder(<span style=color:#ff79c6>reinterpret_cast</span><span style=color:#ff79c6>&lt;</span>T<span style=color:#ff79c6>*&gt;</span>(objects[sparse[tag].offset])); }
+</span></span><span style=display:flex><span>};
+</span></span></code></pre></td></tr></table></div></div><h2 id=benchmarks>Benchmarks</h2><p>Results plotted here were computed with google benchmark. Two scenarios were considered, insertion and lookup. 32 random structures were generated with a python script. For the insertion scenario, tests were done for 1 to 8 types inserted within the container. For the lookup scenario, 32 types were first inserted within the containers, then measurements are performed for the query of 1 to 8 types out of the 32. The queried types are chosen randomly from the 32, but each type can only appear once. Benchmarks were run on an i7-6700k and repeated 11 times. Otherwise specified, tests were carried out on Windows and compiled with Clang 10.</p><h3 id=comparison-of-_maps_>Comparison of <em>maps</em></h3><p>Since a class of heterogeneous containers presented throughout these posts rely heavily on a map to access its content, let us have a look first of the performance of several kind of map implementations. Besides the standard library <a href=https://en.cppreference.com/w/cpp/container/unordered_map><code>std::unordered_map</code></a>, <a href=https://www.boost.org/doc/libs/1_74_0/doc/html/boost/container/flat_map.html><code>boost::flat_map</code></a>, <a href=https://abseil.io/docs/cpp/guides/container><code>abseil::flat_hash_map</code></a>, <a href=https://github.com/Tessil/robin-map><code>tsl::robin_map</code></a>, <a href=https://github.com/Tessil/hopscotch-map><code>tsl::hopscotch</code></a>, <a href=https://github.com/Tessil/sparse-map><code>tsl::sparse_map</code></a>, and <a href=https://github.com/greg7mdp/sparsepp><code>spp::sparsepp</code></a> were tested for the container described <a href=/blog/2020/08/a-simple-heterogeneous-container-in-cplusplus-without-relying-on-variant-nor-any/>here</a>.</p><iframe src=map_insert_win_clang.html scrolling=no title='Insertion time for different map implementations' frameborder=no allowtransparency=true allowfullscreen style=width:100%;min-height:500px></iframe><p>Insertion is fastest for the group of including <code>std::unordered_map</code>, <code>abseil::flat_hash_map</code>, <code>boost::flat_map</code> and <code>spp:sparsepp</code>. The <code>tsl::robin_map</code> follows up close. The slowest by a huge margin is <code>tsl::hopscotch</code>.</p><iframe src=map_get_win_clang.html scrolling=no title='Lookup time for different map implementations' frameborder=no allowtransparency=true allowfullscreen style=width:100%;min-height:500px></iframe><p>On lookup, both <code>tsl::robin_map</code> and <code>std::unordered_map</code> are the fastest. I must admit not expecting to find the standard container to be so fast considering all the &ldquo;horrible&rdquo; things said in general about them online.</p><p>In conclusion, <code>tsl::robin_map</code> and <code>std::unordered_map</code> offers the best performance for the task, especially considering lookup. A different but extensive suite of tests can be found <a href=https://tessil.github.io/2016/08/29/benchmark-hopscotch-map.html>here</a>. Nevertheless, bear in mind that such benchmarks are extremely platform and compiler sensitive ! For example <code>std::unordered_map</code> was found to be the slowest on lookup on <a href=https://en.wikipedia.org/wiki/Windows_Subsystem_for_Linux>WSL</a>. Therefore, <code>tsl::robin_map</code> is chosen as the map implementation owing to its consistency across platforms.</p><h3 id=heterogeneous-containers-showdown>Heterogeneous containers showdown</h3><p><em>hc</em> refers to this <a href=/blog/2020/08/a-simple-heterogeneous-container-in-cplusplus-without-relying-on-variant-nor-any/>container</a>, <em>ha</em> to this <a href=/blog/2020/07/implementing-an-heterogeneous-dynamic-array-in-cplusplus/>one</a>, <em>hcs</em> is the pointer-based heterogeneous sparse set and <em>has</em> is the array-based heterogeneous sparse set. In addition, some other containers are added: <em>vecany</em> represents a <code>vector&lt;any></code>, <em>mapany</em> is based on <code>unordered_map&lt;typeid_t,any></code>, entt_ctx is a container akin to a <code>vector&lt;pair&lt;typeid_t,unique_ptr&lt;void,void(*)(void*)>>></code>. The two others (<em>andyg</em> and <em>entt_reg</em>) are data structures that can store <em>n</em> instances of a type, more generic and beyond scope but included out of curiosity. Insertion of objects inside the container is either done through a loop &ldquo;1by1&rdquo; or all objects are inserted at the same time &ldquo;bulk&rdquo;.</p><iframe src=container_insert_win_clang.html scrolling=no title='Insertion time for different containers' frameborder=no allowtransparency=true allowfullscreen style=width:100%;min-height:500px></iframe><p><code>vecany</code> solution is the fastest on insertion for less than 7 types inserted owing to fewer memory allocation (growing memory strategy) and types potentially falling into <a href=https://akrzemi1.wordpress.com/2014/04/14/common-optimizations/>SBO</a>. However, beyond 7 types, the bulk insertion into an heterogeneous sparse set shows near constant time thanks to the absence of repeated heap allocation needed for each type unlike <code>unique_ptr&lt;void,...></code> and <code>std::any</code>.</p><iframe src=container_get_win_clang.html scrolling=no title='Lookup time for different containers' frameborder=no allowtransparency=true allowfullscreen style=width:100%;min-height:500px></iframe><p>Vector-based solution relying on linear iterations (vecany and entt_ctx) are off the chart, many times slower than the rest, and thus, hidden by default (click on their label to make them visible).</p><p>Sparse set-based solutions are significantly faster than <code>std::any</code> solutions and around 2 times faster than map-based heterogeneous containers. The main interesting fact is that data locality guaranteed by array of bytes&rsquo; storage is slightly slower than the <code>std::unique_ptr</code> respective versions. The advantage of data locality for random access lookup, albeit only going through a few types, is not beneficial.</p><p>Note that results describe specifically Clang 10 on Windows, and the outcome across platforms may vary. The full set of results can be found <a href=https://github.com/FabienPean/heco>here</a>.</p><h2 id=conclusion>Conclusion</h2><p>Sparse sets seem the ideal data structure to store (near-consecutive) type identifiers and allowing fastest access to stored content. Storing objects contiguously into an array of bytes does not does not improve lookup nor insertion, worse so, since it affects them negatively.</p><p>This post concludes a the small series on heterogeneous containers in C++. It covered specifically containers that can hold a single instance of each type. Meanwhile, you can find the code from my past and ongoing experiments on <a href=https://github.com/FabienPean/heco>github</a>.</p><h2 id=code>Code</h2><p>For the sake of completeness, the code of the containers are shown in full bellow (under MIT license). They can also be toyed around on <a href=https://godbolt.org/#z:OYLghAFBqd5QCxAYwPYBMCmBRdBLAF1QCcAaPECAM1QDsCBlZAQwBtMQBGAFlICsupVs1qhkAUgBMAISnTSAZ0ztkBPHUqZa6AMKpWAVwC2tEAGYAbKS3oAMnlqYAcsYBGmYlwCcAVlIAHVAVCdVo9QxNzK0DgtTp7Rxcjd09OX0VlTFVQhgJmYgJw41NLDJU42lz8ggTnNw9vPwU8gqLI0ubq2qSUxoBKRVQDYmQOAHIAegmAaj1/AE9iPGAEAmmIZD7pyQAGXemAMWZXPC1pgAVxHTNxAEEvEXEd26mnl5nzjyM8BWC6aZ%2B0wQHkwrnm02AxBEBEw6FI0yoxEwmGmqCo02QCHywEw8KI0xE4P8HgU/1QrjyDgcwDeUwJGNQC1R6IICEBpKoBAA7vkUSJ0ATfqhkHhmDCBehhcYtHkKgi8OwFOtWZhaTMpJIGGjubyNQNpvisGwAbQDcDplrOTykdMuYQEEM1kjmktsnR4Q5kIZ8KI1bb7Y7pqw8N9ZaEzSilisCEr8QYlPC0At4UYMHgqPMUx4cfD/AZXMGFAhSH78C68K4DDD4Qp88HRrQEwTtBMSNMlKxWAz/KclWiIxbtdbcc2BUQ/cTiKHppPSY2DahbQ6jAPLTqbYCqMNaD9gWPF5L26ga/m%2BFk1uPnnSVQj9KxUHbRAztCE6AoQGq/QAVc3HVAANxRJNFmWVZploVA1FGUczUBSdvl%2BcMIKglEizYLt3D9T1vVhE0CU7bte1RYh23zTp6FFLtAgKUI%2BxZc012HAA6T8rxmL8AAlsAtAB5A4vwAdVuAAlbiAEkGAuYSeIANTEgARbB5OmDVbkkiSNXhASxM4niAFUv2mIThOE24nC/ABNaY%2BOmMyrIAaTEpx5JLNjpmwAANc5RIYSSeOE6YxIAWXOWwxKU%2BEnJ0Ww9PkpyAHFpmkAzpicHjDLCoKdKU6Yvx43KuKMkTTPM8K/IOP0guwYSdA4syv1uaQxLCyz4QOHSnGwXzDn82yLhEr8xJ0PTbBEi49OE84eIYbizPkv00qcJyDmEhLsCq8ymMCpxUvy7AZOwcyLTq2xbAK2aDI4/y/ICnQePOCzVvijjDKu2xFOEyTpGwP0wsa2xuIOXq7NmUbgvheTbiC254q66yAvSriAr%2BpqWosrSuM46rttsnbbh0QaeKcP0bLu8zTIJ%2BE8uEwzesR6rtJm%2BERIkhLDmkoL4X02mDnhnGyc6gmxKJv1tM487eP44zuN6rHpj0ma%2BfpgLFNuMKnHi9Sdrlhg%2BMEkTsBY54pDMbCDCwcQzB0QDVBIS2fuNyRTdoL1zdVK3kGaH0CHtt4TbNi2Pa94NXF9x3nddwOdCMTBU2IeYw9uf2XZwy2dCrBVCATswHaTp2A/dnQ2GAEh7SMRPk8jwvXFQIICAmNhlloBvg2ARx0AAfXQ4UxRIJiEH8fwK/zlO3bT9QXUwZhy5zv3nhhIx/GEGE04IeZiVoaeUS/RP42paYpw75B/yRKgO7WS3lK9kAQCRVNAKP/9z7T6/b9jgDMA70%2BQRdz%2Bfatnes8gGyGNs8PeT417EjwJ3C%2BZgr4EHQDfAwDgCBmEkM/MwIDbhemYL8XK69MB6AMPQDwKkADsWDphUPbGGZAJpgyOANAQ6B58AQqTgdMHYltKHULzAWPAyAPzPGoQaWOS8xSF0gVoLeuVE4iM6FBehDggJvjWMwKsi5oHsOUngOQejMF%2BzIfNAx88xHL0kQQzeMdZE5yUYw9R%2BIpEsP/No/BxIiEkM8CAaBadAE/RMUnZ4LoDCqCBFkVAHdOAdwUP4fISglAEA7v4AgxBDE8KoeA4AM4UmsMvjQxBIBiF4AAI4GE/sk1JVt/yoGgfCap0CIAACo%2BgQHqegZpvsAnyIQTfG2RBKk6Ffsg%2BgAAODB3EYlxPduk/JvTzx2ytk4mB9sRHTCwI2aZbxukFL6QsnQFTxmrOoeSM8qgFDcLnrcERC9xEr0WZYmRX48QPJjkxN50xhKYGaHI6hWAvRSIgA41AWwcQEAgH0LZ1DxAUMhUczJ8tXGvzvh/L%2BmAqA/1GBggmnSZkiPTM%2BZomAAAe/gSIQGCAAL0wGiN5TEICfOaFsS%2BeSdgQuEUc1ZSICDbmmI0hRAij64P/sNRp9sIAnPPOcnw0hJnECUOIaVSyO7/jTnpX2Ph5oaqYqC8FEKukcuUPK9lHLqFcp5a/GgxBrSd1wefAwS9MDQEwMKvx4L4SgrTgy/%2B2BwW0r1TM6F81QFXOoTc8xq8XmYFpblc5s9jXTDaSaJQBQIBfnOZICwUgLDTGjf%2BNgZSFBspDVQ6FuLjmuFOTGJizoPCAXFRWyVTFKWOqZTIdseAqU0reamwt/rYWrKBQSlJITYHKQVbIDNCr5KAo0VmrNBomUwvjSa%2BFhk8l/NYACggfbl0cvhXpVxh9j6nyxRurder/FlqORKs5TE8xFg7q4ZgyAADWEBsnEGfhQ8CmAuTy1LbMkAlrrW%2BLFdu8hLl%2B0mpUjIcdU7Wk1PaUmvIv9F3SDWZkGENCxQCpYN8q2elRU5wgA4ciox/UQYg1BjlO7i2rMDRc3dVCNiqOICO8lPSgMkBAwA2NPq82GC%2BX0fUfrGN0ZEXSe16AJHtliXKlEuzUlMaHQSDR0wjDMCJR3LReTX4aaJRAADSqVW8fttGwNtGTX4ogPp7TApOlXzk0oJtHaW1Fug9Q2VznnSuZs5puzMH0OcHhAAWk4JZjlaBGxqLU9ApUunOP5ChAnb9xnfF8fM0YsTJrLXrBQWwvJcWXNUvBdwgrtiuGYOmCFkLeB3Medk1M8dcXmvVemJwKdU7XEYY2cVltgW2Ehfa9ljlkn/DSaw%2BspQCb5lKfE78rQ3mvm1sdVNqNzbwUDebV2ulabhMjaORANbd74wIEfc%2Bt9aXTM5xE28iLJasvGyywEt4wTQnAjQJE6JTnluJLBDCc5T2ZlhokRGjejyayudYcTONdH4WNzbrCLunYe79NcTXOuN8Ee0BjvQLHrd27I/vCwfpvj4Qw8vf2/ldCouEpJSRBwDC%2BRqds9j3Ho7pgWG4CNA70x4VoioAk3JHChkoLQRgrB/atDGAxMIPB%2BNCY7QA2TBgX5hJ6UprMe66NphBVktgCGXU1c8Ssgx/VGTghPiwG9/pwur5Q7Bc0hD0DGl1MQ672yQsib3ZoWx0JSqBdC/QGjozzCYEGmYDSKrgfnWsJj//dD1vh220/WsYPCz0Nm8l/G1%2BimX6ceGQQMZ3rGvyd57n2bYPMAsPjx3dPlTuJrd5/CxTj75gA8RZxvPVtX7/ZHNjpH3cSd7N7%2B3kcrOCfs86ZT%2BNre%2B99gbWcsT/aPsRKiV537beAebfXWi9Rm7eer6%2BxvoX8%2BIBH/Xz90/Y/02ZozUyjhWAqD74Tyv8Jx%2Br%2Bx7P7TtYF/vtTOvwByzQf2UiwHYDuRmT/xPy/xv3nUZA8F7kqWnR/zCU%2B0vwAJgKAPv1cTAOdU2XjSgM/z%2B1gIzVREnEQMvnP3f3QPk0AK%2BTnWwN32fwMAP3N2mAAD9CCMDiDt80NqMqFcsZ1xxSC8BpgQAeslB6sPM8AmJ69DMM0b0YxmsmJ48p1SBaAWDWAKlSAFdhYnAb5FJVdpILIfcGNg1rkzFQd7lwdrE/F%2B1B0kQ0BiBO4k8/d%2Bkd8l15sqEzViBTQ9FpV4M2lGl2wRg3cXcDRgACBmYvcdpn0KgpD6NPCGt2w7QCBMR1g4jQg%2BDlMRE8MURdCiYb4Vc1cNcvxxDHAuQIACBIithAF0NXAkRmAX1ecTU8jPdFcDCjdjDxDX5XDUB5gu4wVqdBV8MCYiMfUFARh9sqsGip5mi2DWjcF8iYiijtdyjf0qiajZFv0%2BVaERiXVxjyUpiqMZjGj5ir1Vk2iCj9CQA9cDp1jKjqjwMd5v09MP4mlhi8MDixVJjNhF1jF6iziWiOUn8X9xDZimjgSjkzCvDOVnVzVXM0RU0fcREs9%2B0YT%2B0Qc7kdApErFt4fkqEz0CEhDgUIRnUPD0MfDTRJQO4PUAExUm9pUN9x0rtsVZ4NUp0VCqBBdnUKMMT40sSLEbDt5nlhSEUEsClkUH5v4kRf4sU7DYcRE1VSCaSdVa81haA0MD54TfDeVX5hBiEsBiAIAkQUEPBSVY8vjVVDis1FCpVpBaAp1pjM9HtAk6NBSq88To000CSE1EMk0PAwUfTJ0M1o0pFC1yELi6Qh8ZN%2BQh03DURF8lDlMUDB1494sOEYzsS01aUxUUTqFB0f8Ey8k4NJ0NVxVuShcNT4QgUGDs1wNS1%2BC4VLcsk11H8shN1iTt0oTVl91O9JT35pS0UMU/5QNgEmyREKj5CLA7Tx1HSNUtg1VXjONgN8h0AxyfUGznsLi0TlNS1m1WFRCWUysWNos3CKyeSlDpVdFYNYMNVRShN4RRMqsYSTUxsJtUIfsZsU8mzUzYt0AMz4ECkktmAUt0NWSfSc5MsATfzVFVN8RbMdMOFdiClbNMh2cSMAKmJkB3BgAHA3UAQsKbBdUezrNEL7MgFHMpk%2BsSKcjPMftq0vlfNyKBtgtqtwsezBD8sjyOEisNsKMeLuJKt0Mas6sJz6KmtryALWshsOsOSNUcDFt1tfNW10NRDZKez3yZM1tvzSdlNjsa1iA61jt%2BKttESqBaUe1nSmz9yHdytlJhL1hjt70zsn1X1DNUsw9lV0t7ZSB0zms9E7yXJtSnCXCvlk9SdrsfV/jbsmI%2BTXTUTXTMTLDsTcSt5vTfTB0syW0Qt7ZX4QLs49BKzY8oj21O0LLu0vwL1IymzhjcFk0wUoBsckSqr2EdA8kJ8m52dW079s0/V8yLd948TJloIvZl8UzVFiVSUyq/5UpEVzLLKqqeyf8pqSICqX4HdycVk2cZRALIz8Im4Wq%2BhoLlrJr6cCRiBksNqqVz4trbFm09qANtsqBkSTqXtlN1qrZ1S7ruJHQ8xX9zDIs4KDy1gDz3BLUUQ8k7SaKBq%2BcUEDk1gDkbBXFC8Eb61K0FBZCxRmAd820wa0USBMBYaQaFwidUdIaOFhKmyuL6B7LOEyseKdBUoytArpAxK9ykiGsSbYl0AfQsk8koB2CkbtBWKeqMjJ9dqAqFLZLrK6KqE/qqwpax0RcodwbCaBsiAyaSdIa20ea%2BaezrkIlsrAs8k9b945AZr7TdEOSFiOVhb7NYMOEzanwLaHqlaezXyOUSaDzmBORSFdNVaCabQLbNbsrNKZhoafMSsfa/biB/UpgGUO194FBkAkQ/17UD5iE1BrF/gEgDAiUYNJBERkRwVxCHABMtFAgzTUlJBJB4RkJ1MAJ947SAQlQ9ILi58b8DRF5yUodfaYQ47OK2wSS6yVJFValmRLz4R68utxC1sEiTU5DbSkz7TVD7yYMLACBF5x017grrib47jsBYaW6JSb5iVMQRAcQqjF54RGyjFYaqTUQqx/recMTtzLlK5U4PZ6rAzh4I4v7BkUlqQ/6C5x465GiZ5c58sNN8Ki1Gz41B1%2BaOFWSMdWAcV0TOajkuDaDY8Kl2wezMbSNf6e9ONyxfRiMNQAcfZa7iamIiGChx56BSBJQ6xcQK8fyrYWGCx3Z/EfVuA66zAmIeASwKFJAhGyELMeyf6U1Ma6SdAuH2A8ztE8lBGeBYbpGhjtVnVGHvUd84E8l%2BH1HfhAzyUtHhV2HIr5GhhuHp9StpUuEFLmUOExHOAyEjGGrTG5HX4yGo9orlGOFKHwq9RX6EqoVMHVlsH4lMCvl8HbaqFCGNkGGSGCkfGxVAnvkaGCG6HEnhUUFmHrH2BFAu9K9OGCmeGxV%2BHSBVHeBS0XGJH76pHjGZGzG04FGeG9HjFlJqn3GTHZHtGrYUElGnHlJDHGmPG%2BnzHimOGrHWHbGIV7GuthnthxGenmmvHSGgHyG/Gln0nqHJBTCkr41H6qant5IxgBhWAQAxgfAxh1CrmdhbnUArn2rbz0NSRhhoITZOBbmCB7nzmBgX1zBBGzAQXQWwWwWrBLmxhuBbnTAxgHm/Krnbn3wdhSBfn4XznSA4BYAkA0BF4FQPByBKA8Wex2BPBgBOA9hSAqAFQB73wIBXA/nSAThN544rnvnSA8X2ceJaBWB5gmWsANNRB2ABW8BHC1BAJ3wMXrAiUsgqxxgEWzSoWEWQ4oR449AsB2WfmlgjAtWBgaB6AmA2AOBhGBBgthBRAUBWahAKx3xYA8SQAMdmhSBAJPAxhXGYXhM/LklaIrmQsxq4EJBXnXHqseIEWOxzxQhNBtA2hTBgsbBuh6hUgAgghXwwh9BihBAYg03E3kgGhgsI23RKgWhCgM3IgC3Mgi2qgChc3egC2S3Y3BBOga3lEeh82Bh3mRgTWLmrmbm7npWnmxgiURkLAQsucIRkA6FKWmJJB1hcBCA2wvn4Q9B8WyWYMzBwtZhWafm/mvXAWQWmJwWj3QXIWrmYX%2B2EXB3kWQBUX0WHmBhsXEAQAFaoiKAWNV383rB8B%2BlBADXGAWARXhGuQoR/A9WhBe3YWmXB2vn/RWRphh3R3x3gBJ32sdgZ2d2MW92gXD3j2j3wPoXIOB2kXFAb20Xd2e2xhJBCPL3iO73/mXWSQo3uAgA>compiler explorer</a>. Have fun !</p><h3 id=heco_1_sparseset_ptr>heco_1_sparseset_ptr</h3><div class=highlight><div style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">13
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">14
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">15
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">16
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">17
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">18
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">19
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">20
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">21
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">22
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">23
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">24
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">25
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">26
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">27
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">28
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">29
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">30
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">31
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">32
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">33
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">34
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">35
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">36
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">37
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">38
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">39
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">40
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">41
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">42
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">43
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">44
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">45
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">46
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">47
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">48
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">49
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">50
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">51
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">52
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">53
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">54
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">55
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">56
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cpp data-lang=cpp><span style=display:flex><span><span style=color:#ff79c6>#include</span><span style=color:#ff79c6>&lt;vector&gt;</span><span style=color:#ff79c6>
+</span></span></span><span style=display:flex><span><span style=color:#ff79c6>#include</span><span style=color:#ff79c6>&lt;cstdint&gt;</span><span style=color:#ff79c6>
+</span></span></span><span style=display:flex><span><span style=color:#ff79c6>#include</span><span style=color:#ff79c6>&lt;cstdlib&gt;</span><span style=color:#ff79c6>
+</span></span></span><span style=display:flex><span><span style=color:#ff79c6>#include</span><span style=color:#ff79c6>&lt;memory&gt;</span><span style=color:#ff79c6>
+</span></span></span><span style=display:flex><span><span style=color:#ff79c6>#include</span><span style=color:#ff79c6>&lt;utility&gt;</span><span style=color:#ff79c6>
+</span></span></span><span style=display:flex><span><span style=color:#ff79c6></span>
+</span></span><span style=display:flex><span><span style=color:#ff79c6>using</span> typeid_t <span style=color:#ff79c6>=</span> std<span style=color:#ff79c6>::</span><span style=color:#8be9fd>uint32_t</span>;
+</span></span><span style=display:flex><span><span style=color:#ff79c6>class</span> <span style=color:#50fa7b>TypeCounter</span> {
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>static</span> <span style=color:#ff79c6>inline</span> typeid_t i <span style=color:#ff79c6>=</span> <span style=color:#bd93f9>0</span>;
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>public</span><span style=color:#ff79c6>:</span>
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>template</span><span style=color:#ff79c6>&lt;</span><span style=color:#ff79c6>typename</span> T<span style=color:#ff79c6>&gt;</span>
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>static</span> <span style=color:#ff79c6>inline</span> <span style=color:#ff79c6>const</span> <span style=color:#ff79c6>auto</span> id <span style=color:#ff79c6>=</span> i<span style=color:#ff79c6>++</span>;
+</span></span><span style=display:flex><span>};
+</span></span><span style=display:flex><span><span style=color:#ff79c6>template</span><span style=color:#ff79c6>&lt;</span><span style=color:#ff79c6>typename</span> T<span style=color:#ff79c6>&gt;</span> <span style=color:#ff79c6>inline</span> <span style=color:#ff79c6>auto</span> typeid_v <span style=color:#ff79c6>=</span> TypeCounter<span style=color:#ff79c6>::</span>id<span style=color:#ff79c6>&lt;</span>T<span style=color:#ff79c6>&gt;</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#ff79c6>struct</span> <span style=color:#50fa7b>heco_1_sparseset_ptr</span>
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>using</span> ptr_t <span style=color:#ff79c6>=</span> std<span style=color:#ff79c6>::</span>unique_ptr<span style=color:#ff79c6>&lt;</span><span style=color:#8be9fd>void</span>, <span style=color:#8be9fd>void</span>(<span style=color:#ff79c6>*</span>)(<span style=color:#8be9fd>void</span><span style=color:#ff79c6>*</span>)<span style=color:#ff79c6>&gt;</span>;
+</span></span><span style=display:flex><span>    std<span style=color:#ff79c6>::</span>vector<span style=color:#ff79c6>&lt;</span>std<span style=color:#ff79c6>::</span><span style=color:#8be9fd>uint8_t</span><span style=color:#ff79c6>&gt;</span> sparse;
+</span></span><span style=display:flex><span>    std<span style=color:#ff79c6>::</span>vector<span style=color:#ff79c6>&lt;</span>typeid_t<span style=color:#ff79c6>&gt;</span>     dense;
+</span></span><span style=display:flex><span>    std<span style=color:#ff79c6>::</span>vector<span style=color:#ff79c6>&lt;</span>ptr_t<span style=color:#ff79c6>&gt;</span>        objects;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>template</span><span style=color:#ff79c6>&lt;</span><span style=color:#ff79c6>typename</span> T, <span style=color:#ff79c6>typename</span>... Rest<span style=color:#ff79c6>&gt;</span>
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>decltype</span>(<span style=color:#ff79c6>auto</span>) get()
+</span></span><span style=display:flex><span>    {
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>using</span> U <span style=color:#ff79c6>=</span> std<span style=color:#ff79c6>::</span>remove_reference_t<span style=color:#ff79c6>&lt;</span>T<span style=color:#ff79c6>&gt;</span>;
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>if</span> <span style=color:#50fa7b>constexpr</span> (<span style=color:#ff79c6>sizeof</span>...(Rest) <span style=color:#ff79c6>==</span> <span style=color:#bd93f9>0</span>)
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>return</span> <span style=color:#ff79c6>*</span><span style=color:#ff79c6>static_cast</span><span style=color:#ff79c6>&lt;</span>U<span style=color:#ff79c6>*&gt;</span>(objects[sparse[typeid_v<span style=color:#ff79c6>&lt;</span>U<span style=color:#ff79c6>&gt;</span>]].get());
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>else</span>
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>return</span> std<span style=color:#ff79c6>::</span>forward_as_tuple(get<span style=color:#ff79c6>&lt;</span>T<span style=color:#ff79c6>&gt;</span>(), get<span style=color:#ff79c6>&lt;</span>Rest<span style=color:#ff79c6>&gt;</span>()...);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>template</span><span style=color:#ff79c6>&lt;</span><span style=color:#ff79c6>typename</span>... Ts<span style=color:#ff79c6>&gt;</span>
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd>void</span> insert(Ts<span style=color:#ff79c6>&amp;&amp;</span> ... values)
+</span></span><span style=display:flex><span>    {
+</span></span><span style=display:flex><span>        objects.reserve(objects.size() <span style=color:#ff79c6>+</span> <span style=color:#ff79c6>sizeof</span>...(Ts));
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>auto</span> construct <span style=color:#ff79c6>=</span> [<span style=color:#ff79c6>&amp;</span>](<span style=color:#ff79c6>auto</span><span style=color:#ff79c6>&amp;&amp;</span> t) {
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>using</span> T <span style=color:#ff79c6>=</span> <span style=color:#ff79c6>decltype</span>(t);
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>using</span> U <span style=color:#ff79c6>=</span> std<span style=color:#ff79c6>::</span>remove_reference_t<span style=color:#ff79c6>&lt;</span><span style=color:#ff79c6>decltype</span>(t)<span style=color:#ff79c6>&gt;</span>;
+</span></span><span style=display:flex><span>            objects.push_back(
+</span></span><span style=display:flex><span>                std<span style=color:#ff79c6>::</span>unique_ptr<span style=color:#ff79c6>&lt;</span><span style=color:#8be9fd>void</span>, <span style=color:#8be9fd>void</span>(<span style=color:#ff79c6>*</span>)(<span style=color:#8be9fd>void</span><span style=color:#ff79c6>*</span>)<span style=color:#ff79c6>&gt;</span>{
+</span></span><span style=display:flex><span>                <span style=color:#ff79c6>new</span> U{ std<span style=color:#ff79c6>::</span>forward<span style=color:#ff79c6>&lt;</span>T<span style=color:#ff79c6>&gt;</span>(t) }, <span style=color:#ff79c6>+</span>[](<span style=color:#8be9fd>void</span><span style=color:#ff79c6>*</span> instance) { <span style=color:#ff79c6>delete</span> <span style=color:#ff79c6>static_cast</span><span style=color:#ff79c6>&lt;</span>U<span style=color:#ff79c6>*&gt;</span>(instance); } });
+</span></span><span style=display:flex><span>        };
+</span></span><span style=display:flex><span>        (construct(std<span style=color:#ff79c6>::</span>forward<span style=color:#ff79c6>&lt;</span>Ts<span style=color:#ff79c6>&gt;</span>(values)), ...);
+</span></span><span style=display:flex><span>        <span style=color:#6272a4>// update sparse vector
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>        <span style=color:#ff79c6>const</span> <span style=color:#ff79c6>auto</span> max_id <span style=color:#ff79c6>=</span> std<span style=color:#ff79c6>::</span>max({ typeid_v<span style=color:#ff79c6>&lt;</span>Ts<span style=color:#ff79c6>&gt;</span>... });
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>if</span> (max_id <span style=color:#ff79c6>&gt;=</span> sparse.size())
+</span></span><span style=display:flex><span>            sparse.resize(max_id <span style=color:#ff79c6>+</span> <span style=color:#bd93f9>1</span>, <span style=color:#ff79c6>-</span><span style=color:#bd93f9>1</span>);
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>const</span> <span style=color:#ff79c6>auto</span> ids <span style=color:#ff79c6>=</span> std<span style=color:#ff79c6>::</span>array{ typeid_v<span style=color:#ff79c6>&lt;</span>Ts<span style=color:#ff79c6>&gt;</span>... };
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>for</span> (<span style=color:#8be9fd>int</span> i <span style=color:#ff79c6>=</span> ids.size(); i <span style=color:#ff79c6>&gt;</span> <span style=color:#bd93f9>0</span>; <span style=color:#ff79c6>--</span>i)
+</span></span><span style=display:flex><span>            sparse[ids[i <span style=color:#ff79c6>-</span> <span style=color:#bd93f9>1</span>]] <span style=color:#ff79c6>=</span> i <span style=color:#ff79c6>-</span> <span style=color:#bd93f9>1</span>;
+</span></span><span style=display:flex><span>        <span style=color:#6272a4>// update dense vector
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>        dense.reserve(dense.size() <span style=color:#ff79c6>+</span> <span style=color:#ff79c6>sizeof</span>...(Ts));
+</span></span><span style=display:flex><span>        (dense.push_back(typeid_v<span style=color:#ff79c6>&lt;</span>Ts<span style=color:#ff79c6>&gt;</span>), ...);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>};
+</span></span></code></pre></td></tr></table></div></div><h3 id=heco_1_sparseset_array>heco_1_sparseset_array</h3><div class=highlight><div style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">  1
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">  2
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">  3
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">  4
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">  5
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">  6
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">  7
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">  8
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">  9
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 10
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 11
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 12
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 13
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 14
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 15
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 16
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 17
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 18
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 19
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 20
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 21
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 22
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 23
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 24
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 25
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 26
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 27
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 28
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 29
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 30
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 31
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 32
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 33
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 34
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 35
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 36
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 37
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 38
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 39
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 40
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 41
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 42
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 43
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 44
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 45
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 46
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 47
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 48
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 49
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 50
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 51
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 52
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 53
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 54
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 55
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 56
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 57
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 58
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 59
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 60
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 61
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 62
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 63
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 64
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 65
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 66
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 67
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 68
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 69
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 70
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 71
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 72
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 73
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 74
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 75
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 76
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 77
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 78
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 79
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 80
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 81
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 82
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 83
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 84
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 85
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 86
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 87
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 88
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 89
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 90
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 91
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 92
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 93
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 94
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 95
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 96
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 97
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 98
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 99
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">100
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">101
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">102
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">103
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">104
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">105
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">106
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">107
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">108
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">109
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">110
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">111
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">112
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">113
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">114
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">115
+</span><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">116
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cpp data-lang=cpp><span style=display:flex><span><span style=color:#ff79c6>#include</span><span style=color:#ff79c6>&lt;vector&gt;</span><span style=color:#ff79c6>
+</span></span></span><span style=display:flex><span><span style=color:#ff79c6>#include</span><span style=color:#ff79c6>&lt;cstdint&gt;</span><span style=color:#ff79c6>
+</span></span></span><span style=display:flex><span><span style=color:#ff79c6>#include</span><span style=color:#ff79c6>&lt;cstdlib&gt;</span><span style=color:#ff79c6>
+</span></span></span><span style=display:flex><span><span style=color:#ff79c6>#include</span><span style=color:#ff79c6>&lt;memory&gt;</span><span style=color:#ff79c6>
+</span></span></span><span style=display:flex><span><span style=color:#ff79c6>#include</span><span style=color:#ff79c6>&lt;utility&gt;</span><span style=color:#ff79c6>
+</span></span></span><span style=display:flex><span><span style=color:#ff79c6>#include</span><span style=color:#ff79c6>&lt;algorithm&gt;</span><span style=color:#ff79c6>
+</span></span></span><span style=display:flex><span><span style=color:#ff79c6>#include</span><span style=color:#ff79c6>&lt;boost/align/aligned_allocator.hpp&gt;</span><span style=color:#ff79c6>
+</span></span></span><span style=display:flex><span><span style=color:#ff79c6></span>
+</span></span><span style=display:flex><span><span style=color:#ff79c6>using</span> typeid_t <span style=color:#ff79c6>=</span> std<span style=color:#ff79c6>::</span><span style=color:#8be9fd>uint32_t</span>;
+</span></span><span style=display:flex><span><span style=color:#ff79c6>class</span> <span style=color:#50fa7b>TypeCounter</span> {
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>static</span> <span style=color:#ff79c6>inline</span> typeid_t i <span style=color:#ff79c6>=</span> <span style=color:#bd93f9>0</span>;
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>public</span><span style=color:#ff79c6>:</span>
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>template</span><span style=color:#ff79c6>&lt;</span><span style=color:#ff79c6>typename</span> T<span style=color:#ff79c6>&gt;</span>
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>static</span> <span style=color:#ff79c6>inline</span> <span style=color:#ff79c6>const</span> <span style=color:#ff79c6>auto</span> id <span style=color:#ff79c6>=</span> i<span style=color:#ff79c6>++</span>;
+</span></span><span style=display:flex><span>};
+</span></span><span style=display:flex><span><span style=color:#ff79c6>template</span><span style=color:#ff79c6>&lt;</span><span style=color:#ff79c6>typename</span> T<span style=color:#ff79c6>&gt;</span> <span style=color:#ff79c6>inline</span> <span style=color:#ff79c6>auto</span> typeid_v <span style=color:#ff79c6>=</span> TypeCounter<span style=color:#ff79c6>::</span>id<span style=color:#ff79c6>&lt;</span>T<span style=color:#ff79c6>&gt;</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#ff79c6>struct</span> <span style=color:#50fa7b>heco_1_sparseset_bytes</span>
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>template</span><span style=color:#ff79c6>&lt;</span><span style=color:#ff79c6>typename</span> T, size_t N<span style=color:#ff79c6>&gt;</span>
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>using</span> aligned_allocator <span style=color:#ff79c6>=</span> boost<span style=color:#ff79c6>::</span>alignment<span style=color:#ff79c6>::</span>aligned_allocator<span style=color:#ff79c6>&lt;</span>T, N<span style=color:#ff79c6>&gt;</span>;
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>static</span> <span style=color:#ff79c6>constexpr</span> <span style=color:#ff79c6>inline</span> <span style=color:#ff79c6>auto</span> max_alignment <span style=color:#ff79c6>=</span> <span style=color:#bd93f9>64UL</span>;
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>using</span> offset_t <span style=color:#ff79c6>=</span> std<span style=color:#ff79c6>::</span><span style=color:#8be9fd>uint32_t</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>enum</span> <span style=color:#ff79c6>class</span> <span style=color:#50fa7b>ACTION</span> { CONSTRUCT, COPY, MOVE, DESTROY };
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>using</span> destructor_t <span style=color:#ff79c6>=</span> size_t(<span style=color:#ff79c6>*</span>)(<span style=color:#8be9fd>void</span><span style=color:#ff79c6>*</span>, <span style=color:#8be9fd>void</span><span style=color:#ff79c6>*</span>, ACTION);
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>struct</span> <span style=color:#50fa7b>typeid_offset_dtor</span> { typeid_t tag; offset_t offset; destructor_t dtor; };
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    std<span style=color:#ff79c6>::</span>vector<span style=color:#ff79c6>&lt;</span>std<span style=color:#ff79c6>::</span><span style=color:#8be9fd>uint8_t</span><span style=color:#ff79c6>&gt;</span> sparse;
+</span></span><span style=display:flex><span>    std<span style=color:#ff79c6>::</span>vector<span style=color:#ff79c6>&lt;</span>typeid_offset_dtor<span style=color:#ff79c6>&gt;</span> dense;
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>using</span> vector_bytes <span style=color:#ff79c6>=</span> std<span style=color:#ff79c6>::</span>vector<span style=color:#ff79c6>&lt;</span>std<span style=color:#ff79c6>::</span>byte, aligned_allocator<span style=color:#ff79c6>&lt;</span>std<span style=color:#ff79c6>::</span>byte, max_alignment<span style=color:#ff79c6>&gt;&gt;</span>;
+</span></span><span style=display:flex><span>    vector_bytes objects;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    heco_1_sparseset_bytes() <span style=color:#ff79c6>=</span> <span style=color:#ff79c6>default</span>;
+</span></span><span style=display:flex><span>    heco_1_sparseset_bytes(heco_1_sparseset_bytes<span style=color:#ff79c6>&amp;&amp;</span>) <span style=color:#ff79c6>=</span> <span style=color:#ff79c6>default</span>;
+</span></span><span style=display:flex><span>    heco_1_sparseset_bytes(<span style=color:#ff79c6>const</span> heco_1_sparseset_bytes<span style=color:#ff79c6>&amp;</span>) <span style=color:#ff79c6>=</span> <span style=color:#ff79c6>delete</span>;
+</span></span><span style=display:flex><span>    heco_1_sparseset_bytes<span style=color:#ff79c6>&amp;</span> <span style=color:#ff79c6>operator</span><span style=color:#ff79c6>=</span>(<span style=color:#ff79c6>const</span> heco_1_sparseset_bytes<span style=color:#ff79c6>&amp;</span>) <span style=color:#ff79c6>=</span> <span style=color:#ff79c6>delete</span>;
+</span></span><span style=display:flex><span>    heco_1_sparseset_bytes<span style=color:#ff79c6>&amp;</span> <span style=color:#ff79c6>operator</span><span style=color:#ff79c6>=</span>(heco_1_sparseset_bytes<span style=color:#ff79c6>&amp;&amp;</span>) <span style=color:#ff79c6>=</span> <span style=color:#ff79c6>default</span>;
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>~</span>heco_1_sparseset_bytes() {
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>for</span> (<span style=color:#ff79c6>auto</span><span style=color:#ff79c6>&amp;</span> <span style=color:#8be9fd;font-style:italic>i</span> : dense)
+</span></span><span style=display:flex><span>            i.dtor(<span style=color:#ff79c6>&amp;</span>objects[i.offset],<span style=color:#ff79c6>nullptr</span>,ACTION<span style=color:#ff79c6>::</span>DESTROY);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>template</span><span style=color:#ff79c6>&lt;</span><span style=color:#ff79c6>typename</span> T<span style=color:#ff79c6>&gt;</span>
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>auto</span> record_destructor() {
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>return</span> <span style=color:#ff79c6>+</span>[](<span style=color:#8be9fd>void</span><span style=color:#ff79c6>*</span> src, <span style=color:#8be9fd>void</span><span style=color:#ff79c6>*</span> tgt, ACTION action)
+</span></span><span style=display:flex><span>        {
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>switch</span> (action) {
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>case</span> ACTION<span style=color:#ff79c6>::</span><span style=color:#8be9fd;font-style:italic>CONSTRUCT</span>: <span style=color:#ff79c6>new</span>(tgt) T; <span style=color:#ff79c6>break</span>;
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>case</span> ACTION<span style=color:#ff79c6>::</span><span style=color:#8be9fd;font-style:italic>DESTROY</span>: std<span style=color:#ff79c6>::</span>destroy_at(<span style=color:#ff79c6>static_cast</span><span style=color:#ff79c6>&lt;</span>T<span style=color:#ff79c6>*&gt;</span>(src)); <span style=color:#ff79c6>break</span>;
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>case</span> ACTION<span style=color:#ff79c6>::</span><span style=color:#8be9fd;font-style:italic>COPY</span>: <span style=color:#ff79c6>new</span>(tgt) T{ <span style=color:#ff79c6>*</span><span style=color:#ff79c6>static_cast</span><span style=color:#ff79c6>&lt;</span>T<span style=color:#ff79c6>*&gt;</span>(src) }; <span style=color:#ff79c6>break</span>;
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>case</span> ACTION<span style=color:#ff79c6>::</span><span style=color:#8be9fd;font-style:italic>MOVE</span>: <span style=color:#ff79c6>new</span>(tgt) T{ std<span style=color:#ff79c6>::</span>move(<span style=color:#ff79c6>*</span><span style=color:#ff79c6>static_cast</span><span style=color:#ff79c6>&lt;</span>T<span style=color:#ff79c6>*&gt;</span>(src)) }; <span style=color:#ff79c6>break</span>;
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>default</span><span style=color:#ff79c6>:</span> <span style=color:#ff79c6>break</span>;
+</span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>return</span> <span style=color:#50fa7b>sizeof</span>(T);
+</span></span><span style=display:flex><span>        };
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>template</span><span style=color:#ff79c6>&lt;</span><span style=color:#ff79c6>typename</span> T<span style=color:#ff79c6>&gt;</span>
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>decltype</span>(<span style=color:#ff79c6>auto</span>) get() { <span style=color:#ff79c6>return</span> do_get<span style=color:#ff79c6>&lt;</span>T<span style=color:#ff79c6>&gt;</span>(dense[sparse[typeid_v<span style=color:#ff79c6>&lt;</span>T<span style=color:#ff79c6>&gt;</span>]].offset); }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>template</span><span style=color:#ff79c6>&lt;</span><span style=color:#ff79c6>typename</span> T, <span style=color:#ff79c6>typename</span> U <span style=color:#ff79c6>=</span> std<span style=color:#ff79c6>::</span>remove_reference_t<span style=color:#ff79c6>&lt;</span>T<span style=color:#ff79c6>&gt;&gt;</span>
+</span></span><span style=display:flex><span>    U<span style=color:#ff79c6>&amp;</span> do_get(offset_t n) { <span style=color:#ff79c6>return</span> <span style=color:#ff79c6>*</span>std<span style=color:#ff79c6>::</span>launder(<span style=color:#ff79c6>reinterpret_cast</span><span style=color:#ff79c6>&lt;</span>U<span style=color:#ff79c6>*&gt;</span>(<span style=color:#ff79c6>&amp;</span>objects[n])); }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>template</span><span style=color:#ff79c6>&lt;</span><span style=color:#ff79c6>typename</span>... Ts<span style=color:#ff79c6>&gt;</span>
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd>void</span> insert(Ts<span style=color:#ff79c6>&amp;&amp;</span>... types) {
+</span></span><span style=display:flex><span>        <span style=color:#6272a4>// allocate and construct objects
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>        <span style=color:#ff79c6>const</span> <span style=color:#ff79c6>auto</span> offsets <span style=color:#ff79c6>=</span> allocate<span style=color:#ff79c6>&lt;</span>Ts...<span style=color:#ff79c6>&gt;</span>();
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>auto</span> construct <span style=color:#ff79c6>=</span> [<span style=color:#ff79c6>&amp;</span>](offset_t n, <span style=color:#ff79c6>auto</span><span style=color:#ff79c6>&amp;&amp;</span> t) {
+</span></span><span style=display:flex><span>             <span style=color:#ff79c6>using</span> T <span style=color:#ff79c6>=</span> <span style=color:#ff79c6>decltype</span>(t);
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>using</span> U <span style=color:#ff79c6>=</span> std<span style=color:#ff79c6>::</span>remove_reference_t<span style=color:#ff79c6>&lt;</span>T<span style=color:#ff79c6>&gt;</span>;
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>new</span>(<span style=color:#ff79c6>&amp;</span>objects[n]) U{ std<span style=color:#ff79c6>::</span>forward<span style=color:#ff79c6>&lt;</span>T<span style=color:#ff79c6>&gt;</span>(t) };
+</span></span><span style=display:flex><span>        };
+</span></span><span style=display:flex><span>        {size_t i <span style=color:#ff79c6>=</span> <span style=color:#bd93f9>0</span>; (construct(offsets[i<span style=color:#ff79c6>++</span>], types), ...); }
+</span></span><span style=display:flex><span>        <span style=color:#6272a4>// update sparse vector
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>        <span style=color:#ff79c6>const</span> <span style=color:#ff79c6>auto</span> ids <span style=color:#ff79c6>=</span> std<span style=color:#ff79c6>::</span>array{ typeid_v<span style=color:#ff79c6>&lt;</span>Ts<span style=color:#ff79c6>&gt;</span>... };
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>const</span> <span style=color:#ff79c6>auto</span> max_id <span style=color:#ff79c6>=</span> <span style=color:#ff79c6>*</span>std<span style=color:#ff79c6>::</span>max_element(ids.cbegin(), ids.end());
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>if</span> (max_id <span style=color:#ff79c6>&gt;=</span> sparse.size())
+</span></span><span style=display:flex><span>            sparse.resize(max_id <span style=color:#ff79c6>+</span> <span style=color:#bd93f9>1</span>, <span style=color:#ff79c6>-</span><span style=color:#bd93f9>1</span>);
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>for</span> (<span style=color:#8be9fd>int</span> i <span style=color:#ff79c6>=</span> ids.size(); i <span style=color:#ff79c6>&gt;</span> <span style=color:#bd93f9>0</span>; <span style=color:#ff79c6>--</span>i)
+</span></span><span style=display:flex><span>            sparse[ids[i <span style=color:#ff79c6>-</span> <span style=color:#bd93f9>1</span>]] <span style=color:#ff79c6>=</span> i <span style=color:#ff79c6>-</span> <span style=color:#bd93f9>1</span>;
+</span></span><span style=display:flex><span>        <span style=color:#6272a4>// update dense vector
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>        dense.reserve(dense.size() <span style=color:#ff79c6>+</span> <span style=color:#ff79c6>sizeof</span>...(Ts));
+</span></span><span style=display:flex><span>        {size_t i <span style=color:#ff79c6>=</span> <span style=color:#bd93f9>0</span>; (dense.push_back({ typeid_v<span style=color:#ff79c6>&lt;</span>Ts<span style=color:#ff79c6>&gt;</span>,offsets[i<span style=color:#ff79c6>++</span>], record_destructor<span style=color:#ff79c6>&lt;</span>Ts<span style=color:#ff79c6>&gt;</span>() }), ...); }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>template</span><span style=color:#ff79c6>&lt;</span><span style=color:#ff79c6>typename</span>... T<span style=color:#ff79c6>&gt;</span>
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>auto</span> allocate()<span style=color:#ff79c6>-&gt;</span>std<span style=color:#ff79c6>::</span>array<span style=color:#ff79c6>&lt;</span>offset_t, <span style=color:#ff79c6>sizeof</span>...(T)<span style=color:#ff79c6>&gt;</span> {
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>static_assert</span>(((<span style=color:#ff79c6>alignof</span>(T) <span style=color:#ff79c6>&lt;=</span> max_alignment) <span style=color:#ff79c6>&amp;&amp;</span> ...));
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>using</span> <span style=color:#ff79c6>namespace</span> std;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>constexpr</span> size_t N <span style=color:#ff79c6>=</span> <span style=color:#ff79c6>sizeof</span>...(T);
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>constexpr</span> array<span style=color:#ff79c6>&lt;</span>size_t, N<span style=color:#ff79c6>&gt;</span> alignments <span style=color:#ff79c6>=</span> { <span style=color:#ff79c6>alignof</span>(T)... };
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>constexpr</span> array<span style=color:#ff79c6>&lt;</span>size_t, N<span style=color:#ff79c6>&gt;</span> sizes <span style=color:#ff79c6>=</span> { <span style=color:#ff79c6>sizeof</span>(T)... };
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        array<span style=color:#ff79c6>&lt;</span>offset_t, N<span style=color:#ff79c6>&gt;</span> output;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>const</span> size_t size_before <span style=color:#ff79c6>=</span> objects.size();
+</span></span><span style=display:flex><span>        uintptr_t ptr_end <span style=color:#ff79c6>=</span> uintptr_t(objects.data() <span style=color:#ff79c6>+</span> size_before);
+</span></span><span style=display:flex><span>        size_t to_allocate <span style=color:#ff79c6>=</span> <span style=color:#bd93f9>0</span>;
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>for</span> (<span style=color:#8be9fd>int</span> i <span style=color:#ff79c6>=</span> <span style=color:#bd93f9>0</span>; i <span style=color:#ff79c6>&lt;</span> N; <span style=color:#ff79c6>++</span>i)
+</span></span><span style=display:flex><span>        {
+</span></span><span style=display:flex><span>            size_t padding <span style=color:#ff79c6>=</span> ((<span style=color:#ff79c6>~</span>ptr_end <span style=color:#ff79c6>+</span> <span style=color:#bd93f9>1</span>) <span style=color:#ff79c6>&amp;</span> (alignments[i] <span style=color:#ff79c6>-</span> <span style=color:#bd93f9>1</span>));
+</span></span><span style=display:flex><span>            output[i] <span style=color:#ff79c6>=</span> size_before <span style=color:#ff79c6>+</span> to_allocate <span style=color:#ff79c6>+</span> padding;
+</span></span><span style=display:flex><span>            to_allocate <span style=color:#ff79c6>+=</span> padding <span style=color:#ff79c6>+</span> sizes[i];
+</span></span><span style=display:flex><span>            ptr_end <span style=color:#ff79c6>+=</span> padding <span style=color:#ff79c6>+</span> sizes[i];
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>        size_t size_after <span style=color:#ff79c6>=</span> size_before <span style=color:#ff79c6>+</span> to_allocate;
+</span></span><span style=display:flex><span>        <span style=color:#6272a4>// objects.resize(size_after);//Resizing screw up runtime on Linux &#34;free(): invalid pointer&#34;, not moving objects is UB
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>        vector_bytes <span style=color:#50fa7b>tmp</span>(size_after);
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>for</span> (<span style=color:#ff79c6>auto</span><span style=color:#ff79c6>&amp;&amp;</span> [tid, offset, dtor] <span style=color:#ff79c6>:</span> dense)
+</span></span><span style=display:flex><span>            dtor(<span style=color:#ff79c6>&amp;</span>objects[offset], <span style=color:#ff79c6>&amp;</span>tmp[offset], ACTION<span style=color:#ff79c6>::</span>MOVE);
+</span></span><span style=display:flex><span>        objects <span style=color:#ff79c6>=</span> std<span style=color:#ff79c6>::</span>exchange(tmp, {});
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>return</span> output;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>};
+</span></span></code></pre></td></tr></table></div></div></div></main><footer id=footer><div id=footer-inner>&copy;&nbsp;2020-2022&nbsp;&#183;&nbsp;Fabien Péan</div></footer><script>window.FontAwesomeConfig={searchPseudoElements:!0}</script><script src=https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/js/all.min.js integrity="sha512-6PM0qYu5KExuNcKt5bURAoT6KCThUmHRewN3zUFNaoI6Di7XJPTMoT6K0nsagZKk2OB4L7E3q1uQKHNHd4stIQ==" crossorigin=anonymous referrerpolicy=no-referrer></script>
+<script src=https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js referrerpolicy=no-referrer></script>
+<script src=https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.11/clipboard.min.js integrity="sha512-7O5pXpc0oCRrxk8RUfDYFgn0nO1t+jLuIOQdOMRp4APB7uZ4vSjspzp5y6YDtDs4VzUSTbWzBFZ/LKJhnyFOKw==" crossorigin=anonymous referrerpolicy=no-referrer></script>
+<script src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.1/highlight.min.js integrity="sha512-yUUc0qWm2rhM7X0EFe82LNnv2moqArj5nro/w1bi05A09hRVeIZbN6jlMoyu0+4I/Bu4Ck/85JQIU82T82M28w==" crossorigin=anonymous referrerpolicy=no-referrer></script>
+<script src=https://cdnjs.cloudflare.com/ajax/libs/mermaid/9.1.2/mermaid.min.js integrity="sha512-8ZrL1m0+KXHylxkFJdFtFCauQdV/KZMjSBL9iydsyIfiB1LwYBlGegX8dUlLnUtRDrTgWKP6pPVyOqa2VrqoNA==" crossorigin=anonymous referrerpolicy=no-referrer></script>
+<script>mermaid.initialize({startOnLoad:!0,securityLevel:"loose",theme:"default",themeCSS:"",cloneCssStyles:!0,useMaxWidth:!0,htmlLabels:!1,flowchart:{curve:"basis"}})</script><script>window.MathJax={tex:{inlineMath:[["$","$"],["\\(","\\)"]],displayMath:[["$$","$$"],["\\[","\\]"]],processEscapes:!1,processEnvironments:!0,tags:"ams"},svg:{fontCache:"global",displayAlign:"left",displayIndent:"2emem"}}</script><script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+<script id=MathJax-script async src=https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js></script>
+<script src=/js/custom.js></script></body></html>

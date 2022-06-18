@@ -1,27 +1,50 @@
-<!doctype html><html lang=en-us><!doctype html><html lang=en><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content><meta name=author content="Fabien Péan"><meta name=google-site-verification content="_OCqKj2I4fVqJsqpa9uq0utQ55W1kx93lTIQtHZ88mM"><link rel="shortcut icon" type=image/png href=/img/logo.svg><title>Fabien Péan &#183; Personal Website</title><meta name=robots content="index,follow"><meta name=googlebot content="index,follow"><link rel=stylesheet type=text/css href=/css/normalize.css><link rel=stylesheet href=/vendor/colors/css/colors.min.css><link rel=stylesheet href=/vendor/academicons/css/academicons.min.css><style>:root{--font-monospace: "Source Code Pro";--font-sans-serif:"Inter"}</style><link href="https://fonts.googleapis.com/css?family=Inter%7cSource+Code+Pro&display=swap" rel=stylesheet type=text/css><link rel=stylesheet href=/css/custom.css></head><body><body><nav id=nav><figure id=logo class=image><img src=/img/logo.svg></figure><div id=branding><div class=branding-title>Fabien Péan</div><div class=branding-subtitle></div></div><div id=menu><a class=menu-link href=/><div class=menu-item><span class=menu-label><i class="fas fa-home fa-fw"></i>&nbsp;Home</span></div></a><a class=menu-link href=/news><div class=menu-item><span class=menu-label><i class="fas fa-newspaper fa-fw"></i>&nbsp;News</span></div></a><a class=menu-link href=/blog><div class=menu-item><span class=menu-label><i class="fas fa-pencil-alt fa-fw"></i>&nbsp;Blog</span></div></a><a class=menu-link href=/notes><div class=menu-item><span class=menu-label><i class="fas fa-sticky-note fa-fw"></i>&nbsp;Notes</span></div></a><a class=menu-link href=/projects><div class=menu-item><span class=menu-label><i class="fas fa-book fa-fw"></i>&nbsp;Projects</span></div></a></div><div class=social><div class=social-list><div style="display:flex;flex-flow:row wrap;justify-content:center"><div class="social-button email"><a href=mailto:fabien@pean.pro rel=author><i class="fas fa-at fa-2x"></i></a></div><div class="social-button bitbucket"><a href=https://bitbucket.org/FabienPean rel="author external"><i class="fab fa-bitbucket fa-2x"></i></a></div><div class="social-button github"><a href=https://github.com/FabienPean rel="author external"><i class="fab fa-github fa-2x"></i></a></div><div class="social-button linkedin"><a href=https://www.linkedin.com/in/FabienPean rel="author external"><i class="fab fa-linkedin fa-2x"></i></a></div></div></div></div></nav><main id=main><div class=content><h1>Implicit Euler</h1><small><div class=subtitle style="display:flex;flex-flow:row wrap;justify-content:space-between"><span style="flex:1 0 auto;max-width:100%"><span class=tooltip>30/12/2020
+<!doctype html><html lang=en-us><!doctype html><html lang=en><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content><meta name=author content="Fabien Péan"><meta name=google-site-verification content="_OCqKj2I4fVqJsqpa9uq0utQ55W1kx93lTIQtHZ88mM"><link rel="shortcut icon" type=image/png href=/img/logo.svg><title>Fabien Péan &#183; Personal Website</title><meta name=robots content="index,follow"><meta name=googlebot content="index,follow"><link rel=stylesheet type=text/css href=/css/normalize.css><link rel=stylesheet href=/vendor/colors/css/colors.min.css><link rel=stylesheet href=/vendor/academicons/css/academicons.min.css><style>:root{--font-monospace:"Source Code Pro";--font-sans-serif:"Inter"}</style><link href="https://fonts.googleapis.com/css?family=Inter%7cSource+Code+Pro&display=swap" rel=stylesheet type=text/css><link rel=stylesheet href=/css/custom.css></head><body><body><nav id=nav><figure id=logo class=image><img src=/img/logo.svg></figure><div id=branding><div class=branding-title>Fabien Péan</div><div class=branding-subtitle></div></div><div id=menu><a class=menu-link href=/><div class=menu-item><span class=menu-label><i class="fas fa-home fa-fw"></i>&nbsp;Home</span></div></a><a class=menu-link href=/news><div class=menu-item><span class=menu-label><i class="fas fa-newspaper fa-fw"></i>&nbsp;News</span></div></a><a class=menu-link href=/blog><div class=menu-item><span class=menu-label><i class="fas fa-pencil-alt fa-fw"></i>&nbsp;Blog</span></div></a><a class=menu-link href=/notes><div class=menu-item><span class=menu-label><i class="fas fa-sticky-note fa-fw"></i>&nbsp;Notes</span></div></a><a class=menu-link href=/projects><div class=menu-item><span class=menu-label><i class="fas fa-book fa-fw"></i>&nbsp;Projects</span></div></a></div><div class=social><div class=social-list><div style="display:flex;flex-flow:row wrap;justify-content:center"><div class="social-button email"><a href=mailto:fabien@pean.pro rel=author><i class="fas fa-at fa-2x"></i></a></div><div class="social-button bitbucket"><a href=https://bitbucket.org/FabienPean rel="author external"><i class="fab fa-bitbucket fa-2x"></i></a></div><div class="social-button github"><a href=https://github.com/FabienPean rel="author external"><i class="fab fa-github fa-2x"></i></a></div><div class="social-button linkedin"><a href=https://www.linkedin.com/in/FabienPean rel="author external"><i class="fab fa-linkedin fa-2x"></i></a></div></div></div></div></nav><main id=main><div class=content><h1>Implicit Euler</h1><small><div class=subtitle style="display:flex;flex-flow:row wrap;justify-content:space-between"><span style="flex:1 0 auto;max-width:100%"><span class=tooltip>30/12/2020
 <span class=tooltiptext><small>updated on 19/11/2021</small></span>
-</span>&nbsp;&boxv;&nbsp;<a href=/notes>Notes</a></span><div class=tag-list><a href=/tags/numerical-analysis><div class=tag>numerical analysis</div></a><a href=/tags/timestepping><div class=tag>timestepping</div></a></div></div></small><br><h2 id=notations>Notations</h2><p>Let be <span class="math inline">\(\mathbf{q}\)</span> be a field function of time <span class="math inline">\(t\)</span> and <span class="math inline">\(\mathbf{\dot q}, \mathbf{\ddot q}\)</span> be its first and second derivatives with respect to time, <span class="math display">\[
+</span>&nbsp;&boxv;&nbsp;<a href=/notes>Notes</a></span><div class=tag-list><a href=/tags/numerical-analysis><div class=tag>numerical analysis</div></a><a href=/tags/timestepping><div class=tag>timestepping</div></a></div></div></small><br><h2 id=notations>Notations</h2><p>Let be <span class="math inline">\(\mathbf{q}\)</span> be a field
+function of time <span class="math inline">\(t\)</span> and <span class="math inline">\(\mathbf{\dot q}, \mathbf{\ddot q}\)</span> be its
+first and second derivatives with respect to time, <span class="math display">\[
 \begin{aligned}
 \mathbf{q} &= \mathbf{q}(t)\\
 \mathbf{\dot q} &= \frac{\mathrm{d} \mathbf{q}}{\mathrm{d} t}\\
-\mathbf{\ddot q} &= \frac{\mathrm{d} \mathbf{\dot q}}{\mathrm{d} t}\\
+\mathbf{\ddot q} &= \frac{\mathrm{d} \mathbf{\dot q}}{\mathrm{d}
+t}\\
 \end{aligned}
-\]</span> In order to make the description of the time integration algorithms less abstract, one can think of $,, $ as position, velocity and acceleration. Moreover, the balance of momentum equation is considered for a concrete derivation of the scheme. Therefore, <span class="math display">\[
+\]</span> In order to make the description of the time integration
+algorithms less abstract, one can think of $,, $ as position, velocity
+and acceleration. Moreover, the balance of momentum equation is
+considered for a concrete derivation of the scheme. Therefore, <span class="math display">\[
 \notag
-\mathbf M \mathbf{\ddot q} +\mathbf{f} = 0 \quad \text{where} \quad \mathbf{f} = \mathbf{f}\left(\mathbf{q}(t),\mathbf{\dot q}(t)\right)
-\]</span> The mass matrix <span class="math inline">\(\mathbf{M}\)</span> is assumed constant. In addition, to facilitate the notations, the superscripts involving <span class="math inline">\(t\)</span> will be used to denote time points such that <span class="math inline">\(\mathbf{q}^{t+\tau} = \mathbf{q}(t+\tau)\)</span> represents the discrete value of <span class="math inline">\(\mathbf{q}\)</span> at time <span class="math inline">\(t+\tau\)</span>, while subscript involving <span class="math inline">\(n\)</span> as in <span class="math inline">\(\mathbf{q}_n^t\)</span> will represent the value of <span class="math inline">\(\mathbf{q}^t\)</span> at some iteration <span class="math inline">\(n\)</span>. The symbol <span class="math inline">\(\tau\)</span> represents the timestep.</p><h2 id=implicit-euler>Implicit Euler</h2><p>The implicit Euler method is the first of the <a href=https://en.wikipedia.org/wiki/Backward_differentiation_formula>Backward Differentiation Formula</a>. The scheme is implicit and therefore unconditionally stable, even more so, it is <a href=https://en.wikipedia.org/wiki/L-stability>L-stable</a>, which means that the new computed value approaches toward zero in a single step as the timestep tends to infinity. It is the most common integrator for near real-time applications. While it allows to take relatively large timesteps, the computed solution presents severe numerical damping, which reduces its accuracy. The scheme is given as <span class="math display">\[
+\mathbf M \mathbf{\ddot q} +\mathbf{f} = 0 \quad \text{where} \quad
+\mathbf{f} = \mathbf{f}\left(\mathbf{q}(t),\mathbf{\dot q}(t)\right)
+\]</span> The mass matrix <span class="math inline">\(\mathbf{M}\)</span> is assumed constant. In
+addition, to facilitate the notations, the superscripts involving <span class="math inline">\(t\)</span> will be used to denote time points such
+that <span class="math inline">\(\mathbf{q}^{t+\tau} =
+\mathbf{q}(t+\tau)\)</span> represents the discrete value of <span class="math inline">\(\mathbf{q}\)</span> at time <span class="math inline">\(t+\tau\)</span>, while subscript involving <span class="math inline">\(n\)</span> as in <span class="math inline">\(\mathbf{q}_n^t\)</span> will represent the value
+of <span class="math inline">\(\mathbf{q}^t\)</span> at some iteration
+<span class="math inline">\(n\)</span>. The symbol <span class="math inline">\(\tau\)</span> represents the timestep.</p><h2 id=implicit-euler>Implicit Euler</h2><p>The implicit Euler method is the first of the <a href=https://en.wikipedia.org/wiki/Backward_differentiation_formula>Backward
+Differentiation Formula</a>. The scheme is implicit and therefore
+unconditionally stable, even more so, it is <a href=https://en.wikipedia.org/wiki/L-stability>L-stable</a>, which
+means that the new computed value approaches toward zero in a single
+step as the timestep tends to infinity. It is the most common integrator
+for near real-time applications. While it allows to take relatively
+large timesteps, the computed solution presents severe numerical
+damping, which reduces its accuracy. The scheme is given as <span class="math display">\[
 \left\{\begin{aligned}
-\frac{\mathbf{q}^{t+\tau}-\mathbf{q}^t}{\tau} &= \mathbf{\dot q}^{t+\tau}\\
-\frac{\mathbf{\dot q}^{t+\tau}-\mathbf{\dot q}^t}{\tau} &= \mathbf{\ddot q}^{t+\tau}\\
+\frac{\mathbf{q}^{t+\tau}-\mathbf{q}^t}{\tau} &= \mathbf{\dot
+q}^{t+\tau}\\
+\frac{\mathbf{\dot q}^{t+\tau}-\mathbf{\dot q}^t}{\tau} &=
+\mathbf{\ddot q}^{t+\tau}\\
 \mathbf{M}\mathbf{\ddot q}^{t+\tau} + \mathbf{f}^{t+\tau}&=0
 \end{aligned}
 \right.
-\]</span></p><p>Since the value of <span class="math inline">\(\mathbf{\ddot q}\)</span> is not generally needed, it can be folded in the <span class="math inline">\(\mathbf{\dot q}\)</span> term <span class="math display">\[
+\]</span></p><p>Since the value of <span class="math inline">\(\mathbf{\ddot
+q}\)</span> is not generally needed, it can be folded in the <span class="math inline">\(\mathbf{\dot q}\)</span> term <span class="math display">\[
 \notag
 \begin{eqnarray*}
 \left\{\begin{aligned}
 \mathbf{q}^{t+\tau}&=\mathbf{q}^t+ \tau\mathbf{\dot q}^{t+\tau}\\
-\mathbf{M}\mathbf{\dot q}^{t+\tau} &= \mathbf{M}\mathbf{\dot q}^t - \tau\mathbf{f}^{t+\tau}
+\mathbf{M}\mathbf{\dot q}^{t+\tau} &= \mathbf{M}\mathbf{\dot q}^t -
+\tau\mathbf{f}^{t+\tau}
 \end{aligned}
 \right.
 \end{eqnarray*}
@@ -31,23 +54,40 @@
 \mathrm{R}=\begin{bmatrix}\mathrm{R}_q\\ \mathrm{R}_\dot q\end{bmatrix}=
 \begin{bmatrix}
 &\mathbf{q}^{t+\tau}-\mathbf{q}^t - \tau\mathbf{\dot q}^{t+\tau} \\
-&\mathbf{M}\left(\mathbf{\dot q}^{t+\tau} - \mathbf{\dot q}^t\right) + \tau\mathbf{f}^{t+\tau} \\
+&\mathbf{M}\left(\mathbf{\dot q}^{t+\tau} - \mathbf{\dot q}^t\right)
++ \tau\mathbf{f}^{t+\tau} \\
 \end{bmatrix}
 \end{aligned}=0
 \end{eqnarray*}
-\]</span> Now, if we replace <span class="math inline">\(\mathbf{q}^{t+\tau}\)</span> by <span class="math inline">\(\mathbf{q}^{t+\tau}_n\!\!\!+\!\Delta\mathbf{q}\)</span> where <span class="math inline">\(\mathbf{q}^{t+\tau}_n\)</span> is an approximation of <span class="math inline">\(\mathbf{q}^{t+\tau}\)</span> which we assume known and <span class="math inline">\(\Delta\mathbf{q}\)</span> a little nudge needed to reach the solution (and do similarly to its time derivatives), we have <span class="math display">\[
+\]</span> Now, if we replace <span class="math inline">\(\mathbf{q}^{t+\tau}\)</span> by <span class="math inline">\(\mathbf{q}^{t+\tau}_n\!\!\!+\!\Delta\mathbf{q}\)</span>
+where <span class="math inline">\(\mathbf{q}^{t+\tau}_n\)</span> is an
+approximation of <span class="math inline">\(\mathbf{q}^{t+\tau}\)</span> which we assume known
+and <span class="math inline">\(\Delta\mathbf{q}\)</span> a little nudge
+needed to reach the solution (and do similarly to its time derivatives),
+we have <span class="math display">\[
 \left\{\begin{aligned}
-\mathbf{q}^{t+\tau}_n+\Delta\mathbf{q} &= \mathbf{q}^t+\tau\left(\mathbf{\dot q}^{t+\tau}_n+\Delta\mathbf{\dot q}\right)\\
-\mathbf{M}\left( \mathbf{\dot q}^{t+\tau}_n+ \Delta\mathbf{\dot q}\right) &= \mathbf{M}\mathbf{\dot q}^t -\tau\mathbf{f}^{t+\tau}_{n+1}
+\mathbf{q}^{t+\tau}_n+\Delta\mathbf{q} &=
+\mathbf{q}^t+\tau\left(\mathbf{\dot q}^{t+\tau}_n+\Delta\mathbf{\dot
+q}\right)\\
+\mathbf{M}\left( \mathbf{\dot q}^{t+\tau}_n+ \Delta\mathbf{\dot
+q}\right) &= \mathbf{M}\mathbf{\dot q}^t
+-\tau\mathbf{f}^{t+\tau}_{n+1}
 \end{aligned}\right.
-\quad\text{where} \quad \mathbf{f}^{t+\tau}_{n+1} = \mathbf{f}^{t+\tau}_n\!(\mathbf{q}^{t+\tau}_n\!\!+\!\Delta\mathbf{q},\mathbf{\dot q}^{t+\tau}_n\!\!+\!\Delta\mathbf{\dot q})
+\quad\text{where} \quad \mathbf{f}^{t+\tau}_{n+1} =
+\mathbf{f}^{t+\tau}_n\!(\mathbf{q}^{t+\tau}_n\!\!+\!\Delta\mathbf{q},\mathbf{\dot
+q}^{t+\tau}_n\!\!+\!\Delta\mathbf{\dot q})
 \]</span> Taylor approximation of the force term <span class="math inline">\(\mathbf{f}^{t+\tau}_{n+1}\)</span> yields <span class="math display">\[
 \begin{aligned}
 \mathbf{f}^{t+\tau}_{n+1}
-&\approx \mathbf{f}^{t+\tau}_{n} +\frac{\partial\mathbf{f}^{t+\tau}_n}{\partial\mathbf{q}}\Delta\mathbf{q}+\frac{\partial \mathbf{f}^{t+\tau}_n}{\partial\mathbf{\dot q}}\Delta\mathbf{\dot q}\\
-&\approx \mathbf{f}^{t+\tau}_{n} + \mathbf K_n\Delta\mathbf{q}+\mathbf D_n\Delta\mathbf{\dot q}
+&\approx \mathbf{f}^{t+\tau}_{n}
++\frac{\partial\mathbf{f}^{t+\tau}_n}{\partial\mathbf{q}}\Delta\mathbf{q}+\frac{\partial
+\mathbf{f}^{t+\tau}_n}{\partial\mathbf{\dot q}}\Delta\mathbf{\dot q}\\
+&\approx \mathbf{f}^{t+\tau}_{n} + \mathbf
+K_n\Delta\mathbf{q}+\mathbf D_n\Delta\mathbf{\dot q}
 \end{aligned}
-\]</span> Where <span class="math inline">\(\mathbf K, \mathbf D\)</span> are recognized as the tangent stiffness and damping matrix, respectively. <span class="math display">\[
+\]</span> Where <span class="math inline">\(\mathbf K, \mathbf
+D\)</span> are recognized as the tangent stiffness and damping matrix,
+respectively. <span class="math display">\[
 \notag
 \mathbf{M}\Delta\mathbf{\dot{q}} =
 \mathbf{M}(\mathbf{\dot{q}}^t-\mathbf{\dot{q}}^{t+\tau}_n)
@@ -56,13 +96,17 @@
 \]</span> Substituting <span class="math inline">\(\Delta\mathbf{q}\)</span> yields <span class="math display">\[
 \begin{aligned}
 \left(\mathbf{M}+\tau\mathbf{D}_n+\tau^2\mathbf{K}_n\right)\Delta\mathbf{\dot{q}}&=
-\mathbf{M}\left(\mathbf{\dot q}^t-\mathbf{\dot q}^{t+\tau}_n\right)-\tau\mathbf{f}^{t+\tau}_n-\tau\mathbf{K}\left(\mathbf{q}^t-\mathbf{q}^{t+\tau}_n+\tau\mathbf{\dot q}^{t+\tau}_n \right)
+\mathbf{M}\left(\mathbf{\dot q}^t-\mathbf{\dot
+q}^{t+\tau}_n\right)-\tau\mathbf{f}^{t+\tau}_n-\tau\mathbf{K}\left(\mathbf{q}^t-\mathbf{q}^{t+\tau}_n+\tau\mathbf{\dot
+q}^{t+\tau}_n \right)
 \\
 &=
 -\mathrm{R}_{\dot{q},n}
 +\tau\mathbf{K}\mathrm{R}_{q,n}
 \end{aligned}
-\]</span></p><p>The overall procedure consists in repeating the cycle below, given <span class="math inline">\(\mathbf{q}^{t+\tau}_0\)</span> and <span class="math inline">\(\mathbf{\dot{q}}^{t+\tau}_0\)</span>, until <span class="math inline">\(\Vert\Delta\mathbf{\dot{q}}\Vert&lt;\text{threshold}\)</span> <span class="math display">\[
+\]</span></p><p>The overall procedure consists in repeating the cycle below, given
+<span class="math inline">\(\mathbf{q}^{t+\tau}_0\)</span> and <span class="math inline">\(\mathbf{\dot{q}}^{t+\tau}_0\)</span>, until <span class="math inline">\(\Vert\Delta\mathbf{\dot{q}}\Vert&lt;\text{threshold}\)</span>
+<span class="math display">\[
 \begin{equation}
 \begin{aligned}
 \left(\mathbf{M}+\tau\mathbf{D}_n+\tau^2\mathbf{K}_n\right)\Delta\mathbf{\dot{q}}&=
@@ -71,15 +115,23 @@
 \\
 \mathbf{\dot{q}}^{t+\tau}_{n+1}&=\mathbf{\dot{q}}^{t+\tau}_n+\Delta\mathbf{\dot{q}}
 \\
-\mathbf{q}^{t+\tau}_{n+1} &= \mathbf{q}^t+ \tau\mathbf{\dot q}^{t+\tau}_{n+1}
+\mathbf{q}^{t+\tau}_{n+1} &= \mathbf{q}^t+ \tau\mathbf{\dot
+q}^{t+\tau}_{n+1}
 \\
-\mathbf{f}^{t+\tau}_{n+1} &= \mathbf{f}\left(\mathbf{q}^{t+\tau}_{n+1},\mathbf{\dot q}^{t+\tau}_{n+1}\right)
+\mathbf{f}^{t+\tau}_{n+1} &=
+\mathbf{f}\left(\mathbf{q}^{t+\tau}_{n+1},\mathbf{\dot
+q}^{t+\tau}_{n+1}\right)
 \end{aligned}
 \label{eq:iteration_unrolled}
 \end{equation}
-\]</span> It is possible to reach the same the solution by applying Newton’s method <span class="math display">\[
+\]</span> It is possible to reach the same the solution by applying
+Newton’s method <span class="math display">\[
 \notag
-\mathrm{R}_n+\frac{\mathrm{d}\mathrm R_n}{\mathrm{d}\{\mathbf q^{t+\tau},\mathbf{\dot q}^{t+\tau}\}}\begin{bmatrix}\mathbf{q}^{t+\tau}_{n+1}-\mathbf{q}^{t+\tau}_{n}\\ \mathbf{\dot q}^{t+\tau}_{n+1}-\mathbf{\dot q}^{t+\tau}_{n}\end{bmatrix} = 0
+\mathrm{R}_n+\frac{\mathrm{d}\mathrm R_n}{\mathrm{d}\{\mathbf
+q^{t+\tau},\mathbf{\dot
+q}^{t+\tau}\}}\begin{bmatrix}\mathbf{q}^{t+\tau}_{n+1}-\mathbf{q}^{t+\tau}_{n}\\
+\mathbf{\dot q}^{t+\tau}_{n+1}-\mathbf{\dot q}^{t+\tau}_{n}\end{bmatrix}
+= 0
 \]</span></p><p>Which yields <span class="math display">\[
 \notag
 \begin{bmatrix}
@@ -95,49 +147,101 @@
 \mathrm{R}_{q,n}\\
 \mathrm{R}_{\dot{q},n}\\
 \end{pmatrix}
-\]</span></p><h2 id=remarks>Remarks</h2><p>The unrolled procedure <span class="math inline">\(\eqref{eq:iteration_unrolled}\)</span> effectively projects <span class="math inline">\(\mathbf{q}\)</span> to fulfill the residual equation at the end of each iteration. Indeed, <span class="math inline">\(\mathbf{q}^{t+\tau}_{n+1}\)</span> is explicitly computed to fulfill the residual equation <span class="math inline">\(\mathrm R_{q} =0\)</span>. Therefore, its contribution to the main step is null and can be removed, for <span class="math inline">\(n\geq1\)</span>. <span class="math display">\[
+\]</span></p><h2 id=remarks>Remarks</h2><p>The unrolled procedure <span class="math inline">\(\eqref{eq:iteration_unrolled}\)</span> effectively
+projects <span class="math inline">\(\mathbf{q}\)</span> to fulfill the
+residual equation at the end of each iteration. Indeed, <span class="math inline">\(\mathbf{q}^{t+\tau}_{n+1}\)</span> is explicitly
+computed to fulfill the residual equation <span class="math inline">\(\mathrm R_{q} =0\)</span>. Therefore, its
+contribution to the main step is null and can be removed, for <span class="math inline">\(n\geq1\)</span>. <span class="math display">\[
 \begin{aligned}
 \left(\mathbf{M}+\tau\mathbf{D}_n+\tau^2\mathbf{K}_n\right)\Delta\mathbf{\dot{q}}&=
 -\mathrm{R}_{\dot{q},n}
 \\
 \mathbf{\dot{q}}^{t+\tau}_{n+1}&=\mathbf{\dot{q}}^{t+\tau}_n+\Delta\mathbf{\dot{q}}
 \\
-\mathbf{q}^{t+\tau}_{n+1} &= \mathbf{q}^t+ \tau\mathbf{\dot q}^{t+\tau}_{n+1}
+\mathbf{q}^{t+\tau}_{n+1} &= \mathbf{q}^t+ \tau\mathbf{\dot
+q}^{t+\tau}_{n+1}
 \end{aligned}
-\]</span> ⚠️ This is not necessarily true for the first iteration <span class="math inline">\(n=0\)</span>. Indeed, if <span class="math inline">\(\mathbf{q}^{t+\tau}_0\)</span> is chosen independently from <span class="math inline">\(\mathbf{\dot{q}}^{t+\tau}_0\)</span> then <span class="math display">\[
-\mathbf{q}^{t+\tau}_0 \neq \mathbf{q}^{t}+\tau\mathbf{\dot{q}}^{t+\tau}_0 \implies \mathrm R_{q,n} \neq 0
-\]</span></p><p>It could still be discarded to simplify the algorithm, at the risk of a slower convergence. This might be particularly interesting in non-linear scenarios, where multiple iterations would anyway be needed to converge. However, in a truncated scheme, halted before convergence after a single or few iterations like in near real-time applications, such approximation might be questionable. Nevertheless, it is commonly omitted.</p><p>⚠️ The force term <span class="math inline">\(\mathbf{f}^{t+\tau}_n\)</span> is computed as <span class="math inline">\(\mathbf{f}(\mathbf{q}_n^{t+\tau},\mathbf{\dot q}_n^{t+\tau})\)</span>. However, at the first iteration, <span class="math inline">\(\mathbf {f}^{t+\tau}_0\)</span> could also chosen independently from the choices of <span class="math inline">\(\mathbf{q}^{t+\tau}_0\)</span> and <span class="math inline">\(\mathbf{\dot{q}}^{t+\tau}_0\)</span> in order to accelerate the convergence of the scheme or simplify its formulation. <span class="math display">\[
-\mathbf{f}^{t+\tau}_0 \neq \mathbf{f}(\mathbf{q}^{t+\tau}_0,\mathbf{\dot{q}}^{t+\tau}_0)
-\]</span></p><h2 id=implicit-euler-linearized>Implicit Euler linearized</h2><p>A common choice of initial guesses are <span class="math inline">\(\mathbf{q}^{t+\tau}_0= \mathbf{q}^t\)</span>, <span class="math inline">\(\mathbf{\dot q}^{t+\tau}_0=0\)</span> and <span class="math inline">\(\mathbf{f}^{t+\tau}_0=\mathbf{f}^t\)</span>. Assuming that the residual on position is omitted despite such inconsistent input, it yields for the first Newton iteration <span class="math display">\[
+\]</span> ⚠️ This is not necessarily true for the first iteration
+<span class="math inline">\(n=0\)</span>. Indeed, if <span class="math inline">\(\mathbf{q}^{t+\tau}_0\)</span> is chosen
+independently from <span class="math inline">\(\mathbf{\dot{q}}^{t+\tau}_0\)</span> then <span class="math display">\[
+\mathbf{q}^{t+\tau}_0 \neq
+\mathbf{q}^{t}+\tau\mathbf{\dot{q}}^{t+\tau}_0 \implies \mathrm R_{q,n}
+\neq 0
+\]</span></p><p>It could still be discarded to simplify the algorithm, at the risk of
+a slower convergence. This might be particularly interesting in
+non-linear scenarios, where multiple iterations would anyway be needed
+to converge. However, in a truncated scheme, halted before convergence
+after a single or few iterations like in near real-time applications,
+such approximation might be questionable. Nevertheless, it is commonly
+omitted.</p><p>⚠️ The force term <span class="math inline">\(\mathbf{f}^{t+\tau}_n\)</span> is computed as
+<span class="math inline">\(\mathbf{f}(\mathbf{q}_n^{t+\tau},\mathbf{\dot
+q}_n^{t+\tau})\)</span>. However, at the first iteration, <span class="math inline">\(\mathbf {f}^{t+\tau}_0\)</span> could also chosen
+independently from the choices of <span class="math inline">\(\mathbf{q}^{t+\tau}_0\)</span> and <span class="math inline">\(\mathbf{\dot{q}}^{t+\tau}_0\)</span> in order to
+accelerate the convergence of the scheme or simplify its formulation.
+<span class="math display">\[
+\mathbf{f}^{t+\tau}_0 \neq
+\mathbf{f}(\mathbf{q}^{t+\tau}_0,\mathbf{\dot{q}}^{t+\tau}_0)
+\]</span></p><h2 id=implicit-euler-linearized>Implicit Euler linearized</h2><p>A common choice of initial guesses are <span class="math inline">\(\mathbf{q}^{t+\tau}_0= \mathbf{q}^t\)</span>,
+<span class="math inline">\(\mathbf{\dot q}^{t+\tau}_0=0\)</span> and
+<span class="math inline">\(\mathbf{f}^{t+\tau}_0=\mathbf{f}^t\)</span>.
+Assuming that the residual on position is omitted despite such
+inconsistent input, it yields for the first Newton iteration <span class="math display">\[
 \begin{aligned}
 \left(\mathbf{M}+\tau\mathbf{D}_0+\tau^2\mathbf{K}_0\right)\mathbf{\dot{q}}^{t+\tau}_1&=
 \mathbf{M}\mathbf{q}^t - \tau\mathbf{f}^t
 \\
-\mathbf{q}^{t+\tau}_{1} &= \mathbf{q}^t+ \tau\mathbf{\dot q}^{t+\tau}_{1}
+\mathbf{q}^{t+\tau}_{1} &= \mathbf{q}^t+ \tau\mathbf{\dot
+q}^{t+\tau}_{1}
 \end{aligned}
-\]</span> Stopping at the first iteration gives the implicit Euler linearized scheme, an integrator that can handle complex phenomena, such as impacts and discontinuities, while being numerically tractable for soft real-time systems.</p><h2 id=further-initial-guesses>Further initial guesses</h2><p>With <span class="math inline">\(\mathbf{q}^{t+\tau}_0= \mathbf{q}^t\)</span> and <span class="math inline">\(\mathbf{\dot q}^{t+\tau}_0=\mathbf{\dot q}^{t}\)</span> <span class="math display">\[
+\]</span> Stopping at the first iteration gives the implicit Euler
+linearized scheme, an integrator that can handle complex phenomena, such
+as impacts and discontinuities, while being numerically tractable for
+soft real-time systems.</p><h2 id=further-initial-guesses>Further initial guesses</h2><p>With <span class="math inline">\(\mathbf{q}^{t+\tau}_0=
+\mathbf{q}^t\)</span> and <span class="math inline">\(\mathbf{\dot
+q}^{t+\tau}_0=\mathbf{\dot q}^{t}\)</span> <span class="math display">\[
 \begin{aligned}
 \left(\mathbf{M}+\tau\mathbf{D}+\tau^2\mathbf{K}\right)\mathbf{\dot{q}}^{t+\tau}_1&=
 (\mathbf{M}+\tau\mathbf{D})\mathbf{\dot{q}}^t - \tau\mathbf{f}^t
 \end{aligned}
-\]</span><br></p><p>With <span class="math inline">\(\mathbf{q}^{t+\tau}_0= \mathbf{q}^t + \tau\mathbf{\dot q}^t\)</span> and <span class="math inline">\(\mathbf{\dot q}^{t+\tau}_0=\mathbf{\dot q}^{t}\)</span> <span class="math display">\[
+\]</span><br></p><p>With <span class="math inline">\(\mathbf{q}^{t+\tau}_0= \mathbf{q}^t
++ \tau\mathbf{\dot q}^t\)</span> and <span class="math inline">\(\mathbf{\dot q}^{t+\tau}_0=\mathbf{\dot
+q}^{t}\)</span> <span class="math display">\[
 \begin{aligned}
 \left(\mathbf{M}+\tau\mathbf{D}+\tau^2\mathbf{K}\right)\mathbf{\dot{q}}^{t+\tau}_1&=
-\left(\mathbf{M}+\tau\mathbf{D}+\tau^2\mathbf{K}\right)\mathbf{\dot{q}}^t - \tau\mathbf{f}^t
+\left(\mathbf{M}+\tau\mathbf{D}+\tau^2\mathbf{K}\right)\mathbf{\dot{q}}^t
+- \tau\mathbf{f}^t
 \end{aligned}
-\]</span><br></p><p>With <span class="math inline">\(\mathbf{q}^{t+\tau}_0= \mathbf{q}^t + \tau\mathbf{\dot q}^t\)</span> and <span class="math inline">\(\mathbf{\dot q}^{t+\tau}_0=0\)</span> <span class="math display">\[
+\]</span><br></p><p>With <span class="math inline">\(\mathbf{q}^{t+\tau}_0= \mathbf{q}^t
++ \tau\mathbf{\dot q}^t\)</span> and <span class="math inline">\(\mathbf{\dot q}^{t+\tau}_0=0\)</span> <span class="math display">\[
 \begin{aligned}
 \left(\mathbf{M}+\tau\mathbf{D}+\tau^2\mathbf{K}\right)\mathbf{\dot{q}}^{t+\tau}_1&=
-\left(\mathbf{M}+\tau^2\mathbf{K}\right)\mathbf{\dot{q}}^t - \tau\mathbf{f}^t
+\left(\mathbf{M}+\tau^2\mathbf{K}\right)\mathbf{\dot{q}}^t -
+\tau\mathbf{f}^t
 \end{aligned}
-\]</span><br></p><p>With <span class="math inline">\(\mathbf{q}^{t+\tau}_0= \mathbf{q}^t + \tau\mathbf{\dot q}^t\)</span> and <span class="math inline">\(\mathbf{\dot q}^{t+\tau}_0=\mathbf{\dot q}^t+\tfrac{\tau}{\tau}(\mathbf{\dot q}^{t}-\mathbf{\dot q}^{t-\tau})=2\mathbf{\dot q}^t-\mathbf{\dot q}^{t-\tau}\)</span> <span class="math display">\[
+\]</span><br></p><p>With <span class="math inline">\(\mathbf{q}^{t+\tau}_0= \mathbf{q}^t
++ \tau\mathbf{\dot q}^t\)</span> and <span class="math inline">\(\mathbf{\dot q}^{t+\tau}_0=\mathbf{\dot
+q}^t+\tfrac{\tau}{\tau}(\mathbf{\dot q}^{t}-\mathbf{\dot
+q}^{t-\tau})=2\mathbf{\dot q}^t-\mathbf{\dot q}^{t-\tau}\)</span> <span class="math display">\[
 \begin{aligned}
 \left(\mathbf{M}+\tau\mathbf{D}+\tau^2\mathbf{K}\right)\mathbf{\dot{q}}^{t+\tau}_1&=
-\left(\mathbf{M}+\tau\mathbf{D}+\tau^2\mathbf{K}\right)\mathbf{\dot{q}}^t +\tau\mathbf{D}(\mathbf{\dot q}^t-\mathbf{\dot q}^{t-\tau}) - \tau\mathbf{f}^t
+\left(\mathbf{M}+\tau\mathbf{D}+\tau^2\mathbf{K}\right)\mathbf{\dot{q}}^t
++\tau\mathbf{D}(\mathbf{\dot q}^t-\mathbf{\dot q}^{t-\tau}) -
+\tau\mathbf{f}^t
 \end{aligned}
-\]</span><br></p><p>With <span class="math inline">\(\mathbf{q}^{t+\tau}_0= \mathbf{q}^t + \tau(2\mathbf{\dot q}^t-\mathbf{\dot q}^{t-\tau})\)</span> and <span class="math inline">\(\mathbf{\dot q}^{t+\tau}_0=2\mathbf{\dot q}^t-\mathbf{\dot q}^{t-\tau}\)</span></p><p><span class="math display">\[
+\]</span><br></p><p>With <span class="math inline">\(\mathbf{q}^{t+\tau}_0= \mathbf{q}^t
++ \tau(2\mathbf{\dot q}^t-\mathbf{\dot q}^{t-\tau})\)</span> and <span class="math inline">\(\mathbf{\dot q}^{t+\tau}_0=2\mathbf{\dot
+q}^t-\mathbf{\dot q}^{t-\tau}\)</span></p><p><span class="math display">\[
 \begin{aligned}
 \left(\mathbf{M}+\tau\mathbf{D}+\tau^2\mathbf{K}\right)\mathbf{\dot{q}}^{t+\tau}_1&=
-\left(\mathbf{M}+2\tau\mathbf{D}+2\tau^2\mathbf{K}\right)\mathbf{\dot{q}}^t -\left(\tau\mathbf{D}-\tau^2\mathbf{K}\right)\mathbf{\dot q}^{t-\tau} - \tau\mathbf{f}^t
+\left(\mathbf{M}+2\tau\mathbf{D}+2\tau^2\mathbf{K}\right)\mathbf{\dot{q}}^t
+-\left(\tau\mathbf{D}-\tau^2\mathbf{K}\right)\mathbf{\dot q}^{t-\tau} -
+\tau\mathbf{f}^t
 \end{aligned}
-\]</span></p></div></main><footer id=footer><div id=footer-inner>&copy;&nbsp;2020-2022&nbsp;&#183;&nbsp;Fabien Péan</div></footer><script>window.FontAwesomeConfig={searchPseudoElements:true}</script><script async src=https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/js/all.min.js integrity="sha256-MAgcygDRahs+F/Nk5Vz387whB4kSK9NXlDN3w58LLq0=" crossorigin=anonymous></script><script src=https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin=anonymous></script><script async defer src=https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/1.6.0/clipboard.min.js></script><script src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.18.1/highlight.min.js integrity="sha256-eOgo0OtLL4cdq7RdwRUiGKLX9XsIJ7nGhWEKbohmVAQ=" crossorigin=anonymous></script><script src=https://cdnjs.cloudflare.com/ajax/libs/mermaid/8.4.8/mermaid.min.js integrity="sha256-lyWCDMnMeZiXRi7Zl54sZGKYmgQs4izcT7+tKc+KUBk=" crossorigin=anonymous></script><script>mermaid.initialize({startOnLoad:true,securityLevel:'loose',theme:'default',themeCSS:'',cloneCssStyles:true,useMaxWidth:true,htmlLabels:false,flowchart:{curve:'basis'}});</script><script>window.MathJax={tex:{inlineMath:[['$','$'],['\\(','\\)']],displayMath:[['$$','$$'],['\\[','\\]']],processEscapes:false,processEnvironments:true,tags:'ams'},svg:{fontCache:'global',displayAlign:'left',displayIndent:'2emem'}};</script><script async type=text/javascript id=MathJax-script src=https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js></script><script src=/js/custom.js></script></body></html>
+\]</span></p></div></main><footer id=footer><div id=footer-inner>&copy;&nbsp;2020-2022&nbsp;&#183;&nbsp;Fabien Péan</div></footer><script>window.FontAwesomeConfig={searchPseudoElements:!0}</script><script src=https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/js/all.min.js integrity="sha512-6PM0qYu5KExuNcKt5bURAoT6KCThUmHRewN3zUFNaoI6Di7XJPTMoT6K0nsagZKk2OB4L7E3q1uQKHNHd4stIQ==" crossorigin=anonymous referrerpolicy=no-referrer></script>
+<script src=https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js referrerpolicy=no-referrer></script>
+<script src=https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.11/clipboard.min.js integrity="sha512-7O5pXpc0oCRrxk8RUfDYFgn0nO1t+jLuIOQdOMRp4APB7uZ4vSjspzp5y6YDtDs4VzUSTbWzBFZ/LKJhnyFOKw==" crossorigin=anonymous referrerpolicy=no-referrer></script>
+<script src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.1/highlight.min.js integrity="sha512-yUUc0qWm2rhM7X0EFe82LNnv2moqArj5nro/w1bi05A09hRVeIZbN6jlMoyu0+4I/Bu4Ck/85JQIU82T82M28w==" crossorigin=anonymous referrerpolicy=no-referrer></script>
+<script src=https://cdnjs.cloudflare.com/ajax/libs/mermaid/9.1.2/mermaid.min.js integrity="sha512-8ZrL1m0+KXHylxkFJdFtFCauQdV/KZMjSBL9iydsyIfiB1LwYBlGegX8dUlLnUtRDrTgWKP6pPVyOqa2VrqoNA==" crossorigin=anonymous referrerpolicy=no-referrer></script>
+<script>mermaid.initialize({startOnLoad:!0,securityLevel:"loose",theme:"default",themeCSS:"",cloneCssStyles:!0,useMaxWidth:!0,htmlLabels:!1,flowchart:{curve:"basis"}})</script><script>window.MathJax={tex:{inlineMath:[["$","$"],["\\(","\\)"]],displayMath:[["$$","$$"],["\\[","\\]"]],processEscapes:!1,processEnvironments:!0,tags:"ams"},svg:{fontCache:"global",displayAlign:"left",displayIndent:"2emem"}}</script><script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+<script id=MathJax-script async src=https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js></script>
+<script src=/js/custom.js></script></body></html>
