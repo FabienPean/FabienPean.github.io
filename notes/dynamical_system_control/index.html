@@ -1,5 +1,5 @@
 <!doctype html><html lang=en-us><!doctype html><html lang=en><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content><meta name=author content="Fabien Péan"><meta name=google-site-verification content="_OCqKj2I4fVqJsqpa9uq0utQ55W1kx93lTIQtHZ88mM"><link rel="shortcut icon" type=image/png href=/img/logo.svg><title>Fabien Péan &#183; Personal Website</title><meta name=robots content="index,follow"><meta name=googlebot content="index,follow"><link rel=stylesheet type=text/css href=/css/normalize.css><link rel=stylesheet href=/vendor/colors/css/colors.min.css><link rel=stylesheet href=/vendor/academicons/css/academicons.min.css><style>:root{--font-monospace:"Source Code Pro";--font-sans-serif:"Inter"}</style><link href="https://fonts.googleapis.com/css?family=Inter%7cSource+Code+Pro&display=swap" rel=stylesheet type=text/css><link rel=stylesheet href=/css/custom.css></head><body><body><nav id=nav><figure id=logo class=image><img src=/img/logo.svg></figure><div id=branding><div class=branding-title>Fabien Péan</div><div class=branding-subtitle></div></div><div id=menu><a class=menu-link href=/><div class=menu-item><span class=menu-label><i class="fas fa-home fa-fw"></i>&nbsp;Home</span></div></a><a class=menu-link href=/news><div class=menu-item><span class=menu-label><i class="fas fa-newspaper fa-fw"></i>&nbsp;News</span></div></a><a class=menu-link href=/blog><div class=menu-item><span class=menu-label><i class="fas fa-pencil-alt fa-fw"></i>&nbsp;Blog</span></div></a><a class=menu-link href=/notes><div class=menu-item><span class=menu-label><i class="fas fa-sticky-note fa-fw"></i>&nbsp;Notes</span></div></a><a class=menu-link href=/projects><div class=menu-item><span class=menu-label><i class="fas fa-book fa-fw"></i>&nbsp;Projects</span></div></a></div><div class=social><div class=social-list><div style="display:flex;flex-flow:row wrap;justify-content:center"><div class="social-button email"><a href=mailto:fabien@pean.pro rel=author><i class="fas fa-at fa-2x"></i></a></div><div class="social-button bitbucket"><a href=https://bitbucket.org/FabienPean rel="author external"><i class="fab fa-bitbucket fa-2x"></i></a></div><div class="social-button github"><a href=https://github.com/FabienPean rel="author external"><i class="fab fa-github fa-2x"></i></a></div><div class="social-button linkedin"><a href=https://www.linkedin.com/in/FabienPean rel="author external"><i class="fab fa-linkedin fa-2x"></i></a></div></div></div></div></nav><main id=main><div class=content><h1>Dynamical system control</h1><small><div class=subtitle style="display:flex;flex-flow:row wrap;justify-content:space-between"><span style="flex:1 0 auto;max-width:100%"><span class=tooltip>28/03/2021
-<span class=tooltiptext><small>updated on 18/06/2022</small></span>
+<span class=tooltiptext><small>updated on 02/02/2023</small></span>
 </span>&nbsp;&boxv;&nbsp;<a href=/notes>Notes</a></span><div class=tag-list><a href=/tags/numerical-analysis><div class=tag>numerical analysis</div></a><a href=/tags/control><div class=tag>control</div></a></div></div></small><br><p><span class="math inline">\(\newcommand{\T}{\mathsf{\small{T}}}\newcommand{\d}{\mathrm{d}}\)</span></p><h2 id=notations>Notations</h2><p>Let <span class="math inline">\(\mathbf{q},\mathbf{\dot
 q},\mathbf{\ddot q}\)</span> be the generalized coordinates, velocities,
 and accelerations. The vector <span class="math inline">\(\mathbf{a}\)</span> represent the controllable
@@ -23,7 +23,6 @@ q}=\mathbf{G}\mathbf{\dot q}=0\)</span></p><h2 id=discretization>Discretization<
 q}(t),\mathbf{a}(t))=\mathbf{G}^\T\!(\mathbf{q}(t))\boldsymbol{\lambda}(t)
 \]</span> The derivation is performed based on the <a href=/notes/timestepping_implicit_euler/>implicit Euler</a> scheme.
 The iterative procedure resulting from the Newton’s method yields <span class="math display">\[
-\begin{equation}
 \begin{aligned}
 \mathbf{H}_n\Delta\mathbf{\dot{q}}&=
 -\mathrm{R}_{\mathbf{\dot
@@ -47,7 +46,6 @@ q}^{t+\tau}_{n+1}
 \mathbf{f}\left(\mathbf{q}^{t+\tau}_{n+1},\mathbf{\dot
 q}^{t+\tau}_{n+1},\mathbf{a}^{t+\tau}_{n+1}\right)
 \end{aligned}
-\end{equation}
 \]</span> with <span class="math display">\[
 \begin{aligned}
 &\mathbf{H} =
@@ -64,7 +62,6 @@ q}^t-\mathbf{\dot q}^{t+\tau}_n\right)-\tau\mathbf{f}^{t+\tau}_n\\
 the sake of clarity. Since the residual on position is projected at
 every iteration, which means <span class="math inline">\(\mathrm{R}_\mathbf{q}=0\)</span>, the system can
 be further simplified as <span class="math display">\[
-\begin{equation}
 \begin{aligned}
 \mathbf{H}\Delta\mathbf{\dot{q}}&=
 -\mathrm{R}_{\mathbf{\dot q},n}+
@@ -72,7 +69,6 @@ be further simplified as <span class="math display">\[
 -\tau\mathbf{A}\Delta\mathbf{a}
 \\
 \end{aligned}
-\end{equation}
 \]</span></p><p>which provides the discretized residual <span class="math display">\[
 \mathbf{Q} = \mathbf{H}\Delta\mathbf{\dot{q}}+\mathrm{R}_{\mathbf{\dot
 q},n} + \tau\mathbf{A}\Delta\mathbf{a} -
