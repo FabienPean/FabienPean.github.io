@@ -320,8 +320,7 @@ small > .subtitle {
         ". branding social"
         "menu menu menu" ;
         grid-template-rows: auto;
-        grid-template-columns: minmax(0,1fr) minmax(max-content,1fr) minmax(max-content,1fr) ;
-        
+        grid-template-columns: 1fr 1fr 1fr;
         align-self: start;
         position:relative;
         top:0;
