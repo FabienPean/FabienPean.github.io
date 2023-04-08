@@ -52,6 +52,16 @@ p > img {
     filter: brightness(86.666%);/* exact percentage need to shift a pure white background to my light color background #DDD */
     max-width:100%;
 }
+img {
+    margin: auto;
+    display: block;
+    max-width: 100%;
+}
+span[title] {
+    border-bottom: none;
+    text-decoration: underline;
+    text-decoration: underline dotted;
+}
 h1 {
     margin-block-start: 0.8em;
     margin-block-end: 0.6em;
@@ -87,6 +97,7 @@ body {
     overflow-x:hidden;
 	scrollbar-width: none;
 }
+
 table{
     border-collapse: collapse;
     border-spacing: 0;
