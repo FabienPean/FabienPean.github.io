@@ -1,20 +1,2 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Constraint on My Personal Website</title><link>https://fabien.pean.pro/tags/constraint/</link><description>Recent content in Constraint on My Personal Website</description><generator>Hugo</generator><language>en-us</language><lastBuildDate>Sat, 18 Jun 2022 19:23:31 +0200</lastBuildDate><atom:link href="https://fabien.pean.pro/tags/constraint/index.xml" rel="self" type="application/rss+xml"/><item><title>Nitsche method for weakly enforced Dirichlet boundary conditions</title><link>https://fabien.pean.pro/notes/boundarycondition_weak_nitsche/</link><pubDate>Mon, 22 Nov 2021 00:00:00 +0000</pubDate><guid>https://fabien.pean.pro/notes/boundarycondition_weak_nitsche/</guid><description>&lt;h2 id="disclaimer">Disclaimer&lt;/h2>
-&lt;p>For the sake of simplicity, the following post focuses on weak
-Dirichlet boundary conditions applied to the linear elastostatics
-problem. This document reflects my understanding and interpretation of
-the method. If you spot a mistake, please let me know !&lt;/p>
-&lt;h2 id="context">Context&lt;/h2>
-&lt;p>Numerical models of physical systems are often represented as
-Boundary Value Problem, which consists of a Partial Differential
-Equation governing the domain accompanied by boundary conditions, known
-values on the boundary of the domain. Boundary conditions are
-effectively constraints: they are values that must be enforced at some
-coordinates. Boundary conditions applied directly on the unknown field
-are called essential or Dirichlet boundary conditions. The spatial
-discretization required by the weak form of the problem is often chosen
-to match the boundary of the domain of interest. Together with an
-interpolating polynomial space, this enables to statically condense out
-known values from the resulting linear system of equations. However,
-this does not have to be the case, and the discretized space can cover
-the domain of interest. In such cases, the essential boundary conditions
-cannot be straightforwardly enforced.&lt;/p></description></item></channel></rss>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>constraint on My Personal Website</title><link>https://fabien.pean.pro/tags/constraint/</link><description>Recent content in constraint on My Personal Website</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Mon, 22 Nov 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://fabien.pean.pro/tags/constraint/index.xml" rel="self" type="application/rss+xml"/><item><title>Nitsche method for weakly enforced Dirichlet boundary conditions</title><link>https://fabien.pean.pro/notes/boundarycondition_weak_nitsche/</link><pubDate>Mon, 22 Nov 2021 00:00:00 +0000</pubDate><guid>https://fabien.pean.pro/notes/boundarycondition_weak_nitsche/</guid><description>Disclaimer For the sake of simplicity, the following post focuses on weak Dirichlet boundary conditions applied to the linear elastostatics problem. This document reflects my understanding and interpretation of the method. If you spot a mistake, please let me know !
+Context Numerical models of physical systems are often represented as Boundary Value Problem, which consists of a Partial Differential Equation governing the domain accompanied by boundary conditions, known values on the boundary of the domain.</description></item></channel></rss>
