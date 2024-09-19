@@ -1,3 +1,38 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Notes on My Personal Website</title><link>https://fabien.pean.pro/notes/</link><description>Recent content in Notes on My Personal Website</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Sun, 29 Mar 2020 19:21:01 +0200</lastBuildDate><atom:link href="https://fabien.pean.pro/notes/index.xml" rel="self" type="application/rss+xml"/><item><title>Nitsche method for weakly enforced Dirichlet boundary conditions</title><link>https://fabien.pean.pro/notes/boundarycondition_weak_nitsche/</link><pubDate>Mon, 22 Nov 2021 00:00:00 +0000</pubDate><guid>https://fabien.pean.pro/notes/boundarycondition_weak_nitsche/</guid><description>Disclaimer For the sake of simplicity, the following post focuses on weak Dirichlet boundary conditions applied to the linear elastostatics problem. This document reflects my understanding and interpretation of the method. If you spot a mistake, please let me know !
-Context Numerical models of physical systems are often represented as Boundary Value Problem, which consists of a Partial Differential Equation governing the domain accompanied by boundary conditions, known values on the boundary of the domain.</description></item><item><title>Dynamical system control</title><link>https://fabien.pean.pro/notes/dynamical_system_control/</link><pubDate>Sun, 28 Mar 2021 00:00:00 +0000</pubDate><guid>https://fabien.pean.pro/notes/dynamical_system_control/</guid><description>\(\newcommand{\T}{\mathsf{\small{T}}}\newcommand{\d}{\mathrm{d}}\)
-Notations Let \(\mathbf{q},\mathbf{\dot q},\mathbf{\ddot q}\) be the generalized coordinates, velocities, and accelerations. The vector \(\mathbf{a}\) represent the controllable parameters, which are to be read as the activation parameters. The superscripts involving \(t\) will be used to denote time points such that \(\mathbf{q}^{t+\tau} = \mathbf{q}(t+\tau)\) represents the discrete value of \(\mathbf{q}\) at time \(t+\tau\), while subscript involving \(n\) as in \(\mathbf{q}_n^t\) will represent the value of \(\mathbf{q}^t\) at some iteration \(n\).</description></item><item><title>WTF C&amp;plus;&amp;plus;</title><link>https://fabien.pean.pro/notes/wtf-cplusplus/</link><pubDate>Sun, 30 Aug 2020 00:00:00 +0000</pubDate><guid>https://fabien.pean.pro/notes/wtf-cplusplus/</guid><description>&lt;p>In this page, I enumerate various C++ fragments that sparkled my incomprehension when I encountered them, or made me scratch my head far too long. It is meant to be a reminder mainly for myself and destined to be updated over time.&lt;/p></description></item></channel></rss>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Notes on My Personal Website</title><link>https://fabien.pean.pro/notes/</link><description>Recent content in Notes on My Personal Website</description><generator>Hugo</generator><language>en-us</language><lastBuildDate>Sat, 07 Oct 2023 00:25:06 +0200</lastBuildDate><atom:link href="https://fabien.pean.pro/notes/index.xml" rel="self" type="application/rss+xml"/><item><title>Nitsche method for weakly enforced Dirichlet boundary conditions</title><link>https://fabien.pean.pro/notes/boundarycondition_weak_nitsche/</link><pubDate>Mon, 22 Nov 2021 00:00:00 +0000</pubDate><guid>https://fabien.pean.pro/notes/boundarycondition_weak_nitsche/</guid><description>&lt;h2 id="disclaimer">Disclaimer&lt;/h2>
+&lt;p>For the sake of simplicity, the following post focuses on weak
+Dirichlet boundary conditions applied to the linear elastostatics
+problem. This document reflects my understanding and interpretation of
+the method. If you spot a mistake, please let me know !&lt;/p>
+&lt;h2 id="context">Context&lt;/h2>
+&lt;p>Numerical models of physical systems are often represented as
+Boundary Value Problem, which consists of a Partial Differential
+Equation governing the domain accompanied by boundary conditions, known
+values on the boundary of the domain. Boundary conditions are
+effectively constraints: they are values that must be enforced at some
+coordinates. Boundary conditions applied directly on the unknown field
+are called essential or Dirichlet boundary conditions. The spatial
+discretization required by the weak form of the problem is often chosen
+to match the boundary of the domain of interest. Together with an
+interpolating polynomial space, this enables to statically condense out
+known values from the resulting linear system of equations. However,
+this does not have to be the case, and the discretized space can cover
+the domain of interest. In such cases, the essential boundary conditions
+cannot be straightforwardly enforced.&lt;/p></description></item><item><title>Dynamical system control</title><link>https://fabien.pean.pro/notes/dynamical_system_control/</link><pubDate>Sun, 28 Mar 2021 00:00:00 +0000</pubDate><guid>https://fabien.pean.pro/notes/dynamical_system_control/</guid><description>&lt;p>&lt;span
+class="math inline">\(\newcommand{\T}{\mathsf{\small{T}}}\newcommand{\d}{\mathrm{d}}\)&lt;/span>&lt;/p>
+&lt;h2 id="notations">Notations&lt;/h2>
+&lt;p>Let &lt;span class="math inline">\(\mathbf{q},\mathbf{\dot
+q},\mathbf{\ddot q}\)&lt;/span> be the generalized coordinates, velocities,
+and accelerations. The vector &lt;span
+class="math inline">\(\mathbf{a}\)&lt;/span> represent the controllable
+parameters, which are to be read as the &lt;em>activation&lt;/em> parameters.
+The superscripts involving &lt;span class="math inline">\(t\)&lt;/span> will
+be used to denote time points such that &lt;span
+class="math inline">\(\mathbf{q}^{t+\tau} = \mathbf{q}(t+\tau)\)&lt;/span>
+represents the discrete value of &lt;span
+class="math inline">\(\mathbf{q}\)&lt;/span> at time &lt;span
+class="math inline">\(t+\tau\)&lt;/span>, while subscript involving &lt;span
+class="math inline">\(n\)&lt;/span> as in &lt;span
+class="math inline">\(\mathbf{q}_n^t\)&lt;/span> will represent the value
+of &lt;span class="math inline">\(\mathbf{q}^t\)&lt;/span> at some iteration
+&lt;span class="math inline">\(n\)&lt;/span>. The symbol &lt;span
+class="math inline">\(\tau\)&lt;/span> represents the timestep.&lt;/p></description></item><item><title>WTF C&amp;plus;&amp;plus;</title><link>https://fabien.pean.pro/notes/wtf-cplusplus/</link><pubDate>Sun, 30 Aug 2020 00:00:00 +0000</pubDate><guid>https://fabien.pean.pro/notes/wtf-cplusplus/</guid><description>&lt;p>In this page, I enumerate various C++ fragments that sparkled my incomprehension when I encountered them, or made me scratch my head far too long. It is meant to be a reminder mainly for myself and destined to be updated over time.&lt;/p></description></item></channel></rss>

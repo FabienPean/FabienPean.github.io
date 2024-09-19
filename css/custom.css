@@ -525,6 +525,10 @@ div.mermaid {
   margin-bottom: 1rem;
   overflow-x: auto;
 }
+div.highlight
+{
+    overflow-x: auto;
+}
 div.highlight > pre {
     padding: 0.5rem 1rem;
 }
